@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la c:marketplacecomerciatailwind.config.* c:marketplacecomercianext.config.* c:marketplacecomerciapostcss.config.*)"
+    ]
+  }
+}
