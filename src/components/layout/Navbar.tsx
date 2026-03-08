@@ -2,10 +2,27 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
-export function Navbar() {
+export function Navbar({ user }: { user?: User | null }) {
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
+  const displayName =
+    user?.user_metadata?.full_name ??
+    user?.user_metadata?.name ??
+    user?.email?.split("@")[0] ??
+    "Mi cuenta";
 
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 50 }}>
@@ -101,7 +118,7 @@ export function Navbar() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar en San Juan..."
+              placeholder="¿Qué estás buscando?"
               style={{
                 flex: 1,
                 border: "none",
@@ -134,36 +151,76 @@ export function Navbar() {
             className="hidden md:flex items-center gap-3"
             style={{ flexShrink: 0, marginLeft: "auto" }}
           >
-            <Link
-              href="/login"
-              style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}
-              className="hover:text-indigo-600"
-            >
-              Ingresar
-            </Link>
-            <Link
-              href="/register"
-              style={{ fontSize: "14px", color: "#475569" }}
-              className="hover:text-indigo-600"
-            >
-              Crear cuenta
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  style={{ fontSize: "14px", color: "#475569", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}
+                  className="hover:text-indigo-600"
+                >
+                  <div style={{
+                    width: "28px", height: "28px", borderRadius: "50%",
+                    background: "#eef2ff", border: "1.5px solid #c7d2fe",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "12px", fontWeight: 800, color: "#6366f1",
+                  }}>
+                    {displayName[0].toUpperCase()}
+                  </div>
+                  {displayName}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  style={{ fontSize: "14px", color: "#94a3b8", fontWeight: 500, background: "none", border: "none", cursor: "pointer" }}
+                  className="hover:text-red-500"
+                >
+                  Salir
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}
+                  className="hover:text-indigo-600"
+                >
+                  Ingresar
+                </Link>
+                <Link
+                  href="/register"
+                  style={{ fontSize: "14px", color: "#475569" }}
+                  className="hover:text-indigo-600"
+                >
+                  Crear cuenta
+                </Link>
+              </>
+            )}
             <Link href="/listings/new">
               <button
                 style={{
-                  background: "#6366f1",
+                  background: "linear-gradient(135deg, #f97316, #fb923c)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "8px",
-                  padding: "8px 18px",
-                  fontWeight: 700,
-                  fontSize: "14px",
+                  padding: "8px 16px",
+                  fontWeight: 800,
+                  fontSize: "13px",
                   cursor: "pointer",
-                  boxShadow: "0 2px 8px rgba(99,102,241,0.25)",
-                  transition: "all 0.15s",
+                  boxShadow: "0 2px 10px rgba(249,115,22,0.35)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  whiteSpace: "nowrap",
                 }}
               >
-                + Publicar aviso
+                📸 Publicar con IA
+                <span style={{
+                  background: "rgba(255,255,255,0.25)",
+                  borderRadius: "4px",
+                  padding: "1px 5px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.5px",
+                }}>GRATIS</span>
               </button>
             </Link>
           </div>
@@ -258,7 +315,7 @@ export function Navbar() {
             <span style={{ paddingLeft: "12px", color: "#94a3b8" }}>🔍</span>
             <input
               type="text"
-              placeholder="Buscar en San Juan..."
+              placeholder="¿Qué estás buscando?"
               style={{
                 flex: 1,
                 border: "none",
@@ -273,33 +330,42 @@ export function Navbar() {
             <button
               style={{
                 width: "100%",
-                background: "#6366f1",
+                background: "linear-gradient(135deg, #f97316, #fb923c)",
                 color: "#fff",
                 border: "none",
                 borderRadius: "8px",
                 padding: "11px",
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: "14px",
                 cursor: "pointer",
+                boxShadow: "0 2px 10px rgba(249,115,22,0.3)",
               }}
             >
-              + Publicar aviso
+              📸 Publicar con IA — Gratis
             </button>
           </Link>
-          <div style={{ display: "flex", gap: "16px" }}>
-            <Link
-              href="/login"
-              style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}
-            >
-              Ingresar
-            </Link>
-            <Link
-              href="/register"
-              style={{ fontSize: "14px", color: "#475569" }}
-            >
-              Crear cuenta
-            </Link>
-          </div>
+          {user ? (
+            <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+              <Link href="/dashboard" style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}>
+                👤 {displayName}
+              </Link>
+              <button
+                onClick={handleSignOut}
+                style={{ fontSize: "14px", color: "#94a3b8", background: "none", border: "none", cursor: "pointer" }}
+              >
+                Salir
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: "16px" }}>
+              <Link href="/login" style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}>
+                Ingresar
+              </Link>
+              <Link href="/register" style={{ fontSize: "14px", color: "#475569" }}>
+                Crear cuenta
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

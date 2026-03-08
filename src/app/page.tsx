@@ -1,8 +1,13 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ListingCard } from "@/components/listings/ListingCard";
+import { CategorySidebar } from "@/components/layout/CategorySidebar";
+import { LocationInput } from "@/components/ui/LocationInput";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
-const categories = [
+const CATEGORIES = [
   { name: "Electrónica", slug: "electronics", icon: "📱" },
   { name: "Vehículos", slug: "vehicles", icon: "🚗" },
   { name: "Inmuebles", slug: "real-estate", icon: "🏠" },
@@ -15,587 +20,506 @@ const categories = [
   { name: "Otros", slug: "other", icon: "📦" },
 ];
 
-const quickLinks = [
-  { label: "📱 Electrónica", slug: "electronics" },
-  { label: "🚗 Vehículos", slug: "vehicles" },
-  { label: "🏠 Inmuebles", slug: "real-estate" },
-  { label: "👗 Ropa", slug: "clothing" },
-  { label: "⚽ Deportes", slug: "sports" },
-];
+async function getHomeData() {
+  const supabase = await createClient();
 
-const howItWorks = [
-  {
-    step: "01",
-    icon: "📸",
-    title: "Sacá una foto",
-    desc: "Fotografiá lo que querés vender con tu celular o cualquier cámara.",
-  },
-  {
-    step: "02",
-    icon: "🤖",
-    title: "La IA hace todo",
-    desc: "Generamos título, descripción y precio sugerido usando MercadoLibre en segundos.",
-  },
-  {
-    step: "03",
-    icon: "🚀",
-    title: "Publicado",
-    desc: "Revisá, ajustá si querés, y llegá a miles de compradores en San Juan.",
-  },
-];
+  const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, featured_level, attributes, listing_images(url, position)";
 
-export default function HomePage() {
+  const [
+    { data: featuredVehicles },
+    { data: featuredRealEstate },
+    { data: recent },
+    { count: totalListings },
+    { count: totalSellers },
+    { data: catCounts },
+  ] = await Promise.all([
+    // Featured vehicles (category_id = 2)
+    supabase
+      .from("listings")
+      .select(FIELDS)
+      .eq("status", "active")
+      .eq("featured_level", "gold")
+      .eq("category_id", 2)
+      .order("created_at", { ascending: false })
+      .limit(4),
+
+    // Featured real estate (category_id = 3)
+    supabase
+      .from("listings")
+      .select(FIELDS)
+      .eq("status", "active")
+      .eq("featured_level", "gold")
+      .eq("category_id", 3)
+      .order("created_at", { ascending: false })
+      .limit(4),
+
+    // Recent listings
+    supabase
+      .from("listings")
+      .select("id, title, price, currency, condition, neighborhood, created_at, listing_images(url, position)")
+      .eq("status", "active")
+      .is("featured_level", null)
+      .order("created_at", { ascending: false })
+      .limit(8),
+
+    // Total count
+    supabase
+      .from("listings")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active"),
+
+    // Sellers count
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+
+    // Per-category counts
+    supabase.from("listings").select("category_id").eq("status", "active"),
+  ]);
+
+  // Count per category_id
+  const counts: Record<number, number> = {};
+  for (const row of catCounts ?? []) {
+    counts[row.category_id] = (counts[row.category_id] ?? 0) + 1;
+  }
+
+  return {
+    featuredVehicles: featuredVehicles ?? [],
+    featuredRealEstate: featuredRealEstate ?? [],
+    recent: recent ?? [],
+    totalListings: totalListings ?? 0,
+    totalSellers: totalSellers ?? 0,
+    categoryCounts: counts,
+  };
+}
+
+function getCoverImage(listing: any): string | null {
+  const imgs = listing.listing_images;
+  if (!imgs?.length) return null;
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
-      <Navbar />
+    [...imgs].sort((a: any, b: any) => a.position - b.position)[0]?.url ?? null
+  );
+}
 
-      {/* ── HERO ─────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: "linear-gradient(180deg, #f0f4ff 0%, #f8fafc 100%)",
-          width: "100%",
-          padding: "60px 24px 48px",
-          textAlign: "center",
-          borderBottom: "1px solid #e2e8f0",
-        }}
-      >
-        <div style={{ maxWidth: "680px", margin: "0 auto" }}>
-          {/* Badge */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              borderRadius: "20px",
-              padding: "5px 14px",
-              marginBottom: "20px",
-            }}
-          >
-            <span style={{ fontSize: "13px" }}>✨</span>
-            <span
-              style={{ fontSize: "12px", color: "#2563eb", fontWeight: 600 }}
-            >
-              Inteligencia artificial integrada
-            </span>
-          </div>
+export default async function HomePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-          {/* Headline */}
-          <h1
-            style={{
-              fontSize: "44px",
-              fontWeight: 900,
-              color: "#0f172a",
-              lineHeight: 1.1,
-              letterSpacing: "-2px",
-              marginBottom: "14px",
-            }}
-          >
-            Comprá y vendé en <span style={{ color: "#6366f1" }}>San Juan</span>
-            <br />
-            más fácil que nunca
-          </h1>
+  const { featuredVehicles, featuredRealEstate, recent, totalListings, totalSellers, categoryCounts } =
+    await getHomeData();
 
-          <p
-            style={{
-              fontSize: "16px",
-              color: "#64748b",
-              marginBottom: "32px",
-              lineHeight: 1.7,
-              maxWidth: "480px",
-              margin: "0 auto 32px",
-            }}
-          >
-            Publicá en 30 segundos — subí una foto y la IA genera el título,
-            descripción y precio sugerido automáticamente.
-          </p>
+  const categoriesWithCount = CATEGORIES
+    .map((c, i) => ({ ...c, count: categoryCounts[i + 1] ?? 0 }))
+    .sort((a, b) => b.count - a.count);
 
-          {/* Search bar */}
-          <div
-            style={{
-              display: "flex",
-              maxWidth: "560px",
-              margin: "0 auto 20px",
-              boxShadow: "0 4px 24px rgba(99,102,241,0.12)",
-              borderRadius: "14px",
-              overflow: "hidden",
-              border: "2px solid #e0e7ff",
-              background: "#fff",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                paddingLeft: "18px",
-              }}
-            >
-              <span style={{ fontSize: "18px", color: "#94a3b8" }}>🔍</span>
-            </div>
-            <input
-              type="text"
-              placeholder="iPhone, auto, departamento, ropa..."
-              style={{
-                flex: 1,
-                border: "none",
-                outline: "none",
-                padding: "16px 14px",
-                fontSize: "15px",
-                color: "#0f172a",
-                background: "transparent",
-              }}
-            />
-            <Link href="/listings">
-              <button
-                style={{
-                  background: "#6366f1",
-                  color: "#fff",
-                  border: "none",
-                  padding: "0 28px",
-                  fontWeight: 700,
-                  fontSize: "15px",
-                  cursor: "pointer",
-                  height: "100%",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Buscar
-              </button>
-            </Link>
-          </div>
+  return (
+    <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
+      <Navbar user={user} />
 
-          {/* Quick category pills */}
-          <div
-            style={{
-              display: "flex",
-              gap: "8px",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            {quickLinks.map((c) => (
-              <Link key={c.slug} href={`/category/${c.slug}`}>
-                <span
-                  style={{
-                    background: "#fff",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "20px",
-                    padding: "6px 14px",
-                    fontSize: "13px",
-                    color: "#475569",
-                    cursor: "pointer",
-                    display: "inline-block",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {c.label}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS BAR ────────────────────────────────────────── */}
-      <section
-        style={{ background: "#6366f1", width: "100%", padding: "18px 24px" }}
+      <div
+        style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 20px" }}
       >
         <div
           style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "center",
-            gap: "64px",
-            flexWrap: "wrap",
+            display: "grid",
+            gridTemplateColumns: "220px 1fr",
+            gap: "20px",
+            alignItems: "start",
           }}
         >
-          {[
-            { value: "0", label: "Avisos activos" },
-            { value: "0", label: "Vendedores" },
-            { value: "30s", label: "Para publicar con IA" },
-            { value: "100%", label: "Gratis para vender" },
-          ].map((stat) => (
-            <div key={stat.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "24px", fontWeight: 900, color: "#fff" }}>
-                {stat.value}
+          {/* ── SIDEBAR ── */}
+          <CategorySidebar categories={categoriesWithCount} />
+
+          {/* ── MAIN CONTENT ── */}
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+          >
+            {/* Hero — split: buscar | publicar con IA */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr auto",
+              borderRadius: "14px",
+              overflow: "hidden",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.07)",
+            }}>
+              {/* Left: search */}
+              <div style={{ background: "#fff", padding: "20px 24px 20px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#94a3b8", marginBottom: "10px", letterSpacing: "0.3px" }}>
+                  ¿QUÉ ESTÁS BUSCANDO?
+                </div>
+                <form action="/listings" method="GET" style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+                  <div style={{
+                    flex: 2, display: "flex", alignItems: "center", gap: "8px",
+                    border: "1.5px solid #e2e8f0", borderRadius: "10px",
+                    padding: "0 14px", background: "#fafafa",
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input name="q" placeholder="¿Qué buscas?" style={{
+                      flex: 1, border: "none", outline: "none", fontSize: "14px",
+                      background: "transparent", padding: "11px 0", color: "#333",
+                    }} />
+                  </div>
+                  <LocationInput />
+                  <button type="submit" style={{
+                    background: "#f97316", color: "#fff", border: "none",
+                    borderRadius: "10px", padding: "0 20px",
+                    fontWeight: 700, fontSize: "14px", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: "6px",
+                    whiteSpace: "nowrap",
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Buscar
+                  </button>
+                </form>
+
+                {/* Category shortcuts */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "6px" }}>
+                  {[
+                    { label: "Vehículos",   slug: "vehicles"    },
+                    { label: "Inmuebles",   slug: "real-estate" },
+                    { label: "Electrónica", slug: "electronics" },
+                    { label: "Ropa",        slug: "clothing"    },
+                    { label: "Hogar",       slug: "home-garden" },
+                    { label: "Deportes",    slug: "sports"      },
+                  ].map((cat) => (
+                    <Link key={cat.slug} href={`/category/${cat.slug}`} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        gap: "5px", padding: "10px 6px", borderRadius: "10px", cursor: "pointer",
+                        background: "#f8fafc", border: "1px solid #f1f5f9", transition: "all 0.15s",
+                      }}
+                      className="hover:border-slate-200 hover:bg-white hover:shadow-sm"
+                      >
+                        <CategoryIcon slug={cat.slug} size={32} />
+                        <span style={{ fontSize: "10px", fontWeight: 600, color: "#475569", textAlign: "center" }}>{cat.label}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
+
+              {/* Right: publish with AI */}
+              <div style={{
+                background: "linear-gradient(160deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%)",
+                padding: "20px 24px",
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                minWidth: "210px", gap: "10px",
+                position: "relative", overflow: "hidden",
+              }}>
+                {/* decorative blur circle */}
+                <div style={{
+                  position: "absolute", width: "120px", height: "120px",
+                  background: "rgba(249,115,22,0.25)", borderRadius: "50%",
+                  top: "-30px", right: "-30px", filter: "blur(40px)",
+                }} />
+                <div style={{
+                  position: "absolute", width: "80px", height: "80px",
+                  background: "rgba(139,92,246,0.3)", borderRadius: "50%",
+                  bottom: "-20px", left: "-20px", filter: "blur(30px)",
+                }} />
+
+                <div style={{ fontSize: "36px", lineHeight: 1 }}>📸</div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "15px", fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: "4px" }}>
+                    Publicá con IA
+                  </div>
+                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", lineHeight: 1.4 }}>
+                    Sacá una foto y la IA<br/>genera todo en 30 seg.
+                  </div>
+                </div>
+
+                <Link href="/listings/new" style={{ width: "100%" }}>
+                  <button style={{
+                    width: "100%",
+                    background: "linear-gradient(135deg, #f97316, #fb923c)",
+                    color: "#fff", border: "none", borderRadius: "9px",
+                    padding: "10px 0", fontWeight: 800, fontSize: "13px",
+                    cursor: "pointer", boxShadow: "0 4px 14px rgba(249,115,22,0.4)",
+                  }}>
+                    Publicar gratis →
+                  </button>
+                </Link>
+
+                <div style={{ display: "flex", gap: "10px" }}>
+                  {["✓ Gratis", "✓ 30 seg.", "✓ IA"].map((t) => (
+                    <span key={t} style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{t}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── FEATURED VEHICLES ── */}
+            {featuredVehicles.length > 0 && (
+              <FeaturedSection
+                title="🚗 Vehículos Premium"
+                items={featuredVehicles}
+                href="/category/vehicles"
+                getCover={getCoverImage}
+              />
+            )}
+
+            {/* ── FEATURED REAL ESTATE ── */}
+            {featuredRealEstate.length > 0 && (
+              <FeaturedSection
+                title="🏠 Inmuebles Premium"
+                items={featuredRealEstate}
+                href="/category/real-estate"
+                getCover={getCoverImage}
+              />
+            )}
+
+            {/* Upsell si no hay ningún featured */}
+            {featuredVehicles.length === 0 && featuredRealEstate.length === 0 && (
+              <div style={{
+                background: "#fffbeb", border: "1px solid #fde68a",
+                borderRadius: "10px", padding: "10px 16px",
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "16px" }}>⭐</span>
+                  <div>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#92400e" }}>Sé el primero en destacarte</span>
+                    <span style={{ fontSize: "12px", color: "#b45309", marginLeft: "6px" }}>· Recibí 5× más consultas</span>
+                  </div>
+                </div>
+                <Link href="/upgrade">
+                  <button style={{
+                    background: "linear-gradient(135deg,#f59e0b,#fbbf24)", color: "#fff",
+                    border: "none", borderRadius: "7px", padding: "6px 14px",
+                    fontWeight: 800, fontSize: "12px", cursor: "pointer",
+                  }}>
+                    Ver planes →
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {/* ── RECENT LISTINGS ── */}
+            <div>
               <div
                 style={{
-                  fontSize: "12px",
-                  color: "rgba(255,255,255,0.75)",
-                  marginTop: "2px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "12px",
                 }}
               >
-                {stat.label}
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: "15px",
+                    color: "#0f172a",
+                  }}
+                >
+                  🕐 Últimos avisos
+                </span>
+                <Link
+                  href="/listings"
+                  style={{
+                    fontSize: "12px",
+                    color: "#6366f1",
+                    textDecoration: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Ver todos →
+                </Link>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      {/* ── MAIN CONTENT ─────────────────────────────────────── */}
-      <div
-        style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 24px" }}
-      >
-        {/* Categories grid */}
-        <section style={{ marginBottom: "48px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "20px",
-            }}
-          >
-            <div>
-              <h2
-                style={{
-                  fontSize: "22px",
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  marginBottom: "4px",
-                }}
-              >
-                Explorar categorías
-              </h2>
-              <p style={{ fontSize: "13px", color: "#94a3b8" }}>
-                Encontrá lo que buscás en San Juan
-              </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5, 1fr)",
-              gap: "12px",
-            }}
-          >
-            {categories.map((cat) => (
-              <Link key={cat.slug} href={`/category/${cat.slug}`}>
+              {recent.length > 0 ? (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "10px",
+                  }}
+                >
+                  {recent.map((l: any) => (
+                    <ListingCard
+                      key={l.id}
+                      id={l.id}
+                      title={l.title}
+                      price={l.price}
+                      cover_image={getCoverImage(l)}
+                      condition={l.condition}
+                      neighborhood={l.neighborhood}
+                                            size="normal"
+                    />
+                  ))}
+                </div>
+              ) : (
                 <div
                   style={{
                     background: "#fff",
-                    border: "1px solid #f1f5f9",
                     borderRadius: "14px",
-                    padding: "20px 12px",
+                    border: "2px dashed #e2e8f0",
+                    padding: "40px 24px",
                     textAlign: "center",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
                   }}
-                  className="hover:border-indigo-200 hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <div style={{ fontSize: "32px", marginBottom: "8px" }}>
-                    {cat.icon}
+                  <div style={{ fontSize: "36px", marginBottom: "8px" }}>
+                    📭
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "15px",
+                      color: "#0f172a",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Todavía no hay avisos
                   </div>
                   <div
                     style={{
                       fontSize: "13px",
-                      fontWeight: 600,
-                      color: "#334155",
+                      color: "#94a3b8",
+                      marginBottom: "14px",
                     }}
                   >
-                    {cat.name}
+                    ¡Sé el primero en vender en comercIA!
                   </div>
+                  <Link href="/listings/new">
+                    <button
+                      style={{
+                        background: "#6366f1",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Publicar el primer aviso
+                    </button>
+                  </Link>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* AI Feature card */}
-        <section style={{ marginBottom: "48px" }}>
-          <div
-            style={{
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-              borderRadius: "20px",
-              padding: "40px 48px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "24px",
-              flexWrap: "wrap",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Decorative circles */}
-            <div
-              style={{
-                position: "absolute",
-                right: "-30px",
-                top: "-30px",
-                width: "180px",
-                height: "180px",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.06)",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                right: "80px",
-                bottom: "-50px",
-                width: "140px",
-                height: "140px",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.04)",
-              }}
-            />
-
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.15)",
-                  display: "inline-block",
-                  padding: "4px 12px",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  color: "#fff",
-                  marginBottom: "12px",
-                }}
-              >
-                🤖 Potenciado con IA
-              </div>
-              <h3
-                style={{
-                  fontSize: "26px",
-                  fontWeight: 900,
-                  color: "#fff",
-                  marginBottom: "8px",
-                }}
-              >
-                Publicá en 30 segundos
-              </h3>
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "rgba(255,255,255,0.8)",
-                  maxWidth: "400px",
-                  lineHeight: 1.6,
-                }}
-              >
-                Sacá una foto → la IA identifica el producto, genera el título,
-                descripción y consulta precios reales en MercadoLibre
-                automáticamente.
-              </p>
+              )}
             </div>
 
-            <Link
-              href="/listings/new"
-              style={{ position: "relative", zIndex: 1, flexShrink: 0 }}
-            >
-              <button
-                style={{
-                  background: "#fff",
-                  color: "#6366f1",
-                  border: "none",
-                  borderRadius: "12px",
-                  padding: "14px 28px",
-                  fontWeight: 800,
-                  fontSize: "15px",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                📸 Probarlo gratis →
-              </button>
-            </Link>
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section style={{ marginBottom: "48px" }}>
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "22px",
-                fontWeight: 800,
-                color: "#0f172a",
-                marginBottom: "6px",
-              }}
-            >
-              Así de fácil es publicar
-            </h2>
-            <p style={{ fontSize: "14px", color: "#94a3b8" }}>
-              Sin complicaciones, sin formularios interminables
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "20px",
-            }}
-          >
-            {howItWorks.map((item, i) => (
-              <div
-                key={item.step}
-                style={{
-                  background: "#fff",
-                  borderRadius: "16px",
-                  padding: "28px 24px",
-                  textAlign: "center",
-                  border: "1px solid #f1f5f9",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  position: "relative",
-                }}
-              >
-                {/* Step number */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "20px",
-                    right: "20px",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    color: "#e2e8f0",
-                    letterSpacing: "1px",
-                  }}
-                >
-                  {item.step}
-                </div>
-                {/* Connector line */}
-                {i < howItWorks.length - 1 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: "-12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: "24px",
-                      height: "2px",
-                      background: "linear-gradient(90deg, #e0e7ff, #c7d2fe)",
-                      zIndex: 10,
-                    }}
-                  />
-                )}
-                <div
-                  style={{
-                    width: "64px",
-                    height: "64px",
-                    background: "linear-gradient(135deg, #eff6ff, #e0e7ff)",
-                    borderRadius: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "28px",
-                    margin: "0 auto 16px",
-                  }}
-                >
-                  {item.icon}
-                </div>
-                <h3
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: "#0f172a",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {item.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    color: "#64748b",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Bottom CTA */}
-        <section>
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: "20px",
-              padding: "48px",
-              textAlign: "center",
-              border: "1px solid #f1f5f9",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-            }}
-          >
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎉</div>
-            <h2
-              style={{
-                fontSize: "26px",
-                fontWeight: 900,
-                color: "#0f172a",
-                marginBottom: "10px",
-              }}
-            >
-              ¿Tenés algo para vender?
-            </h2>
-            <p
-              style={{
-                fontSize: "15px",
-                color: "#64748b",
-                marginBottom: "28px",
-                maxWidth: "440px",
-                margin: "0 auto 28px",
-              }}
-            >
-              Publicá gratis hoy. Sin comisiones, sin costos ocultos. Llegá a
-              miles de personas en San Juan.
-            </p>
+            {/* AI Banner */}
             <div
               style={{
+                background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                borderRadius: "10px",
+                padding: "12px 20px",
                 display: "flex",
-                gap: "12px",
-                justifyContent: "center",
-                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
               }}
             >
-              <Link href="/listings/new">
-                <button
-                  style={{
-                    background: "#6366f1",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "12px",
-                    padding: "14px 32px",
-                    fontWeight: 800,
-                    fontSize: "16px",
-                    cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(99,102,241,0.3)",
-                  }}
-                >
-                  Publicar aviso gratis
-                </button>
-              </Link>
-              <Link href="/listings">
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "20px" }}>🤖</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "14px", color: "#fff" }}>
+                    Publicá en 30 segundos con IA
+                  </div>
+                  <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)" }}>
+                    Sacá una foto → la IA genera título, descripción y precio
+                  </div>
+                </div>
+              </div>
+              <Link href="/listings/new" style={{ flexShrink: 0 }}>
                 <button
                   style={{
                     background: "#fff",
                     color: "#6366f1",
-                    border: "2px solid #e0e7ff",
-                    borderRadius: "12px",
-                    padding: "14px 32px",
-                    fontWeight: 700,
-                    fontSize: "16px",
+                    border: "none",
+                    borderRadius: "7px",
+                    padding: "8px 18px",
+                    fontWeight: 800,
+                    fontSize: "13px",
                     cursor: "pointer",
+                    boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  Ver todos los avisos
+                  📸 Probarlo gratis →
                 </button>
               </Link>
             </div>
           </div>
-        </section>
+        </div>
       </div>
 
       <Footer />
+    </div>
+  );
+}
+
+function FeaturedSection({
+  title, items, href, getCover,
+}: {
+  title: string;
+  items: any[];
+  href: string;
+  getCover: (l: any) => string | null;
+}) {
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>{title}</span>
+          <span style={{
+            background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+            color: "#fff", borderRadius: "5px", padding: "1px 7px",
+            fontSize: "9px", fontWeight: 800,
+          }}>PREMIUM</span>
+        </div>
+        <Link href={href} style={{ fontSize: "12px", color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
+          Ver todos →
+        </Link>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+        {items.map((l: any) => (
+          <ListingCard
+            key={l.id}
+            id={l.id}
+            title={l.title}
+            price={l.price}
+            currency={l.currency ?? "ARS"}
+            cover_image={getCover(l)}
+            condition={l.condition}
+            neighborhood={l.neighborhood}
+            featured_level={l.featured_level}
+            attributes={l.attributes}
+          />
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: "10px",
+        background: "linear-gradient(135deg,#fffbeb,#fef3c7)",
+        border: "1px solid #fde68a", borderRadius: "10px",
+        padding: "10px 16px", display: "flex", alignItems: "center",
+        justifyContent: "space-between", gap: "12px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "16px" }}>⭐</span>
+          <div>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: "#92400e" }}>¿Querés aparecer aquí?</span>
+            <span style={{ fontSize: "12px", color: "#b45309", marginLeft: "6px" }}>· Recibí 5× más consultas</span>
+          </div>
+        </div>
+        <Link href="/upgrade">
+          <button style={{
+            background: "linear-gradient(135deg,#f59e0b,#fbbf24)", color: "#fff",
+            border: "none", borderRadius: "7px", padding: "6px 14px",
+            fontWeight: 800, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap",
+          }}>
+            Ver planes →
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }

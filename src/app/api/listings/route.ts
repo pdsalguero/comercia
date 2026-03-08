@@ -17,11 +17,13 @@ export async function POST(request: Request) {
         title:          body.title,
         description:    body.description,
         price:          body.price,
+        currency:       body.currency ?? 'ARS',
         accepts_offers: body.accepts_offers ?? true,
         condition:      body.condition,
         status:         'active',
         city:           'San Juan',
         neighborhood:   body.neighborhood ?? null,
+        attributes:     body.attributes ?? null,
         ai_generated:   body.ai_generated ?? false,
         ai_title:       body.ai_title ?? null,
         ai_description: body.ai_description ?? null,
@@ -35,13 +37,14 @@ export async function POST(request: Request) {
     if (error) throw error
 
     // Save images if provided
-    if (body.images?.length) {
-      const imageRows = body.images.map((url: string, i: number) => ({
+    const imageList: string[] = body.images ?? body.image_urls ?? [];
+    if (imageList.length) {
+      const imageRows = imageList.map((url: string, i: number) => ({
         listing_id: listing.id,
         url,
         position: i,
       }))
-      await supabase.from('listing_images').insert(imageRows)
+      await supabase.from('listing_images').insert(imageRows);
     }
 
     return NextResponse.json(listing)

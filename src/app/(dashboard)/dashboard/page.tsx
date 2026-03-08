@@ -9,7 +9,7 @@ export default async function DashboardPage() {
 
   const { data: listings } = await supabase
     .from('listings')
-    .select('id, title, price, status, view_count, contact_count, created_at')
+    .select('id, title, price, status, view_count, contact_count, created_at, listing_images(url, position)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
@@ -98,8 +98,11 @@ export default async function DashboardPage() {
                 display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '12px 0', borderBottom: '1px solid #f5f5f5',
               }}>
-                <div style={{ width: '44px', height: '44px', background: '#f0f4ff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-                  📦
+                <div style={{ width: '44px', height: '44px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#f0f4ff' }}>
+                  {listing.listing_images?.[0]?.url
+                    ? <img src={listing.listing_images[0].url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📦</div>
+                  }
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>{listing.title}</div>

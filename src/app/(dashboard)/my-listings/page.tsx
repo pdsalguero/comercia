@@ -12,7 +12,8 @@ export default async function MyListingsPage() {
     .select(`
       id, title, price, status, condition,
       view_count, contact_count, favorite_count,
-      is_featured, created_at, slug
+      is_featured, created_at, slug,
+      listing_images(url, position)
     `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -71,8 +72,11 @@ export default async function MyListingsPage() {
               padding: '16px 20px',
               borderBottom: i < listings.length - 1 ? '1px solid #f5f5f5' : 'none',
             }}>
-              <div style={{ width: '52px', height: '52px', background: '#f0f4ff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', flexShrink: 0 }}>
-                📦
+              <div style={{ width: '52px', height: '52px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#f0f4ff' }}>
+                {listing.listing_images?.[0]?.url
+                  ? <img src={listing.listing_images[0].url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>📦</div>
+                }
               </div>
 
               <div style={{ flex: 1 }}>

@@ -1,0 +1,212 @@
+import Link from "next/link";
+
+const PLANS = [
+  {
+    key: "bronze",
+    name: "Estándar",
+    badge: "⭐ ESTÁNDAR",
+    price: 1500,
+    color: "#f97316",
+    colorLight: "#fff7ed",
+    colorBorder: "#fed7aa",
+    gradient: "linear-gradient(135deg,#f97316,#fb923c)",
+    shadow: "0 4px 24px rgba(249,115,22,0.18)",
+    description: "Dale más visibilidad a tu publicación dentro de su categoría.",
+    features: [
+      "Aparece antes que los anuncios gratuitos",
+      "Badge ⭐ Estándar en tu publicación",
+      "Borde naranja destacado",
+      "Vigencia 7 días",
+    ],
+    cta: "Activar Estándar",
+  },
+  {
+    key: "silver",
+    name: "Destacado",
+    badge: "🚀 DESTACADO",
+    price: 3500,
+    color: "#6366f1",
+    colorLight: "#eef2ff",
+    colorBorder: "#c7d2fe",
+    gradient: "linear-gradient(135deg,#6366f1,#818cf8)",
+    shadow: "0 4px 24px rgba(99,102,241,0.22)",
+    description: "Mayor exposición en toda la categoría con diseño diferenciado.",
+    features: [
+      "Todo lo de Estándar",
+      "Badge 🚀 Destacado en tu publicación",
+      "Borde violeta llamativo",
+      "Posición preferencial en la categoría",
+      "Vigencia 15 días",
+    ],
+    cta: "Activar Destacado",
+    popular: true,
+  },
+  {
+    key: "gold",
+    name: "Premium",
+    badge: "👑 PREMIUM",
+    price: 6000,
+    color: "#d97706",
+    colorLight: "#fffbeb",
+    colorBorder: "#fde68a",
+    gradient: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+    shadow: "0 4px 24px rgba(251,191,36,0.28)",
+    description: "Máxima visibilidad: aparece en la home y al tope de cada categoría.",
+    features: [
+      "Todo lo de Destacado",
+      "Badge 👑 Premium en tu publicación",
+      "Borde dorado exclusivo",
+      "Aparece en la sección Premium de la página principal",
+      "Primero en cualquier categoría",
+      "Vigencia 30 días",
+    ],
+    cta: "Activar Premium",
+  },
+];
+
+export default function UpgradePage() {
+  return (
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px 16px" }}>
+
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#111", marginBottom: "6px" }}>
+          📣 Destacá tu publicación
+        </h1>
+        <p style={{ fontSize: "13px", color: "#888", maxWidth: "480px", margin: "0 auto" }}>
+          Más personas ven tu aviso, más rápido vendés. Elegí el plan que mejor se adapte.
+        </p>
+      </div>
+
+      {/* Plans grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        gap: "16px",
+        alignItems: "start",
+      }}>
+        {PLANS.map((plan) => (
+          <div
+            key={plan.key}
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              border: `2px solid ${plan.colorBorder}`,
+              boxShadow: plan.shadow,
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            {/* Color header */}
+            <div style={{
+              background: plan.colorLight,
+              padding: "16px 20px 14px",
+              borderBottom: `1px solid ${plan.colorBorder}`,
+            }}>
+              {/* Badge + popular tag */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                <div style={{
+                  display: "inline-block",
+                  background: plan.gradient,
+                  color: "#fff",
+                  borderRadius: "6px",
+                  padding: "3px 9px",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                }}>
+                  {plan.badge}
+                </div>
+                {plan.popular && (
+                  <div style={{
+                    background: plan.gradient,
+                    color: "#fff", borderRadius: "20px",
+                    padding: "2px 9px", fontSize: "10px", fontWeight: 700,
+                  }}>
+                    MÁS ELEGIDO
+                  </div>
+                )}
+              </div>
+
+              {/* Name + price row */}
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "4px" }}>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "#111" }}>
+                  {plan.name}
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
+                  <span style={{ fontSize: "12px", color: "#888" }}>$</span>
+                  <span style={{ fontSize: "24px", fontWeight: 900, color: plan.color, lineHeight: 1 }}>
+                    {plan.price.toLocaleString("es-AR")}
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#aaa" }}>ARS</span>
+                </div>
+              </div>
+
+              <div style={{ fontSize: "12px", color: "#777", lineHeight: 1.4 }}>
+                {plan.description}
+              </div>
+            </div>
+
+            {/* Features */}
+            <div style={{ padding: "14px 20px" }}>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "7px" }}>
+                {plan.features.map((f) => (
+                  <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "7px", fontSize: "12px", color: "#444" }}>
+                    <span style={{ color: plan.color, fontWeight: 700, flexShrink: 0 }}>✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* CTA */}
+            <div style={{ padding: "0 20px 18px" }}>
+              <Link href="/listings/new" style={{ textDecoration: "none" }}>
+                <button style={{
+                  width: "100%",
+                  background: plan.gradient,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "13px",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: plan.shadow,
+                }}>
+                  {plan.cta}
+                </button>
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom note */}
+      <div style={{
+        marginTop: "20px",
+        background: "#f8fafc",
+        borderRadius: "12px",
+        padding: "14px 20px",
+        display: "flex",
+        gap: "16px",
+        alignItems: "flex-start",
+      }}>
+        <span style={{ fontSize: "22px" }}>💡</span>
+        <div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: "#333", marginBottom: "4px" }}>¿Cómo funciona?</div>
+          <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.6 }}>
+            Al publicar tu aviso, podés elegir un plan para que aparezca antes que los anuncios gratuitos.
+            Los planes <strong>Premium</strong> también aparecen en la página principal del sitio, lo que maximiza la exposición.
+            El destacado se activa de forma inmediata y dura según el plan elegido.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", marginTop: "24px" }}>
+        <Link href="/listings" style={{ fontSize: "13px", color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
+          ← Volver a los avisos
+        </Link>
+      </div>
+    </div>
+  );
+}

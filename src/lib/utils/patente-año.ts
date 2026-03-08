@@ -1,6 +1,6 @@
 // src/lib/claude/analyze-photo.ts
 
-import { getYearFromPatente } from "@/lib/utils/patente-year";
+import { getYearFromPatente } from "@/lib/utils/patente-año";
 
 const VEHICLE_BRANDS = [
   "toyota",
@@ -44,8 +44,8 @@ Devolvés SOLO JSON válido, sin texto adicional ni markdown.
 
 REGLA MÁS IMPORTANTE: Para vehículos, el AÑO lo determina ÚNICAMENTE la patente visible.
 NO uses el año de lanzamiento del modelo en Argentina. NO supongas el año por el diseño.
-Tu única responsabilidad es LEER Y TRANSCRIBIR la patente con exactitud, letra por letra.
-Si la patente NO es completamente legible, OMITÍ el campo "patente" (no pongas nada).`;
+Si ves "PDL 187", la patente es PDL187 y el año lo calcula el sistema, no vos.
+Tu única responsabilidad es LEER Y TRANSCRIBIR la patente con exactitud.`;
 
 const USER_PROMPT = `Analizá esta imagen y devolvé este JSON:
 
@@ -68,7 +68,7 @@ CATEGORÍA 2 — VEHÍCULOS
   "brand": "toyota|volkswagen|ford|chevrolet|renault|peugeot|fiat|honda|hyundai|kia|nissan|citroen|bmw|mercedes-benz|audi|suzuki|jeep|dodge|chery|geely|byd|otra",
   "model": "nombre del modelo (ej: Up!, Gol, Hilux, Corolla)",
   "version": "versión si es legible (ej: Move Up, Comfortline, SR 4x4)",
-  "patente": "SOLO si la patente es completamente legible letra por letra: transcribila EXACTAMENTE (ej: PDL187, AB123CD). Si hay CUALQUIER duda o no se ve con claridad, NO incluyas este campo.",
+  "patente": "⚠️ CAMPO CRÍTICO: transcribí EXACTAMENTE la patente visible en la imagen, letra por letra y número por número. Ej: 'PDL187', 'AB123CD', 'GVX456'. Si no podés leer algún caracter, igual ponés lo que ves. Si no hay patente visible, omití este campo.",
   "year": 0,
   "km": número si se puede inferir,
   "fuel": "nafta|diesel|gnc|glp|electrico|hibrido|otro",
@@ -76,25 +76,27 @@ CATEGORÍA 2 — VEHÍCULOS
   "doors": "2|3|4|5",
   "color": "color del vehículo en español",
   "engine": "cilindrada si es visible (ej: 1.0, 1.6, 2.0 TDI)",
+  "version": "trim/versión si se ve (ej: Move Up, High Up, Take Up)",
   "first_owner": true solo si hay indicios claros,
   "accepts_trade": false,
   "seller_type": "particular|concesionaria"
 }
 
-SOBRE EL AÑO: Siempre poné year: 0. El año real lo calcula el sistema leyendo la patente.
-No pongas el año de lanzamiento del modelo. No pongas el año que creés por el diseño.
+⚠️ SOBRE EL AÑO: Siempre poné year: 0. El año real lo calcula el sistema leyendo la patente.
+No pongas el año de lanzamiento del modelo. No pongas el año que "creés" que es por el diseño.
+Solo transcribí la patente con precisión y el sistema determina el año exacto.
 
 CÓMO IDENTIFICAR EL VEHÍCULO:
-- Logo en capó/parrilla/portón: VW=Volkswagen, estrella=Mercedes, hélice=BMW
+- Logo en capó/parrilla/portón: VW=Volkswagen, estrella=Mercedes, hélice=BMW, etc.
 - Texto en carrocería: nombre del modelo, versión
+- Forma de ópticas y parrilla para confirmar marca/modelo
 - Patente: leé cada letra y número con cuidado, es el dato más importante
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CATEGORÍA 1 — ELECTRÓNICA:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 { "sub_category": "celular|computadora|tablet|tv|audio|camara|consola|otro",
-  "brand": "marca", "model": "modelo exacto",
-  "storage": "64gb|128gb|256gb|512gb|1tb|otro",
+  "brand": "marca", "model": "modelo exacto", "storage": "64gb|128gb|256gb|512gb|1tb|otro",
   "ram": "4gb|6gb|8gb|16gb|otro", "color": "color",
   "includes_box": true|false, "includes_charger": true|false }
 
@@ -129,7 +131,7 @@ export async function analyzePhotoWithClaude(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 1200,
       system: SYSTEM_PROMPT,
       messages: [
@@ -233,16 +235,20 @@ export async function analyzePhotoWithClaude(
     }
 
     // 5. ★ PATENTE → AÑO — siempre sobrescribe el año de la IA ★
+    // La IA tiende a poner el año de lanzamiento del modelo en Argentina
+    // en lugar del año real del vehículo. La patente es la fuente de verdad.
     if (
       attrs.patente &&
       typeof attrs.patente === "string" &&
-      attrs.patente.trim().length >= 5
+      attrs.patente.length >= 5
     ) {
-      const patenteInfo = getYearFromPatente(attrs.patente.trim());
+      const patenteInfo = getYearFromPatente(attrs.patente);
 
       if (patenteInfo.year && patenteInfo.confidence !== "low") {
-        // La patente siempre gana sobre la estimación de la IA
+        // Siempre sobrescribimos — la patente manda sobre la IA
         attrs.year = patenteInfo.year;
+
+        // Guardar info de diagnóstico
         attrs._patente_info = {
           patente: attrs.patente,
           format: patenteInfo.format,
@@ -252,14 +258,17 @@ export async function analyzePhotoWithClaude(
             : String(patenteInfo.year),
           confidence: patenteInfo.confidence,
         };
+
+        // Si el rango cubre 2 años (ej: 2015-2016), guardar ambos
         if (patenteInfo.yearTo) {
           attrs._year_range = {
             from: patenteInfo.year,
             to: patenteInfo.yearTo,
           };
         }
-      } else {
-        // Patente leída pero no reconocida → limpiar año de la IA
+      } else if (patenteInfo.confidence === "low") {
+        // Patente leída pero no reconocida — limpiar el año de la IA de todas formas
+        // para no mostrar un dato incorrecto
         attrs.year = null;
         attrs._patente_info = {
           patente: attrs.patente,
@@ -268,9 +277,13 @@ export async function analyzePhotoWithClaude(
         };
       }
     } else {
-      // Sin patente → no hay forma de conocer el año con certeza, limpiar ambos
-      attrs.year = null;
-      attrs.patente = null;
+      // No hay patente → el año de la IA puede ser el año del modelo, no del vehículo
+      // Lo marcamos como estimación para que el usuario lo revise
+      if (attrs.year && attrs.year > 0) {
+        attrs._year_estimated = true;
+      } else {
+        attrs.year = null;
+      }
     }
 
     // 6. Asegurar tipos correctos
@@ -278,15 +291,17 @@ export async function analyzePhotoWithClaude(
       attrs.year = parseInt(attrs.year, 10) || null;
     }
     if (attrs.km && typeof attrs.km === "string") {
-      attrs.km = parseInt(String(attrs.km).replace(/\D/g, ""), 10) || null;
+      attrs.km = parseInt(attrs.km.replace(/\D/g, ""), 10) || null;
     }
 
-    // 7. Corregir año en el título si lo tenemos
+    // 7. Actualizar el título para incluir el año correcto si lo tenemos
     if (attrs.year && parsed.title) {
+      // Reemplazar cualquier año de 4 dígitos en el título con el año correcto
       parsed.title = parsed.title.replace(
         /\b(19|20)\d{2}\b/,
         String(attrs.year),
       );
+      // Si no había año en el título, no lo agregamos (lo hará el formulario)
     }
 
     parsed.attributes = attrs;

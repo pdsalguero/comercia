@@ -1,14 +1,20 @@
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { PublishFAB } from '@/components/ui/PublishFAB'
+import { createClient } from '@/lib/supabase/server'
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default async function MainLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <div style={{ minHeight: '100vh', background: '#ebebeb' }}>
-      <Navbar />
+      <Navbar user={user} />
       <main className="max-w-6xl mx-auto px-4 py-6">
         {children}
       </main>
       <Footer />
+      <PublishFAB />
     </div>
   )
 }

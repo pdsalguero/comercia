@@ -1,0 +1,151 @@
+"use client";
+
+import Link from "next/link";
+
+interface ListingCardProps {
+  id: string;
+  title: string;
+  price: number;
+  currency?: string;
+  cover_image: string | null;
+  category?: string;
+  condition?: string;
+  neighborhood?: string | null;
+  featured_level?: "gold" | "silver" | "bronze" | null;
+  attributes?: Record<string, string | number | boolean | null>;
+  size?: "normal" | "large";
+}
+
+function formatPrice(price: number, currency = "ARS") {
+  if (currency === "USD") return `US$ ${price.toLocaleString("es-AR")}`;
+  return `$ ${price.toLocaleString("es-AR")}`;
+}
+
+export function ListingCard({
+  id,
+  title,
+  price,
+  currency = "ARS",
+  cover_image,
+  neighborhood,
+  featured_level,
+  attributes,
+}: ListingCardProps) {
+  const year = attributes?.year;
+  const km = attributes?.mileage ?? attributes?.km;
+  const hasVehicleMeta = year || km;
+
+  return (
+    <Link href={`/listings/${id}`} style={{ textDecoration: "none", display: "block" }}>
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: "12px",
+          overflow: "hidden",
+          border: featured_level === "gold"
+            ? "2px solid #fbbf24"
+            : featured_level === "silver"
+            ? "2px solid #6366f1"
+            : featured_level === "bronze"
+            ? "2px solid #f97316"
+            : "1px solid #e8e8e8",
+          boxShadow: featured_level === "gold"
+            ? "0 2px 12px rgba(251,191,36,0.25)"
+            : featured_level === "silver"
+            ? "0 2px 12px rgba(99,102,241,0.2)"
+            : featured_level === "bronze"
+            ? "0 2px 8px rgba(249,115,22,0.15)"
+            : "0 1px 4px rgba(0,0,0,0.06)",
+          transition: "transform 0.15s, box-shadow 0.15s",
+          cursor: "pointer",
+          height: "100%",
+        }}
+        className="hover:-translate-y-1 hover:shadow-md"
+      >
+        {/* Image */}
+        <div style={{ height: "200px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
+          {cover_image ? (
+            <img src={cover_image} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>
+              📦
+            </div>
+          )}
+
+          {featured_level === "gold" && (
+            <div style={{
+              position: "absolute", top: "10px", left: "10px",
+              background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+              color: "#fff", borderRadius: "6px", padding: "3px 8px",
+              fontSize: "10px", fontWeight: 800,
+            }}>
+              👑 PREMIUM
+            </div>
+          )}
+          {featured_level === "silver" && (
+            <div style={{
+              position: "absolute", top: "10px", left: "10px",
+              background: "linear-gradient(135deg,#6366f1,#818cf8)",
+              color: "#fff", borderRadius: "6px", padding: "3px 8px",
+              fontSize: "10px", fontWeight: 800,
+            }}>
+              🚀 DESTACADO
+            </div>
+          )}
+          {featured_level === "bronze" && (
+            <div style={{
+              position: "absolute", top: "10px", left: "10px",
+              background: "linear-gradient(135deg,#f97316,#fb923c)",
+              color: "#fff", borderRadius: "6px", padding: "3px 8px",
+              fontSize: "10px", fontWeight: 800,
+            }}>
+              ⭐ ESTÁNDAR
+            </div>
+          )}
+
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            style={{
+              position: "absolute", top: "8px", right: "8px",
+              background: "rgba(255,255,255,0.9)", border: "none",
+              borderRadius: "50%", width: "32px", height: "32px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", fontSize: "15px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+            }}
+          >
+            🤍
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: "12px 14px" }}>
+          <h3 style={{
+            fontSize: "14px", fontWeight: 600, color: "#111",
+            marginBottom: "6px", lineHeight: 1.35,
+            overflow: "hidden", textOverflow: "ellipsis",
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
+          }}>
+            {title}
+          </h3>
+
+          <div style={{ fontSize: "20px", fontWeight: 800, color: "#111", marginBottom: "4px" }}>
+            {formatPrice(price, currency)}
+          </div>
+
+          {hasVehicleMeta && (
+            <div style={{ fontSize: "13px", color: "#555", marginBottom: "4px" }}>
+              {[year, km ? `${Number(km).toLocaleString("es-AR")} Km` : null]
+                .filter(Boolean).join(" | ")}
+            </div>
+          )}
+
+          <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", gap: "4px" }}>
+            <span>📍</span>
+            <span>{neighborhood ?? "San Juan"}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
