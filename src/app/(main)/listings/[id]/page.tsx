@@ -195,7 +195,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
-      <div style={{ maxWidth: "1180px", margin: "0 auto", padding: "0 16px" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
 
         {/* Breadcrumb */}
         <nav style={{ fontSize: "12px", color: "#666", padding: "8px 0" }}>

@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div style={{ minHeight: '100vh', background: '#ebebeb' }}>
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "24px 16px" }}>
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '20px', alignItems: 'start' }}>
 
           {/* Sidebar */}

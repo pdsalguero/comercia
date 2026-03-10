@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(ls -la c:marketplacecomerciatailwind.config.* c:marketplacecomercianext.config.* c:marketplacecomerciapostcss.config.*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(npx tsc --noEmit)"
     ]
   }
 }

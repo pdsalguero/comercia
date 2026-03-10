@@ -107,6 +107,7 @@ export default async function ListingsPage({
   }
 
   return (
+    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
     <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
 
       {/* ── Sidebar ── */}
@@ -362,6 +363,7 @@ export default async function ListingsPage({
           );
         })()}
       </div>
+    </div>
     </div>
   );
 }

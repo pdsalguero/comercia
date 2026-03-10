@@ -10,7 +10,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   return (
     <div style={{ minHeight: '100vh', background: '#ebebeb' }}>
       <Navbar user={user} />
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="py-4">
         {children}
       </main>
       <Footer />

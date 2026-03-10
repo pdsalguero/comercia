@@ -295,13 +295,14 @@ export default async function CategoryPage({
   }
 
   return (
+    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
     <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
 
       {/* Breadcrumb — fuera del flex principal */}
       <div style={{ fontSize: "12px", color: "#aaa", padding: "8px 4px 10px" }}>
         <Link href="/" style={{ color: "#aaa", textDecoration: "none" }}>Inicio</Link>
         {" › "}
-        <span style={{ color: "#555" }}>{meta.name}</span>
+        <Link href={`/category/${slug}`} style={{ color: "#555", textDecoration: "none" }}>{meta.name}</Link>
       </div>
 
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
@@ -838,6 +839,7 @@ export default async function CategoryPage({
           })()}
         </div>
       </div>
+    </div>
     </div>
   );
 }

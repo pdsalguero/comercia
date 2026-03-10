@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ListingCard } from "@/components/listings/ListingCard";
+import { FeaturedCarousel } from "@/components/listings/FeaturedCarousel";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
 import { LocationInput } from "@/components/ui/LocationInput";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -41,7 +42,7 @@ async function getHomeData() {
       .eq("featured_level", "gold")
       .eq("category_id", 2)
       .order("created_at", { ascending: false })
-      .limit(4),
+      .limit(12),
 
     // Featured real estate (category_id = 3)
     supabase
@@ -51,7 +52,7 @@ async function getHomeData() {
       .eq("featured_level", "gold")
       .eq("category_id", 3)
       .order("created_at", { ascending: false })
-      .limit(4),
+      .limit(12),
 
     // Recent listings
     supabase
@@ -117,7 +118,7 @@ export default async function HomePage() {
       <Navbar user={user} />
 
       <div
-        style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 20px" }}
+        style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px 16px" }}
       >
         <div
           style={{
@@ -255,21 +256,19 @@ export default async function HomePage() {
 
             {/* ── FEATURED VEHICLES ── */}
             {featuredVehicles.length > 0 && (
-              <FeaturedSection
+              <FeaturedCarousel
                 title="🚗 Vehículos Premium"
-                items={featuredVehicles}
+                items={featuredVehicles.map((l: any) => ({ ...l, cover_image: getCoverImage(l) }))}
                 href="/category/vehicles"
-                getCover={getCoverImage}
               />
             )}
 
             {/* ── FEATURED REAL ESTATE ── */}
             {featuredRealEstate.length > 0 && (
-              <FeaturedSection
+              <FeaturedCarousel
                 title="🏠 Inmuebles Premium"
-                items={featuredRealEstate}
+                items={featuredRealEstate.map((l: any) => ({ ...l, cover_image: getCoverImage(l) }))}
                 href="/category/real-estate"
-                getCover={getCoverImage}
               />
             )}
 
