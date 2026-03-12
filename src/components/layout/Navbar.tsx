@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
-export function Navbar({ user }: { user?: User | null }) {
+export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: boolean }) {
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
@@ -58,7 +58,7 @@ export function Navbar({ user }: { user?: User | null }) {
                 letterSpacing: "-0.5px",
               }}
             >
-              comerc<span style={{ color: "#6366f1" }}>IA</span>
+              Comerx<span style={{ color: "#6366f1" }}>IA</span>
             </span>
           </Link>
 
@@ -94,7 +94,7 @@ export function Navbar({ user }: { user?: User | null }) {
               flex: 1,
               maxWidth: "480px",
               margin: "0 auto",
-              display: "flex",
+              display: hideSearch ? "none" : "flex",
               alignItems: "center",
               background: "#f8fafc",
               border: "1.5px solid #e2e8f0",
@@ -258,9 +258,9 @@ export function Navbar({ user }: { user?: User | null }) {
           }}
         >
           {[
-            { name: "Electrónica", slug: "electronics" },
-            { name: "Vehículos", slug: "vehicles" },
-            { name: "Inmuebles", slug: "real-estate" },
+            { name: "Vehículos",  slug: "vehicles" },
+            { name: "Inmuebles",  slug: "real-estate" },
+            { name: "Tecnología", slug: "electronics" },
             { name: "Ropa", slug: "clothing" },
             { name: "Hogar", slug: "home-garden" },
             { name: "Deportes", slug: "sports" },
@@ -302,30 +302,32 @@ export function Navbar({ user }: { user?: User | null }) {
           }}
           className="md:hidden"
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: "10px",
-              overflow: "hidden",
-            }}
-          >
-            <span style={{ paddingLeft: "12px", color: "#94a3b8" }}>🔍</span>
-            <input
-              type="text"
-              placeholder="¿Qué estás buscando?"
+          {!hideSearch && (
+            <div
               style={{
-                flex: 1,
-                border: "none",
-                outline: "none",
-                padding: "10px 12px",
-                fontSize: "14px",
-                background: "transparent",
+                display: "flex",
+                alignItems: "center",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                overflow: "hidden",
               }}
-            />
-          </div>
+            >
+              <span style={{ paddingLeft: "12px", color: "#94a3b8" }}>🔍</span>
+              <input
+                type="text"
+                placeholder="¿Qué estás buscando?"
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  padding: "10px 12px",
+                  fontSize: "14px",
+                  background: "transparent",
+                }}
+              />
+            </div>
+          )}
           <Link href="/listings/new" onClick={() => setMenuOpen(false)}>
             <button
               style={{

@@ -118,9 +118,21 @@ Herramientas(7): sub_category, brand, voltage
 Mascotas(9): sub_category, breed, sex, vaccinated, is_adoption`;
 
 export async function analyzePhotoWithClaude(
-  imageBase64: string,
-  mimeType: string,
+  images: Array<{ base64: string; mimeType: string }>,
 ) {
+  const imageBlocks = images.map((img) => ({
+    type: "image",
+    source: {
+      type: "base64",
+      media_type: img.mimeType,
+      data: img.base64,
+    },
+  }));
+
+  const userPrompt = images.length > 1
+    ? `Se te envían ${images.length} fotos del mismo artículo (pueden ser hasta 5). Analizalas todas — cada foto puede revelar datos distintos: patente, versión, estado, accesorios, etc.\n\n${USER_PROMPT}`
+    : USER_PROMPT;
+
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -129,22 +141,15 @@ export async function analyzePhotoWithClaude(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1200,
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: [
         {
           role: "user",
           content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: mimeType,
-                data: imageBase64,
-              },
-            },
-            { type: "text", text: USER_PROMPT },
+            ...imageBlocks,
+            { type: "text", text: userPrompt },
           ],
         },
       ],

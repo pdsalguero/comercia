@@ -6,29 +6,37 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const photo = formData.get("photo") as File | null;
+    const photoEntries = formData.getAll("photos") as File[];
+    // Support legacy single-photo field too
+    const singlePhoto = formData.get("photo") as File | null;
+    const files = photoEntries.length > 0 ? photoEntries : singlePhoto ? [singlePhoto] : [];
 
-    if (!photo) {
+    if (files.length === 0) {
       return NextResponse.json(
         { error: "No se recibió ninguna foto" },
         { status: 400 },
       );
     }
 
-    // ── Convert to base64 ──────────────────────────────────────
-    const buffer = await photo.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
+    // ── Convert all photos to base64 ───────────────────────────
+    function detectMime(bytes: Uint8Array): "image/jpeg" | "image/png" | "image/gif" | "image/webp" {
+      if (bytes[0] === 0x89 && bytes[1] === 0x50) return "image/png";
+      if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
+      if (bytes[0] === 0x47 && bytes[1] === 0x49) return "image/gif";
+      if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
+      return "image/jpeg";
+    }
 
-    // Detect actual MIME type from magic bytes (ignores browser-reported type)
-    const bytes = new Uint8Array(buffer);
-    let mimeType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" = "image/jpeg";
-    if (bytes[0] === 0x89 && bytes[1] === 0x50) mimeType = "image/png";
-    else if (bytes[0] === 0xff && bytes[1] === 0xd8) mimeType = "image/jpeg";
-    else if (bytes[0] === 0x47 && bytes[1] === 0x49) mimeType = "image/gif";
-    else if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) mimeType = "image/webp";
+    const images = await Promise.all(files.slice(0, 5).map(async (file) => {
+      const buffer = await file.arrayBuffer();
+      return {
+        base64: Buffer.from(buffer).toString("base64"),
+        mimeType: detectMime(new Uint8Array(buffer)),
+      };
+    }));
 
-    // ── Run Claude analysis ────────────────────────────────────
-    const aiResult = await analyzePhotoWithClaude(base64, mimeType);
+    // ── Run Claude analysis with all images ────────────────────
+    const aiResult = await analyzePhotoWithClaude(images);
 
     // ── Fetch internal price reference from Supabase ───────────
     let priceData = null;
@@ -50,7 +58,7 @@ export async function POST(req: NextRequest) {
             Math.ceil(prices.length * 0.9),
           );
           priceData = {
-            source: "comercia",
+            source: "comerxia",
             count: trimmed.length,
             min: Math.min(...trimmed),
             max: Math.max(...trimmed),
@@ -83,6 +91,7 @@ export async function POST(req: NextRequest) {
       // Debug info (remove in prod if desired)
       ai_raw: {
         model: "claude-haiku-4-5-20251001",
+        photos_analyzed: images.length,
         category: aiResult.category_id,
         fields_detected: Object.keys(aiResult.attributes ?? {}).length,
       },

@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export function PublishFAB() {
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname();
 
   // Show FAB after scrolling 200px (no point showing it when hero CTA is visible)
   useEffect(() => {
@@ -14,6 +16,9 @@ export function PublishFAB() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Hide on the new listing page (user already has the publish button there)
+  if (pathname === "/listings/new") return null;
 
   return (
     <Link href="/listings/new" style={{ textDecoration: "none" }}>

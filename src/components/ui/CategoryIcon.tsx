@@ -190,6 +190,84 @@ function OtherIcon({ size = 28 }: Props) {
   );
 }
 
+// ── Tech group icons ──────────────────────────────────────
+function TechPhonesIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="9" y="2" width="14" height="28" rx="4" fill="#ede9fe" stroke="#7c3aed" strokeWidth="1.7"/>
+      <rect x="11" y="7" width="10" height="16" rx="1.5" fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.2"/>
+      <circle cx="16" cy="27" r="1.5" fill="#7c3aed"/>
+      <path d="M13 4.5h6" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function TechComputersIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="3" y="6" width="26" height="17" rx="2.5" fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.6"/>
+      <rect x="6" y="9" width="20" height="11" rx="1" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.2"/>
+      <path d="M10 27h12M16 23v4" stroke="#3b82f6" strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function TechCamerasIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="3" y="9" width="26" height="18" rx="3" fill="#fce7f3" stroke="#db2777" strokeWidth="1.6"/>
+      <path d="M11 9V7a2 2 0 012-2h6a2 2 0 012 2v2" stroke="#db2777" strokeWidth="1.5"/>
+      <circle cx="16" cy="18" r="5" fill="#fbcfe8" stroke="#db2777" strokeWidth="1.5"/>
+      <circle cx="16" cy="18" r="2.5" fill="#db2777"/>
+      <circle cx="25" cy="13" r="1.5" fill="#db2777"/>
+    </svg>
+  );
+}
+function TechGamingIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="3" y="10" width="26" height="14" rx="5" fill="#dcfce7" stroke="#16a34a" strokeWidth="1.6"/>
+      <path d="M11 14v6M8 17h6" stroke="#16a34a" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="22" cy="15" r="1.5" fill="#16a34a"/>
+      <circle cx="25" cy="18" r="1.5" fill="#16a34a"/>
+      <circle cx="22" cy="21" r="1.5" fill="#16a34a"/>
+      <circle cx="19" cy="18" r="1.5" fill="#16a34a"/>
+    </svg>
+  );
+}
+function TechAudioIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="8" y="3" width="16" height="26" rx="4" fill="#fef3c7" stroke="#d97706" strokeWidth="1.6"/>
+      <circle cx="16" cy="10" r="4" fill="#fde68a" stroke="#d97706" strokeWidth="1.4"/>
+      <circle cx="16" cy="10" r="1.5" fill="#d97706"/>
+      <circle cx="16" cy="21" r="5" fill="#fde68a" stroke="#d97706" strokeWidth="1.4"/>
+      <circle cx="16" cy="21" r="2" fill="#d97706"/>
+    </svg>
+  );
+}
+function TechTVIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="2" y="6" width="28" height="19" rx="3" fill="#e0e7ff" stroke="#4f46e5" strokeWidth="1.6"/>
+      <rect x="5" y="9" width="22" height="13" rx="1.5" fill="#c7d2fe" stroke="#4f46e5" strokeWidth="1.2"/>
+      <path d="M12 28h8M16 25v3" stroke="#4f46e5" strokeWidth="1.6" strokeLinecap="round"/>
+      <circle cx="26" cy="13" r="1" fill="#4f46e5"/>
+      <circle cx="26" cy="17" r="1" fill="#4f46e5"/>
+    </svg>
+  );
+}
+
+export function TechGroupIcon({ group, size = 28 }: { group: string; size?: number }) {
+  switch (group) {
+    case "celulares":   return <TechPhonesIcon size={size} />;
+    case "computacion": return <TechComputersIcon size={size} />;
+    case "camaras":     return <TechCamerasIcon size={size} />;
+    case "consolas":    return <TechGamingIcon size={size} />;
+    case "electronica": return <TechAudioIcon size={size} />;
+    case "tv":          return <TechTVIcon size={size} />;
+    default:            return <OtherIcon size={size} />;
+  }
+}
+
 // ── All categories ────────────────────────────────────────
 export function CategoryIcon({ slug, size = 28 }: { slug: string; size?: number }) {
   switch (slug) {
