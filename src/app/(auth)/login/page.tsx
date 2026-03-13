@@ -40,7 +40,7 @@ export default function LoginPage() {
       boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
     }}>
       <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#333', marginBottom: '6px' }}>
-        Ingresá a comercIA
+        Ingresá a ComerxIA
       </h1>
       <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>
         ¿No tenés cuenta?{' '}

@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { FavoriteButton } from "./FavoriteButton";
+import PinIcon from "@/components/ui/PinIcon";
+import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
 
 interface ListingCardProps {
   id: string;
@@ -34,6 +37,18 @@ export function ListingCard({
   const year = attributes?.year;
   const km = attributes?.mileage ?? attributes?.km;
   const hasVehicleMeta = year || km;
+
+  // Generic meta: brand · model | storage / capacity / volume
+  const brand = !hasVehicleMeta && attributes?.brand ? String(attributes.brand) : null;
+  const model = !hasVehicleMeta && attributes?.model ? String(attributes.model) : null;
+  const subSpec = !hasVehicleMeta
+    ? (attributes?.storage ?? attributes?.capacity ?? attributes?.volume ?? attributes?.size ?? null)
+    : null;
+  const brandModelLine = brand || model ? [brand, model].filter(Boolean).join(" · ") : null;
+
+  // Show province if zone is known, otherwise fall back to neighborhood
+  const zoneSlug = attributes?.zone as string | undefined;
+  const locationLabel = (zoneSlug && ZONE_TO_PROVINCE[zoneSlug]) ?? neighborhood ?? "Argentina";
 
   return (
     <Link href={`/listings/${id}`} style={{ textDecoration: "none", display: "block" }}>
@@ -103,19 +118,7 @@ export function ListingCard({
             </div>
           )}
 
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            style={{
-              position: "absolute", top: "8px", right: "8px",
-              background: "rgba(255,255,255,0.9)", border: "none",
-              borderRadius: "50%", width: "32px", height: "32px",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", fontSize: "15px",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-            }}
-          >
-            🤍
-          </button>
+          <FavoriteButton listingId={id} variant="card" />
         </div>
 
         {/* Content */}
@@ -140,9 +143,20 @@ export function ListingCard({
             </div>
           )}
 
+          {brandModelLine && (
+            <div style={{ fontSize: "12px", fontWeight: 600, color: "#3b82f6", marginBottom: "2px", textTransform: "capitalize" }}>
+              {brandModelLine}
+            </div>
+          )}
+          {subSpec && (
+            <div style={{ fontSize: "11px", color: "#888", marginBottom: "2px" }}>
+              {String(subSpec)}
+            </div>
+          )}
+
           <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", gap: "4px" }}>
-            <span>📍</span>
-            <span>{neighborhood ?? "San Juan"}</span>
+            <PinIcon size={11} />
+            <span>{locationLabel}</span>
           </div>
         </div>
       </div>

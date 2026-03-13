@@ -30,25 +30,6 @@ export function CategorySidebar({ categories }: CategorySidebarProps) {
         top: "76px",
       }}
     >
-      {/* Publish CTA */}
-      <Link href="/listings/new" style={{ textDecoration: "none" }}>
-        <div style={{
-          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-          borderRadius: "10px",
-          padding: "10px 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-        }}>
-          <span style={{ fontSize: "20px" }}>📸</span>
-          <div>
-            <div style={{ fontWeight: 800, color: "#fff", fontSize: "13px" }}>Publicar con IA</div>
-            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)" }}>Gratis · 30 segundos</div>
-          </div>
-          <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "16px", marginLeft: "auto" }}>→</span>
-        </div>
-      </Link>
-
       {/* Categories list */}
       <div
         style={{

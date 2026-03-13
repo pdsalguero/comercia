@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       max,
       avg,
       suggested,
-      source: "comercia",
+      source: "comerxia",
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

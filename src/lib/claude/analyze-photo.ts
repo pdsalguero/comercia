@@ -52,13 +52,13 @@ const USER_PROMPT = `Analizá esta imagen y devolvé este JSON:
 {
   "title": "título del aviso (máx 80 chars, NO incluyas el año aquí, lo agrega el sistema)",
   "description": "descripción de 2-3 oraciones para el aviso",
-  "category_id": número 1-10,
+  "category_id": número según categoría,
   "condition": "new|like_new|very_good|good|fair|for_parts",
   "price_suggested": número en pesos argentinos (0 si no podés estimar),
   "attributes": { ... campos según categoría ... }
 }
 
-CATEGORÍAS: 1=Electrónica 2=Vehículos 3=Inmuebles 4=Ropa 5=Hogar 6=Deportes 7=Herramientas 8=Libros 9=Mascotas 10=Otros
+CATEGORÍAS: 1=Electrónica 2=Vehículos 3=Inmuebles 4=Ropa 5=Hogar 6=Deportes 7=Herramientas 8=Libros 9=Mascotas 10=Otros 21=Celulares 22=Electrodomésticos 23=Bebés/Niños 24=Belleza/Salud
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CATEGORÍA 2 — VEHÍCULOS
@@ -115,7 +115,11 @@ Ropa(4): sub_category, gender, size, brand, color
 Hogar(5): sub_category, brand, color, material
 Deportes(6): sub_category, brand, size, color
 Herramientas(7): sub_category, brand, voltage
-Mascotas(9): sub_category, breed, sex, vaccinated, is_adoption`;
+Mascotas(9): sub_category, breed, sex, vaccinated, is_adoption
+Celulares(21): sub_category="smartphone|basico|tablet|smartwatch|accesorio|otro", brand, model, storage="32gb|64gb|128gb|256gb|512gb|1tb|otro", color, includes_box, includes_charger, unlocked
+Electrodomésticos(22): sub_category="heladera|lavarropas|cocina|microondas|aire|aspiradora|pequeno|otro", brand, model, color="blanco|gris|negro|acero|otro"
+Bebés/Niños(23): sub_category="ropa-bebe|ropa-nino|coche|cuna|juguete|lactancia|educativo|otro", age_range, brand, gender
+Belleza/Salud(24): sub_category="cuidado-personal|maquillaje|perfume|capilar|equipo-medico|suplemento|optica|otro", brand, volume`;
 
 export async function analyzePhotoWithClaude(
   images: Array<{ base64: string; mimeType: string }>,

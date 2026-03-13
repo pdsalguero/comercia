@@ -1,18 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/listings/ListingCard";
+import { RightSidebar } from "@/components/layout/RightSidebar";
 import Link from "next/link";
 
 const CATEGORIES = [
-  { name: "Vehículos",      slug: "vehicles",    icon: "🚗" },
-  { name: "Inmuebles",      slug: "real-estate", icon: "🏠" },
-  { name: "Electrónica",    slug: "electronics", icon: "📱" },
-  { name: "Ropa y Calzado", slug: "clothing",    icon: "👗" },
-  { name: "Hogar y Jardín", slug: "home-garden", icon: "🛋️" },
-  { name: "Deportes",       slug: "sports",      icon: "⚽" },
-  { name: "Herramientas",   slug: "tools",       icon: "🔧" },
-  { name: "Libros",         slug: "books",       icon: "📚" },
-  { name: "Mascotas",       slug: "pets",        icon: "🐾" },
-  { name: "Otros",          slug: "other",       icon: "📦" },
+  { name: "Vehículos",         slug: "vehicles",      icon: "🚗" },
+  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠" },
+  { name: "Celulares",         slug: "phones",        icon: "📱" },
+  { name: "Electrónica",       slug: "electronics",   icon: "💻" },
+  { name: "Electrodomésticos", slug: "appliances",    icon: "🧊" },
+  { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗" },
+  { name: "Muebles y Hogar",   slug: "home-garden",   icon: "🛋️" },
+  { name: "Deportes",          slug: "sports",        icon: "⚽" },
+  { name: "Herramientas",      slug: "tools",         icon: "🔧" },
+  { name: "Bebés y Niños",     slug: "babies",        icon: "👶" },
+  { name: "Libros y Juegos",   slug: "books",         icon: "📚" },
+  { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄" },
+  { name: "Mascotas",          slug: "pets",          icon: "🐾" },
+  { name: "Otros",             slug: "other",         icon: "📦" },
 ];
 
 const CONDITIONS = [
@@ -166,6 +171,41 @@ export default async function ListingsPage({
           </div>
         </div>
 
+        {/* Condition */}
+        <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "13px", fontWeight: 700, color: "#333" }}>
+            Condición
+          </div>
+          <div>
+            <Link href={buildUrl({ condition: undefined })} style={{ textDecoration: "none" }}>
+              <div style={{
+                padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                color: !condition ? "#2563eb" : "#444",
+                fontWeight: !condition ? 700 : 400,
+                borderLeft: !condition ? "3px solid #2563eb" : "3px solid transparent",
+              }}>
+                Todas
+              </div>
+            </Link>
+            {CONDITIONS.map((c) => {
+              const active = condition === c.value;
+              return (
+                <Link key={c.value} href={buildUrl({ condition: c.value })} style={{ textDecoration: "none" }}>
+                  <div style={{
+                    padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                    background: active ? "#eff6ff" : "transparent",
+                    color: active ? "#2563eb" : "#444",
+                    fontWeight: active ? 700 : 400,
+                    borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                  }}>
+                    {c.label}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Price range */}
         <form method="GET" action="/listings" style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
           {/* preserve other params */}
@@ -209,41 +249,6 @@ export default async function ListingsPage({
             </button>
           </div>
         </form>
-
-        {/* Condition */}
-        <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "13px", fontWeight: 700, color: "#333" }}>
-            Condición
-          </div>
-          <div>
-            <Link href={buildUrl({ condition: undefined })} style={{ textDecoration: "none" }}>
-              <div style={{
-                padding: "9px 16px", fontSize: "13px", cursor: "pointer",
-                color: !condition ? "#2563eb" : "#444",
-                fontWeight: !condition ? 700 : 400,
-                borderLeft: !condition ? "3px solid #2563eb" : "3px solid transparent",
-              }}>
-                Todas
-              </div>
-            </Link>
-            {CONDITIONS.map((c) => {
-              const active = condition === c.value;
-              return (
-                <Link key={c.value} href={buildUrl({ condition: c.value })} style={{ textDecoration: "none" }}>
-                  <div style={{
-                    padding: "9px 16px", fontSize: "13px", cursor: "pointer",
-                    background: active ? "#eff6ff" : "transparent",
-                    color: active ? "#2563eb" : "#444",
-                    fontWeight: active ? 700 : 400,
-                    borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
-                  }}>
-                    {c.label}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Clear filters */}
         {(q || category || condition || price_min || price_max) && (
@@ -363,6 +368,10 @@ export default async function ListingsPage({
           );
         })()}
       </div>
+
+      {/* ── RIGHT SIDEBAR ── */}
+      <RightSidebar />
+
     </div>
     </div>
   );

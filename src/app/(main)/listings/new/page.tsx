@@ -455,14 +455,19 @@ function FocusSel({
   );
 }
 
-const CAT_ORDER = [2, 3, 1, 4, 5, 6, 7, 8, 9, 10];
+const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 9, 10];
 const SORTED_CATS = [...CATEGORY_CONFIGS].sort(
-  (a, b) => CAT_ORDER.indexOf(a.id) - CAT_ORDER.indexOf(b.id)
+  (a, b) => {
+    const ai = CAT_ORDER.indexOf(a.id);
+    const bi = CAT_ORDER.indexOf(b.id);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  }
 );
 const SLUG_BY_ID: Record<number, string> = {
   1: "electronics", 2: "vehicles", 3: "real-estate",
   4: "clothing", 5: "home-garden", 6: "sports",
   7: "tools", 8: "books", 9: "pets", 10: "other",
+  21: "phones", 22: "appliances", 23: "babies", 24: "beauty-health",
 };
 
 function CategoryPicker({ value, onChange }: { value: number; onChange: (id: number) => void }) {
@@ -822,7 +827,7 @@ export default function NewListingPage() {
   const [currency, setCurrency] = useState<"ARS" | "USD">("ARS");
   const [categoryId, setCategoryId] = useState(0);
   const [condition, setCondition] = useState("");
-  const [zone, setZone] = useState("");
+  const [zone, setZone] = useState("San Juan");
   const [locality, setLocality] = useState("");
   const [techGroup, setTechGroup] = useState("");
   const [attrs, setAttrs] = useState<Record<string, any>>({});
@@ -996,6 +1001,17 @@ export default function NewListingPage() {
       if (!attrs.sub_category) missing.push("Tipo de vehículo");
       if (!attrs.brand) missing.push("Marca");
       if (!attrs.model) missing.push("Modelo");
+      if (missing.length > 0) {
+        setValidationErrors(missing);
+        return;
+      }
+    }
+    // Generic category required fields
+    if (!isVehicle && !isRealEstate && catConfig) {
+      const missing: string[] = [];
+      for (const field of catConfig.fields) {
+        if (field.required && !attrs[field.key]) missing.push(field.label);
+      }
       if (missing.length > 0) {
         setValidationErrors(missing);
         return;
@@ -2098,6 +2114,65 @@ export default function NewListingPage() {
                           ))}
                         </FocusSel>
                       </Field>
+                    </>
+                  )}
+
+                  {/* ── GENERIC category fields (phones, appliances, babies, beauty, clothing, etc.) ── */}
+                  {!isVehicle && !isRealEstate && !isTechnology && catConfig?.fields && (
+                    <>
+                      {catConfig.fields.filter(f => f.type !== "checkbox").map(field => (
+                        <Field key={field.key} label={field.label} required={field.required}>
+                          {field.type === "select" ? (
+                            <FocusSel
+                              value={attrs[field.key] ?? ""}
+                              onChange={(e) => handleAttr(field.key, e.target.value)}
+                            >
+                              <option value="">Seleccioná...</option>
+                              {field.options?.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </FocusSel>
+                          ) : field.type === "radio" ? (
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              {field.options?.map(opt => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => handleAttr(field.key, opt.value)}
+                                  style={{
+                                    flex: 1, padding: "10px", borderRadius: "8px", fontSize: "12px",
+                                    border: `1.5px solid ${attrs[field.key] === opt.value ? C.blue : C.slate200}`,
+                                    background: attrs[field.key] === opt.value ? C.blue50 : C.white,
+                                    color: attrs[field.key] === opt.value ? C.blue : C.slate500,
+                                    fontWeight: attrs[field.key] === opt.value ? 700 : 400,
+                                    cursor: "pointer", fontFamily: "inherit", transition: "all .1s",
+                                  }}
+                                >{opt.label}</button>
+                              ))}
+                            </div>
+                          ) : (
+                            <FocusInp
+                              type={field.type === "number" ? "number" : "text"}
+                              value={attrs[field.key] ?? ""}
+                              onChange={(e) => handleAttr(field.key, e.target.value)}
+                              placeholder={field.placeholder ?? ""}
+                            />
+                          )}
+                          {field.hint && (
+                            <div style={{ fontSize: "11px", color: C.slate400, marginTop: "4px" }}>{field.hint}</div>
+                          )}
+                        </Field>
+                      ))}
+                      {catConfig.fields.filter(f => f.type === "checkbox").length > 0 && (
+                        <div style={{ gridColumn: "span 2" }}>
+                          <label style={{ ...T.lbl, display: "block", marginBottom: "10px" }}>Características</label>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+                            {catConfig.fields.filter(f => f.type === "checkbox").map(field => (
+                              <CheckItem key={field.key} label={field.label} value={!!attrs[field.key]} onChange={(v) => handleAttr(field.key, v)} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
 

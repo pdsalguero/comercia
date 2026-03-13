@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 
+export const dynamic = 'force-dynamic'
+
 const navItems = [
   { label: '🏠 Inicio',          href: '/dashboard' },
   { label: '📋 Mis avisos',       href: '/my-listings' },
@@ -19,15 +21,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username, full_name, avatar_url, is_pro')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, { count: unreadCount }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('username, full_name, avatar_url, is_pro')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('receiver_id', user.id)
+      .eq('is_read', false),
+  ])
 
   return (
     <div style={{ minHeight: '100vh', background: '#ebebeb' }}>
-      <Navbar />
+      <Navbar user={user} />
       <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "24px 16px" }}>
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '20px', alignItems: 'start' }}>
 
@@ -66,9 +75,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     color: '#333',
                     borderBottom: i < navItems.length - 1 ? '1px solid #f5f5f5' : 'none',
                     cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                   className="hover:bg-gray-50">
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.href === '/messages' && (unreadCount ?? 0) > 0 && (
+                      <span style={{
+                        background: '#ef4444', color: '#fff',
+                        fontSize: '11px', fontWeight: 700,
+                        padding: '1px 7px', borderRadius: '20px',
+                        minWidth: '20px', textAlign: 'center',
+                      }}>
+                        {unreadCount}
+                      </span>
+                    )}
                   </div>
                 </Link>
               ))}

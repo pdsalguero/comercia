@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: {
-    default: "ComercIA — Comprá y vendé en San Juan",
-    template: "%s | comercIA",
+    default: "ComerxIA — Comprá y vendé en San Juan",
+    template: "%s | ComerxIA",
   },
   description:
     "El marketplace inteligente de San Juan. Publicá en 30 segundos con IA.",
@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     "marketplace",
   ],
   openGraph: {
-    title: "ComercIA",
+    title: "ComerxIA",
     description: "El marketplace inteligente de San Juan.",
-    url: "https://comercia.com.ar",
-    siteName: "ComercIA",
+    url: "https://comerxia.com.ar",
+    siteName: "ComerxIA",
     locale: "es_AR",
     type: "website",
   },

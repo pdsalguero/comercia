@@ -268,19 +268,88 @@ export function TechGroupIcon({ group, size = 28 }: { group: string; size?: numb
   }
 }
 
+// ── Celulares ─────────────────────────────────────────────
+function PhonesIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect x="9" y="2" width="14" height="28" rx="4" fill="#ede9fe" stroke="#7c3aed" strokeWidth="1.7"/>
+      <rect x="11" y="7" width="10" height="16" rx="1.5" fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.2"/>
+      <circle cx="16" cy="27" r="1.5" fill="#7c3aed"/>
+      <path d="M13 4.5h6" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M13 9 L13 11" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// ── Electrodomésticos ─────────────────────────────────────
+function AppliancesIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      {/* fridge body */}
+      <rect x="7" y="3" width="18" height="26" rx="3" fill="#e0f2fe" stroke="#0284c7" strokeWidth="1.7"/>
+      {/* divider */}
+      <path d="M7 14h18" stroke="#0284c7" strokeWidth="1.4"/>
+      {/* handles */}
+      <path d="M13 8v4" stroke="#0284c7" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M13 18v4" stroke="#0284c7" strokeWidth="2" strokeLinecap="round"/>
+      {/* freezer dot */}
+      <circle cx="21" cy="10" r="1.5" fill="#0284c7"/>
+    </svg>
+  );
+}
+
+// ── Bebés y Niños ─────────────────────────────────────────
+function BabiesIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      {/* stroller body */}
+      <path d="M6 10 Q6 20 16 20 Q26 20 26 10" fill="#fce7f3" stroke="#db2777" strokeWidth="1.6"/>
+      {/* handle */}
+      <path d="M24 10 L28 6" stroke="#db2777" strokeWidth="2" strokeLinecap="round"/>
+      {/* base */}
+      <path d="M10 20 L8 26M22 20 L24 26" stroke="#db2777" strokeWidth="1.7" strokeLinecap="round"/>
+      {/* wheels */}
+      <circle cx="8" cy="27" r="2.5" fill="#fce7f3" stroke="#db2777" strokeWidth="1.6"/>
+      <circle cx="24" cy="27" r="2.5" fill="#fce7f3" stroke="#db2777" strokeWidth="1.6"/>
+      {/* baby face suggestion */}
+      <circle cx="16" cy="14" r="3" fill="#fbcfe8"/>
+    </svg>
+  );
+}
+
+// ── Belleza y Salud ───────────────────────────────────────
+function BeautyHealthIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      {/* bottle body */}
+      <rect x="11" y="10" width="10" height="18" rx="3" fill="#fdf2f8" stroke="#a21caf" strokeWidth="1.6"/>
+      {/* bottle neck */}
+      <rect x="13" y="6" width="6" height="6" rx="1.5" fill="#fdf2f8" stroke="#a21caf" strokeWidth="1.4"/>
+      {/* cap */}
+      <rect x="12" y="3" width="8" height="4" rx="2" fill="#f0abfc" stroke="#a21caf" strokeWidth="1.4"/>
+      {/* label lines */}
+      <path d="M14 17h4M14 20h4M14 23h2" stroke="#a21caf" strokeWidth="1.1" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 // ── All categories ────────────────────────────────────────
 export function CategoryIcon({ slug, size = 28 }: { slug: string; size?: number }) {
   switch (slug) {
-    case "vehicles":    return <VehiclesIcon size={size} />;
-    case "real-estate": return <RealEstateIcon size={size} />;
-    case "electronics": return <ElectronicsIcon size={size} />;
-    case "clothing":    return <ClothingIcon size={size} />;
-    case "home-garden": return <HomeGardenIcon size={size} />;
-    case "sports":      return <SportsIcon size={size} />;
-    case "tools":       return <ToolsIcon size={size} />;
-    case "books":       return <BooksIcon size={size} />;
-    case "pets":        return <PetsIcon size={size} />;
-    case "other":       return <OtherIcon size={size} />;
-    default:            return <OtherIcon size={size} />;
+    case "vehicles":      return <VehiclesIcon size={size} />;
+    case "real-estate":   return <RealEstateIcon size={size} />;
+    case "electronics":   return <ElectronicsIcon size={size} />;
+    case "clothing":      return <ClothingIcon size={size} />;
+    case "home-garden":   return <HomeGardenIcon size={size} />;
+    case "sports":        return <SportsIcon size={size} />;
+    case "tools":         return <ToolsIcon size={size} />;
+    case "books":         return <BooksIcon size={size} />;
+    case "pets":          return <PetsIcon size={size} />;
+    case "phones":        return <PhonesIcon size={size} />;
+    case "appliances":    return <AppliancesIcon size={size} />;
+    case "babies":        return <BabiesIcon size={size} />;
+    case "beauty-health": return <BeautyHealthIcon size={size} />;
+    case "other":         return <OtherIcon size={size} />;
+    default:              return <OtherIcon size={size} />;
   }
 }

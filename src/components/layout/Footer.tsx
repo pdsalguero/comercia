@@ -13,7 +13,7 @@ export function Footer() {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <Link href="/" style={{ textDecoration: "none" }}>
             <span style={{ fontSize: "16px", fontWeight: 900, color: "#fff", letterSpacing: "-0.5px" }}>
-              comerc<span style={{ color: "#818cf8" }}>IA</span>
+              Comerx<span style={{ color: "#818cf8" }}>IA</span>
             </span>
           </Link>
           <span style={{ fontSize: "12px", color: "#334155" }}>·</span>
@@ -27,7 +27,7 @@ export function Footer() {
             { label: "Publicar", href: "/listings/new" },
             { label: "Ingresar", href: "/login" },
             { label: "Registrarse", href: "/register" },
-            { label: "hola@comercia.com.ar", href: "mailto:hola@comercia.com.ar" },
+            { label: "hola@comerxia.com.ar", href: "mailto:hola@comerxia.com.ar" },
           ].map((l) => (
             <a key={l.href} href={l.href}
               style={{ fontSize: "12px", color: "#475569", textDecoration: "none" }}
@@ -49,7 +49,7 @@ export function Footer() {
             </a>
           ))}
           <span style={{ fontSize: "12px", color: "#1e293b" }}>
-            © {new Date().getFullYear()} comercIA · San Juan 🇦🇷
+            © {new Date().getFullYear()} ComerxIA · San Juan 🇦🇷
           </span>
         </div>
       </div>

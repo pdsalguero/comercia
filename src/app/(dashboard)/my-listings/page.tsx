@@ -22,6 +22,19 @@ async function deleteListing(formData: FormData) {
   revalidatePath('/my-listings')
 }
 
+const CAT_NAMES: Record<string, string> = {
+  electronics: "Tecnología",
+  vehicles: "Vehículos",
+  "real-estate": "Inmuebles",
+  clothing: "Ropa y Calzado",
+  "home-garden": "Hogar y Jardín",
+  sports: "Deportes",
+  tools: "Herramientas",
+  books: "Libros",
+  pets: "Mascotas",
+  other: "Otros",
+};
+
 const STATUS_LABEL: Record<string, string> = {
   active:  'Activo',
   paused:  'Pausado',
@@ -46,7 +59,14 @@ const STATUS_BG: Record<string, string> = {
   draft:   '#f9fafb',
 }
 
-export default async function MyListingsPage() {
+export default async function MyListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
+  const isGrid = view === 'grid';
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -55,15 +75,26 @@ export default async function MyListingsPage() {
     .from('listings')
     .select(`
       id, title, price, currency, status, condition,
-      view_count, contact_count, favorite_count,
+      view_count, favorite_count,
       featured_level, created_at, slug,
-      listing_images(url, position)
+      listing_images(url, position),
+      categories(name, slug)
     `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   const active = listings?.filter(l => l.status === 'active').length ?? 0
   const total  = listings?.length ?? 0
+
+  // Message count per listing
+  const allIds = (listings ?? []).map(l => l.id)
+  const { data: msgRows } = allIds.length > 0
+    ? await supabase.from('messages').select('listing_id').in('listing_id', allIds)
+    : { data: [] }
+  const msgCountMap: Record<string, number> = {}
+  for (const m of (msgRows ?? [])) {
+    if (m.listing_id) msgCountMap[m.listing_id] = (msgCountMap[m.listing_id] ?? 0) + 1
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -76,21 +107,116 @@ export default async function MyListingsPage() {
             {active} activo{active !== 1 ? 's' : ''} · {total} en total
           </p>
         </div>
-        <Link href="/listings/new">
-          <button style={{
-            background: '#3483fa', color: '#fff',
-            border: 'none', borderRadius: '8px',
-            padding: '10px 20px', fontWeight: 700,
-            fontSize: '14px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '6px',
-          }}>
-            <span style={{ fontSize: '16px' }}>+</span> Publicar nuevo
-          </button>
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Grid / List toggle */}
+          <div style={{ display: 'flex', border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+            <Link href="/my-listings" style={{ textDecoration: 'none' }}>
+              <div title="Ver en lista" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: !isGrid ? '#6366f1' : '#fff', color: !isGrid ? '#fff' : '#94a3b8' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="3" y="5" width="18" height="2" rx="1"/><rect x="3" y="11" width="18" height="2" rx="1"/><rect x="3" y="17" width="18" height="2" rx="1"/>
+                </svg>
+              </div>
+            </Link>
+            <Link href="/my-listings?view=grid" style={{ textDecoration: 'none' }}>
+              <div title="Ver en grilla" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: isGrid ? '#6366f1' : '#fff', color: isGrid ? '#fff' : '#94a3b8' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </div>
+            </Link>
+          </div>
+          <Link href="/listings/new">
+            <button style={{
+              background: '#3483fa', color: '#fff',
+              border: 'none', borderRadius: '8px',
+              padding: '10px 20px', fontWeight: 700,
+              fontSize: '14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              <span style={{ fontSize: '16px' }}>+</span> Publicar nuevo
+            </button>
+          </Link>
+        </div>
       </div>
 
+      {/* Grid view */}
+      {isGrid && listings && listings.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '12px' }}>
+          {listings.map(listing => {
+            const images = listing.listing_images as { url: string; position: number }[] | null
+            const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null
+            const catName = CAT_NAMES[(listing as any).categories?.slug] ?? (listing as any).categories?.name
+            return (
+              <div key={listing.id} style={{
+                background: '#fff', borderRadius: '12px', overflow: 'hidden',
+                border: listing.featured_level === 'gold' ? '2px solid #fbbf24' : listing.featured_level === 'silver' ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+              }}>
+                {/* Clickable image + title area */}
+                <Link href={`/listings/${listing.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                  <div style={{ height: '160px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
+                    {cover
+                      ? <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>📦</div>
+                    }
+                    <span style={{
+                      position: 'absolute', bottom: '8px', left: '8px',
+                      background: STATUS_BG[listing.status] ?? '#f9fafb',
+                      color: STATUS_DOT[listing.status] ?? '#6b7280',
+                      fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px',
+                      border: `1px solid ${STATUS_DOT[listing.status] ?? '#e5e7eb'}33`,
+                    }}>
+                      {STATUS_LABEL[listing.status] ?? listing.status}
+                    </span>
+                  </div>
+                  <div style={{ padding: '10px 12px 6px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
+                      {listing.title}
+                    </div>
+                    {catName && <div style={{ fontSize: '11px', color: '#6366f1', fontWeight: 600, marginBottom: '3px' }}>{catName}</div>}
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#3483fa' }}>
+                      {listing.currency === 'USD' ? 'U$S' : '$'} {listing.price?.toLocaleString('es-AR')}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '10px', color: '#94a3b8' }}>
+                      <span>{listing.view_count} vistas</span>
+                      <span>·</span>
+                      <span>{listing.favorite_count} favs</span>
+                    </div>
+                  </div>
+                </Link>
+                {/* Actions outside the link */}
+                <div style={{ display: 'flex', gap: '6px', padding: '0 12px 10px', flexWrap: 'wrap' }}>
+                  {(listing.status === 'active' || listing.status === 'paused') && (
+                    <form action={toggleStatus} style={{ flex: 1 }}>
+                      <input type="hidden" name="id" value={listing.id} />
+                      <input type="hidden" name="status" value={listing.status} />
+                      <button type="submit" style={{
+                        width: '100%',
+                        background: listing.status === 'active' ? '#fef2f2' : '#f0fdf4',
+                        color: listing.status === 'active' ? '#dc2626' : '#16a34a',
+                        border: `1px solid ${listing.status === 'active' ? '#fecaca' : '#bbf7d0'}`,
+                        borderRadius: '6px', padding: '5px', fontSize: '11px', cursor: 'pointer', fontWeight: 600,
+                      }}>
+                        {listing.status === 'active' ? 'Pausar' : 'Activar'}
+                      </button>
+                    </form>
+                  )}
+                  <Link href={`/my-listings/${listing.id}/edit`} style={{ textDecoration: 'none', flex: 1 }}>
+                    <button style={{ width: '100%', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}>
+                      Editar
+                    </button>
+                  </Link>
+                  <DeleteButton id={listing.id} title={listing.title} onDelete={deleteListing} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {/* Table */}
-      <div style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+      {!isGrid && <div style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
 
         {/* Column headers */}
         {total > 0 && (
@@ -174,6 +300,11 @@ export default async function MyListingsPage() {
                     </div>
                   </Link>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    {(listing as any).categories?.slug && (
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#6366f1', background: '#eef2ff', borderRadius: '4px', padding: '1px 6px' }}>
+                        {CAT_NAMES[(listing as any).categories.slug] ?? (listing as any).categories.name}
+                      </span>
+                    )}
                     {listing.featured_level && (
                       <span style={{
                         fontSize: '10px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px',
@@ -202,8 +333,8 @@ export default async function MyListingsPage() {
                   </div>
                   <div style={{ width: '1px', background: '#e2e8f0' }} />
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>{listing.contact_count}</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>contactos</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>{msgCountMap[listing.id] ?? 0}</div>
+                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>mensajes</div>
                   </div>
                   <div style={{ width: '1px', background: '#e2e8f0' }} />
                   <div style={{ textAlign: 'center' }}>
@@ -263,7 +394,7 @@ export default async function MyListingsPage() {
             )
           })
         )}
-      </div>
+      </div>}
     </div>
   )
 }

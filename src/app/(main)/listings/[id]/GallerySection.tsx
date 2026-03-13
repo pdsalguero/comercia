@@ -26,13 +26,13 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
       <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
 
         {/* Main image with arrows */}
-        <div style={{ width: "100%", height: "500px", background: "#f5f5f5", position: "relative", cursor: "zoom-in" }}
+        <div style={{ width: "100%", height: "420px", background: "#f8f9fa", position: "relative", cursor: "zoom-in" }}
           onClick={() => { setZoomed(false); setLightbox(true); }}
         >
           <img
             src={images[active].url}
             alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
           />
 
           {/* Prev arrow */}

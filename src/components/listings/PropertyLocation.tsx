@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import PinIcon from "@/components/ui/PinIcon";
 
 interface NominatimResult {
   lat: string;
@@ -139,7 +140,7 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
                   borderBottom: i < suggestions.length - 1 ? "1px solid #f8fafc" : "none",
                 }}
               >
-                <span style={{ color: "#94a3b8", flexShrink: 0, fontSize: "14px" }}>📍</span>
+                <PinIcon size={13} />
                 <span>{r.display_name}</span>
               </div>
             ))}
@@ -163,7 +164,7 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
             fontSize: "11px", color: "#94a3b8",
             display: "flex", justifyContent: "space-between", alignItems: "center",
           }}>
-            <span>📍 {lat?.toFixed(5)}, {lng?.toFixed(5)}</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {lat?.toFixed(5)}, {lng?.toFixed(5)}</span>
             <a
               href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`}
               target="_blank"

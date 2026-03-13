@@ -9,7 +9,7 @@ export default async function DashboardPage() {
 
   const { data: listings } = await supabase
     .from('listings')
-    .select('id, title, price, status, view_count, contact_count, created_at, listing_images(url, position)')
+    .select('id, title, price, status, view_count, created_at, listing_images(url, position)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
@@ -20,17 +20,35 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .eq('status', 'active')
 
-  const { count: totalMessages } = await supabase
-    .from('messages')
-    .select('*', { count: 'exact', head: true })
-    .eq('receiver_id', user.id)
-    .eq('is_read', false)
+  const listingIds = (listings ?? []).map(l => l.id)
+
+  const [{ count: totalMessages }, { data: viewData }, { data: msgPerListing }] = await Promise.all([
+    supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', user.id)
+      .eq('is_read', false),
+    supabase
+      .from('listings')
+      .select('view_count')
+      .eq('user_id', user.id),
+    listingIds.length > 0
+      ? supabase.from('messages').select('listing_id').in('listing_id', listingIds)
+      : Promise.resolve({ data: [] }),
+  ])
+
+  // Count messages per listing
+  const msgCountMap: Record<string, number> = {}
+  for (const m of (msgPerListing ?? [])) {
+    if (m.listing_id) msgCountMap[m.listing_id] = (msgCountMap[m.listing_id] ?? 0) + 1
+  }
+
+  const totalViews = (viewData ?? []).reduce((sum, l) => sum + (l.view_count ?? 0), 0)
 
   const stats = [
-    { label: 'Avisos activos',      value: totalListings ?? 0, icon: '📋', color: '#3483fa' },
-    { label: 'Mensajes sin leer',   value: totalMessages ?? 0, icon: '💬', color: '#22c55e' },
-    { label: 'Vistas totales',      value: 0,                  icon: '👁️', color: '#f59e0b' },
-    { label: 'Contactos recibidos', value: 0,                  icon: '📞', color: '#8b5cf6' },
+    { label: 'Avisos activos',    value: totalListings ?? 0, icon: '📋', color: '#3483fa' },
+    { label: 'Mensajes sin leer', value: totalMessages ?? 0, icon: '💬', color: '#22c55e' },
+    { label: 'Vistas totales',    value: totalViews,         icon: '👁️', color: '#f59e0b' },
   ]
 
   return (
@@ -39,7 +57,7 @@ export default async function DashboardPage() {
       {/* Welcome */}
       <div style={{ background: 'linear-gradient(135deg,#1a0533,#3d1a6e,#2563eb)', borderRadius: '8px', padding: '24px 28px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
-          ¡Bienvenido a comercIA! 👋
+          ¡Bienvenido a ComerxIA! 👋
         </h1>
         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', marginBottom: '16px' }}>
           Publicá tu primer aviso en 30 segundos con inteligencia artificial.
@@ -57,12 +75,12 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
         {stats.map(stat => (
-          <div key={stat.label} style={{ background: '#fff', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', marginBottom: '4px' }}>{stat.icon}</div>
-            <div style={{ fontSize: '24px', fontWeight: 900, color: stat.color }}>{stat.value}</div>
-            <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>{stat.label}</div>
+          <div key={stat.label} style={{ background: '#fff', borderRadius: '10px', padding: '24px 16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>{stat.icon}</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>{stat.label}</div>
           </div>
         ))}
       </div>
@@ -107,7 +125,7 @@ export default async function DashboardPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>{listing.title}</div>
                   <div style={{ fontSize: '12px', color: '#999' }}>
-                    👁️ {listing.view_count} vistas · 📞 {listing.contact_count} contactos
+                    👁️ {listing.view_count} vistas · 💬 {msgCountMap[listing.id] ?? 0} mensajes
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>

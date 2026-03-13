@@ -1,0 +1,172 @@
+// Shared real-estate location data: province → zones
+export const RE_LOCATIONS: Record<string, { label: string; zones: { value: string; label: string }[] }> = {
+  "san-juan":            { label: "San Juan", zones: [
+    { value: "capital",      label: "Capital" },
+    { value: "rivadavia",    label: "Rivadavia" },
+    { value: "rawson",       label: "Rawson" },
+    { value: "santa-lucia",  label: "Santa Lucía" },
+    { value: "chimbas",      label: "Chimbas" },
+    { value: "pocito",       label: "Pocito" },
+    { value: "caucete",      label: "Caucete" },
+    { value: "25-de-mayo",   label: "25 de Mayo" },
+    { value: "ullum",        label: "Ullum" },
+    { value: "zonda",        label: "Zonda" },
+    { value: "sarmiento",    label: "Sarmiento" },
+    { value: "angaco",       label: "Angaco" },
+    { value: "albardon",     label: "Albardón" },
+    { value: "jachal",       label: "Jáchal" },
+    { value: "iglesia",      label: "Iglesia" },
+    { value: "calingasta",   label: "Calingasta" },
+    { value: "san-martin",   label: "San Martín" },
+    { value: "valle-fertil", label: "Valle Fértil" },
+  ]},
+  "buenos-aires":        { label: "Buenos Aires", zones: [
+    { value: "caba",                  label: "Ciudad de Buenos Aires" },
+    { value: "la-plata",              label: "La Plata" },
+    { value: "mar-del-plata",         label: "Mar del Plata" },
+    { value: "quilmes",               label: "Quilmes" },
+    { value: "lomas-de-zamora",       label: "Lomas de Zamora" },
+    { value: "moron",                 label: "Morón" },
+    { value: "tigre",                 label: "Tigre" },
+    { value: "san-isidro",            label: "San Isidro" },
+    { value: "vicente-lopez",         label: "Vicente López" },
+    { value: "tres-de-febrero",       label: "Tres de Febrero" },
+    { value: "avellaneda",            label: "Avellaneda" },
+    { value: "lanus",                 label: "Lanús" },
+    { value: "bernal",                label: "Bernal" },
+    { value: "berazategui",           label: "Berazategui" },
+    { value: "florencio-varela",      label: "Florencio Varela" },
+    { value: "pilar",                 label: "Pilar" },
+    { value: "campana",               label: "Campana" },
+    { value: "zarate",                label: "Zárate" },
+    { value: "bahia-blanca",          label: "Bahía Blanca" },
+    { value: "tandil",                label: "Tandil" },
+  ]},
+  "cordoba":             { label: "Córdoba", zones: [
+    { value: "cordoba-capital",  label: "Córdoba Capital" },
+    { value: "villa-carlos-paz", label: "Villa Carlos Paz" },
+    { value: "rio-cuarto",       label: "Río Cuarto" },
+    { value: "villa-maria",      label: "Villa María" },
+    { value: "alta-gracia",      label: "Alta Gracia" },
+    { value: "san-francisco",    label: "San Francisco" },
+    { value: "cosquin",          label: "Cosquín" },
+    { value: "la-falda",         label: "La Falda" },
+    { value: "jesus-maria",      label: "Jesús María" },
+  ]},
+  "mendoza":             { label: "Mendoza", zones: [
+    { value: "mendoza-capital", label: "Mendoza Capital" },
+    { value: "godoy-cruz",      label: "Godoy Cruz" },
+    { value: "guaymallen",      label: "Guaymallén" },
+    { value: "las-heras",       label: "Las Heras" },
+    { value: "lujan-de-cuyo",   label: "Luján de Cuyo" },
+    { value: "maipu",           label: "Maipú" },
+    { value: "san-rafael",      label: "San Rafael" },
+    { value: "malargue",        label: "Malargüe" },
+  ]},
+  "santa-fe":            { label: "Santa Fe", zones: [
+    { value: "santa-fe-capital", label: "Santa Fe Capital" },
+    { value: "rosario",          label: "Rosario" },
+    { value: "venado-tuerto",    label: "Venado Tuerto" },
+    { value: "rafaela",          label: "Rafaela" },
+    { value: "reconquista",      label: "Reconquista" },
+    { value: "santo-tome",       label: "Santo Tomé" },
+  ]},
+  "tucuman":             { label: "Tucumán", zones: [
+    { value: "san-miguel-de-tucuman", label: "San Miguel de Tucumán" },
+    { value: "tafi-viejo",            label: "Tafí Viejo" },
+    { value: "yerba-buena",           label: "Yerba Buena" },
+    { value: "banda-del-rio-sali",    label: "Banda del Río Salí" },
+    { value: "concepcion-tucuman",    label: "Concepción" },
+  ]},
+  "salta":               { label: "Salta", zones: [
+    { value: "salta-capital",            label: "Salta Capital" },
+    { value: "oran",                     label: "Orán" },
+    { value: "tartagal",                 label: "Tartagal" },
+    { value: "cafayate",                 label: "Cafayate" },
+    { value: "rosario-de-la-frontera",   label: "Rosario de la Frontera" },
+  ]},
+  "entre-rios":          { label: "Entre Ríos", zones: [
+    { value: "parana",        label: "Paraná" },
+    { value: "concordia",     label: "Concordia" },
+    { value: "gualeguaychu",  label: "Gualeguaychú" },
+    { value: "colon-er",      label: "Colón" },
+  ]},
+  "neuquen":             { label: "Neuquén", zones: [
+    { value: "neuquen-capital",        label: "Neuquén Capital" },
+    { value: "san-martin-de-los-andes",label: "San Martín de los Andes" },
+    { value: "villa-la-angostura",     label: "Villa La Angostura" },
+  ]},
+  "rio-negro":           { label: "Río Negro", zones: [
+    { value: "bariloche",      label: "Bariloche" },
+    { value: "viedma",         label: "Viedma" },
+    { value: "general-roca",   label: "General Roca" },
+    { value: "cipolletti",     label: "Cipolletti" },
+  ]},
+  "chubut":              { label: "Chubut", zones: [
+    { value: "rawson-chubut",       label: "Rawson" },
+    { value: "comodoro-rivadavia",  label: "Comodoro Rivadavia" },
+    { value: "trelew",              label: "Trelew" },
+    { value: "puerto-madryn",       label: "Puerto Madryn" },
+  ]},
+  "misiones":            { label: "Misiones", zones: [
+    { value: "posadas", label: "Posadas" },
+    { value: "iguazu",  label: "Puerto Iguazú" },
+    { value: "obera",   label: "Oberá" },
+  ]},
+  "san-luis":            { label: "San Luis", zones: [
+    { value: "san-luis-capital", label: "San Luis Capital" },
+    { value: "villa-mercedes",   label: "Villa Mercedes" },
+    { value: "merlo-sl",         label: "Merlo" },
+  ]},
+  "la-rioja":            { label: "La Rioja", zones: [
+    { value: "la-rioja-capital", label: "La Rioja Capital" },
+    { value: "chilecito",        label: "Chilecito" },
+  ]},
+  "catamarca":           { label: "Catamarca", zones: [
+    { value: "catamarca-capital", label: "Catamarca Capital" },
+  ]},
+  "jujuy":               { label: "Jujuy", zones: [
+    { value: "san-salvador-de-jujuy", label: "San Salvador de Jujuy" },
+    { value: "palpalá",               label: "Palpalá" },
+    { value: "humahuaca",             label: "Humahuaca" },
+  ]},
+  "la-pampa":            { label: "La Pampa", zones: [
+    { value: "santa-rosa-lp",  label: "Santa Rosa" },
+    { value: "general-pico",   label: "General Pico" },
+  ]},
+  "chaco":               { label: "Chaco", zones: [
+    { value: "resistencia",                   label: "Resistencia" },
+    { value: "presidencia-roque-saenz-pena",  label: "Presidencia R. S. Peña" },
+  ]},
+  "formosa":             { label: "Formosa", zones: [
+    { value: "formosa-capital", label: "Formosa Capital" },
+  ]},
+  "corrientes":          { label: "Corrientes", zones: [
+    { value: "corrientes-capital",    label: "Corrientes Capital" },
+    { value: "goya",                  label: "Goya" },
+    { value: "mercedes-corrientes",   label: "Mercedes" },
+  ]},
+  "santiago-del-estero": { label: "Santiago del Estero", zones: [
+    { value: "santiago-del-estero-capital", label: "Santiago del Estero Capital" },
+    { value: "la-banda",                    label: "La Banda" },
+  ]},
+  "santa-cruz":          { label: "Santa Cruz", zones: [
+    { value: "rio-gallegos",    label: "Río Gallegos" },
+    { value: "caleta-olivia",   label: "Caleta Olivia" },
+    { value: "el-calafate",     label: "El Calafate" },
+  ]},
+  "tierra-del-fuego":    { label: "Tierra del Fuego", zones: [
+    { value: "ushuaia",         label: "Ushuaia" },
+    { value: "rio-grande-tdf",  label: "Río Grande" },
+  ]},
+};
+
+// Flat zone-slug → province label lookup
+export const ZONE_TO_PROVINCE: Record<string, string> = Object.fromEntries(
+  Object.values(RE_LOCATIONS).flatMap(prov =>
+    prov.zones.map(z => [z.value, prov.label])
+  )
+);
+
+// All zones flat list
+export const ALL_RE_ZONES = Object.values(RE_LOCATIONS).flatMap(p => p.zones);
