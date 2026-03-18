@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 
 const PLANS = [
   {
@@ -64,7 +67,42 @@ const PLANS = [
   },
 ];
 
-export default function UpgradePage() {
+async function applyPlan(listingId: string, planKey: string) {
+  "use server";
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase
+    .from("listings")
+    .update({ featured_level: planKey })
+    .eq("id", listingId)
+    .eq("user_id", user.id);
+
+  revalidatePath(`/listings/${listingId}`);
+  revalidatePath("/my-listings");
+  redirect(`/dashboard/my-listings/${listingId}/edit?upgraded=1`);
+}
+
+export default async function UpgradePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ listing_id?: string }>;
+}) {
+  const { listing_id } = await searchParams;
+
+  // Fetch listing title if id provided
+  let listingTitle: string | null = null;
+  if (listing_id) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("listings")
+      .select("title")
+      .eq("id", listing_id)
+      .single();
+    listingTitle = data?.title ?? null;
+  }
+
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px 16px" }}>
 
@@ -73,9 +111,15 @@ export default function UpgradePage() {
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#111", marginBottom: "6px" }}>
           📣 Destacá tu publicación
         </h1>
-        <p style={{ fontSize: "13px", color: "#888", maxWidth: "480px", margin: "0 auto" }}>
-          Más personas ven tu aviso, más rápido vendés. Elegí el plan que mejor se adapte.
-        </p>
+        {listingTitle ? (
+          <p style={{ fontSize: "13px", color: "#6366f1", fontWeight: 600, maxWidth: "480px", margin: "0 auto" }}>
+            Aplicar plan a: &ldquo;{listingTitle}&rdquo;
+          </p>
+        ) : (
+          <p style={{ fontSize: "13px", color: "#888", maxWidth: "480px", margin: "0 auto" }}>
+            Más personas ven tu aviso, más rápido vendés. Elegí el plan que mejor se adapte.
+          </p>
+        )}
       </div>
 
       {/* Plans grid */}
@@ -85,100 +129,123 @@ export default function UpgradePage() {
         gap: "16px",
         alignItems: "start",
       }}>
-        {PLANS.map((plan) => (
-          <div
-            key={plan.key}
-            style={{
-              background: "#fff",
-              borderRadius: "16px",
-              border: `2px solid ${plan.colorBorder}`,
-              boxShadow: plan.shadow,
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            {/* Color header */}
-            <div style={{
-              background: plan.colorLight,
-              padding: "16px 20px 14px",
-              borderBottom: `1px solid ${plan.colorBorder}`,
-            }}>
-              {/* Badge + popular tag */}
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                <div style={{
-                  display: "inline-block",
-                  background: plan.gradient,
-                  color: "#fff",
-                  borderRadius: "6px",
-                  padding: "3px 9px",
-                  fontSize: "11px",
-                  fontWeight: 800,
-                }}>
-                  {plan.badge}
-                </div>
-                {plan.popular && (
+        {PLANS.map((plan) => {
+          const action = listing_id
+            ? applyPlan.bind(null, listing_id, plan.key)
+            : null;
+
+          return (
+            <div
+              key={plan.key}
+              style={{
+                background: "#fff",
+                borderRadius: "16px",
+                border: `2px solid ${plan.colorBorder}`,
+                boxShadow: plan.shadow,
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              {/* Color header */}
+              <div style={{
+                background: plan.colorLight,
+                padding: "16px 20px 14px",
+                borderBottom: `1px solid ${plan.colorBorder}`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                   <div style={{
+                    display: "inline-block",
                     background: plan.gradient,
-                    color: "#fff", borderRadius: "20px",
-                    padding: "2px 9px", fontSize: "10px", fontWeight: 700,
+                    color: "#fff",
+                    borderRadius: "6px",
+                    padding: "3px 9px",
+                    fontSize: "11px",
+                    fontWeight: 800,
                   }}>
-                    MÁS ELEGIDO
+                    {plan.badge}
                   </div>
+                  {plan.popular && (
+                    <div style={{
+                      background: plan.gradient,
+                      color: "#fff", borderRadius: "20px",
+                      padding: "2px 9px", fontSize: "10px", fontWeight: 700,
+                    }}>
+                      MÁS ELEGIDO
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <div style={{ fontSize: "16px", fontWeight: 800, color: "#111" }}>
+                    {plan.name}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
+                    <span style={{ fontSize: "12px", color: "#888" }}>$</span>
+                    <span style={{ fontSize: "24px", fontWeight: 900, color: plan.color, lineHeight: 1 }}>
+                      {plan.price.toLocaleString("es-AR")}
+                    </span>
+                    <span style={{ fontSize: "11px", color: "#aaa" }}>ARS</span>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: "12px", color: "#777", lineHeight: 1.4 }}>
+                  {plan.description}
+                </div>
+              </div>
+
+              {/* Features */}
+              <div style={{ padding: "14px 20px" }}>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "7px" }}>
+                  {plan.features.map((f) => (
+                    <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "7px", fontSize: "12px", color: "#444" }}>
+                      <span style={{ color: plan.color, fontWeight: 700, flexShrink: 0 }}>✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* CTA */}
+              <div style={{ padding: "0 20px 18px" }}>
+                {action ? (
+                  <form action={action}>
+                    <button type="submit" style={{
+                      width: "100%",
+                      background: plan.gradient,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "13px",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      boxShadow: plan.shadow,
+                    }}>
+                      {plan.cta}
+                    </button>
+                  </form>
+                ) : (
+                  <Link href="/listings/new" style={{ textDecoration: "none" }}>
+                    <button style={{
+                      width: "100%",
+                      background: plan.gradient,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "13px",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      boxShadow: plan.shadow,
+                    }}>
+                      {plan.cta}
+                    </button>
+                  </Link>
                 )}
               </div>
-
-              {/* Name + price row */}
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "4px" }}>
-                <div style={{ fontSize: "16px", fontWeight: 800, color: "#111" }}>
-                  {plan.name}
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
-                  <span style={{ fontSize: "12px", color: "#888" }}>$</span>
-                  <span style={{ fontSize: "24px", fontWeight: 900, color: plan.color, lineHeight: 1 }}>
-                    {plan.price.toLocaleString("es-AR")}
-                  </span>
-                  <span style={{ fontSize: "11px", color: "#aaa" }}>ARS</span>
-                </div>
-              </div>
-
-              <div style={{ fontSize: "12px", color: "#777", lineHeight: 1.4 }}>
-                {plan.description}
-              </div>
             </div>
-
-            {/* Features */}
-            <div style={{ padding: "14px 20px" }}>
-              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "7px" }}>
-                {plan.features.map((f) => (
-                  <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "7px", fontSize: "12px", color: "#444" }}>
-                    <span style={{ color: plan.color, fontWeight: 700, flexShrink: 0 }}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* CTA */}
-            <div style={{ padding: "0 20px 18px" }}>
-              <Link href="/listings/new" style={{ textDecoration: "none" }}>
-                <button style={{
-                  width: "100%",
-                  background: plan.gradient,
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "10px",
-                  padding: "13px",
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: plan.shadow,
-                }}>
-                  {plan.cta}
-                </button>
-              </Link>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Bottom note */}
@@ -203,9 +270,15 @@ export default function UpgradePage() {
       </div>
 
       <div style={{ textAlign: "center", marginTop: "24px" }}>
-        <Link href="/listings" style={{ fontSize: "13px", color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
-          ← Volver a los avisos
-        </Link>
+        {listing_id ? (
+          <Link href={`/dashboard/my-listings/${listing_id}/edit`} style={{ fontSize: "13px", color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
+            ← Volver al aviso
+          </Link>
+        ) : (
+          <Link href="/listings" style={{ fontSize: "13px", color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
+            ← Volver a los avisos
+          </Link>
+        )}
       </div>
     </div>
   );

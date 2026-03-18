@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ListingCard } from "./ListingCard";
 
-const VISIBLE = 4;
+const VISIBLE = 8;
 const AUTO_INTERVAL = 5000;
 
 interface Item {
@@ -17,6 +17,10 @@ interface Item {
   featured_level?: string | null;
   attributes?: Record<string, any> | null;
   cover_image: string | null;
+  view_count?: number | null;
+  created_at?: string | null;
+  is_store?: boolean | null;
+  store_name?: string | null;
 }
 
 interface Props {
@@ -91,7 +95,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
       </div>
 
       {/* Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px" }}>
         {visible.map((l) => (
           <ListingCard
             key={l.id}
@@ -104,6 +108,10 @@ export function FeaturedCarousel({ title, items, href }: Props) {
             neighborhood={l.neighborhood ?? undefined}
             featured_level={(l.featured_level as any) ?? null}
             attributes={l.attributes ?? undefined}
+            view_count={l.view_count ?? null}
+            created_at={l.created_at ?? null}
+            is_store={l.is_store ?? null}
+            store_name={l.store_name ?? null}
           />
         ))}
       </div>

@@ -10,9 +10,23 @@ type Listing = {
   currency: string;
   condition: string;
   neighborhood: string;
+  created_at?: string | null;
+  view_count?: number | null;
   listing_images?: { url: string; position: number }[];
   categories?: { name: string; slug: string } | null;
 };
+
+function timeAgo(dateStr: string) {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return "hace un momento";
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+  const days = Math.floor(diff / 86400);
+  if (days < 30) return `hace ${days} días`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `hace ${months} meses`;
+  return `hace ${Math.floor(months / 12)} años`;
+}
 
 function cover(listing: Listing): string | null {
   const imgs = listing.listing_images;
@@ -87,7 +101,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
           </Link>
         </div>
       ) : view === "grid" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "12px", padding: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", padding: "14px" }}>
           {items.map((l) => {
             const img = cover(l);
             return (
@@ -102,7 +116,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
                   {/* Image */}
                   <div style={{ height: "120px", background: "#f0f4ff", position: "relative" }}>
                     {img
-                      ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                       : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>📦</div>
                     }
                   </div>
@@ -116,8 +130,8 @@ export function RecentListings({ items }: { items: Listing[] }) {
                         {l.categories.name}
                       </div>
                     )}
-                    <div style={{ fontSize: "13px", fontWeight: 800, color: "#f97316", marginBottom: "4px" }}>
-                      {l.currency === "USD" ? "U$S" : "$"}{l.price?.toLocaleString("es-AR")}
+                    <div style={{ fontSize: "13px", fontWeight: 800, color: l.price === 0 ? "#6366f1" : "#f97316", marginBottom: "4px" }}>
+                      {l.price === 0 ? "Consultar" : `${l.currency === "USD" ? "U$S" : "$"}${l.price?.toLocaleString("es-AR")}`}
                     </div>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                       {l.condition && (
@@ -125,8 +139,19 @@ export function RecentListings({ items }: { items: Listing[] }) {
                           {conditionLabel(l.condition)}
                         </span>
                       )}
-                      {l.neighborhood && (
-                        <span style={{ fontSize: "10px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={9} /> {l.neighborhood}</span>
+                      {l.neighborhood && (() => { const nb = l.neighborhood; const loc = nb.includes(",") ? nb.split(",").pop()!.trim() : nb; return (
+                        <span style={{ fontSize: "10px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={9} /> {loc}</span>
+                      ); })()}
+                    </div>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "2px" }}>
+                      {(l.view_count ?? 0) > 0 && (
+                        <span style={{ fontSize: "10px", color: "#bbb", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          {l.view_count}
+                        </span>
+                      )}
+                      {l.created_at && (
+                        <span style={{ fontSize: "10px", color: "#bbb" }}>{timeAgo(l.created_at)}</span>
                       )}
                     </div>
                   </div>
@@ -149,7 +174,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
               >
                 <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff" }}>
                   {img
-                    ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>📦</div>
                   }
                 </div>
@@ -168,11 +193,20 @@ export function RecentListings({ items }: { items: Listing[] }) {
                         {conditionLabel(l.condition)}
                       </span>
                     )}
-                    {l.neighborhood && <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {l.neighborhood}</span>}
+                    {l.neighborhood && (() => { const nb = l.neighborhood; const loc = nb.includes(",") ? nb.split(",").pop()!.trim() : nb; return <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {loc}</span>; })()}
+                    {(l.view_count ?? 0) > 0 && (
+                      <span style={{ fontSize: "10px", color: "#bbb", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        {l.view_count}
+                      </span>
+                    )}
+                    {l.created_at && (
+                      <span style={{ fontSize: "10px", color: "#bbb" }}>{timeAgo(l.created_at)}</span>
+                    )}
                   </div>
                 </div>
-                <div style={{ fontSize: "14px", fontWeight: 800, color: "#f97316", flexShrink: 0 }}>
-                  {l.currency === "USD" ? "U$S" : "$"}{l.price?.toLocaleString("es-AR")}
+                <div style={{ fontSize: "14px", fontWeight: 800, color: l.price === 0 ? "#6366f1" : "#f97316", flexShrink: 0 }}>
+                  {l.price === 0 ? "Consultar" : `${l.currency === "USD" ? "U$S" : "$"}${l.price?.toLocaleString("es-AR")}`}
                 </div>
               </div>
             </Link>

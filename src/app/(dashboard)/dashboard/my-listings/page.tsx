@@ -204,7 +204,7 @@ export default async function MyListingsPage({
                       </button>
                     </form>
                   )}
-                  <Link href={`/my-listings/${listing.id}/edit`} style={{ textDecoration: 'none', flex: 1 }}>
+                  <Link href={`/dashboard/my-listings/${listing.id}/edit`} style={{ textDecoration: 'none', flex: 1 }}>
                     <button style={{ width: '100%', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}>
                       Editar
                     </button>
@@ -380,7 +380,7 @@ export default async function MyListingsPage({
                       </button>
                     </form>
                   )}
-                  <Link href={`/my-listings/${listing.id}/edit`}>
+                  <Link href={`/dashboard/my-listings/${listing.id}/edit`}>
                     <button style={{
                       background: '#f1f5f9', color: '#475569',
                       border: '1px solid #e2e8f0', borderRadius: '6px',

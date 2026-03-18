@@ -9,82 +9,85 @@ import { RightSidebar } from "@/components/layout/RightSidebar";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { RecentListings } from "@/components/listings/RecentListings";
 import { HeroSearch } from "@/components/listings/HeroSearch";
+import { StoreCards } from "@/components/listings/StoreCards";
+import { PublishFAB } from "@/components/ui/PublishFAB";
 
 const CATEGORIES = [
-  { name: "Vehículos",         slug: "vehicles",      icon: "🚗" },
-  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠" },
-  { name: "Celulares",         slug: "phones",        icon: "📱" },
-  { name: "Electrónica",       slug: "electronics",   icon: "💻" },
-  { name: "Electrodomésticos", slug: "appliances",    icon: "🧊" },
-  { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗" },
-  { name: "Muebles y Hogar",   slug: "home-garden",   icon: "🛋️" },
-  { name: "Deportes",          slug: "sports",        icon: "⚽" },
-  { name: "Herramientas",      slug: "tools",         icon: "🔧" },
-  { name: "Bebés y Niños",     slug: "babies",        icon: "👶" },
-  { name: "Libros y Juegos",   slug: "books",         icon: "📚" },
-  { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄" },
-  { name: "Mascotas",          slug: "pets",          icon: "🐾" },
-  { name: "Otros",             slug: "other",         icon: "📦" },
+  { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2  },
+  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠", id: 3  },
+  { name: "Celulares",         slug: "phones",        icon: "📱", id: 21 },
+  { name: "Tecnología",        slug: "electronics",   icon: "💻", id: 1  },
+  { name: "Electrodomésticos", slug: "appliances",    icon: "🧊", id: 22 },
+  { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗", id: 4  },
+  { name: "Hogar y Muebles", slug: "home-garden", icon: "🛋️", id: 5 },
+  { name: "Deportes",          slug: "sports",        icon: "⚽", id: 6  },
+  { name: "Herramientas",      slug: "tools",         icon: "🔧", id: 7  },
+  { name: "Bebés y Niños",     slug: "babies",        icon: "👶", id: 23 },
+  { name: "Música, Libros y Revistas", slug: "books",         icon: "📚", id: 8  },
+  { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄", id: 24 },
+  { name: "Juegos y Juguetes", slug: "toys",          icon: "🧸", id: 25 },
+  { name: "Mascotas",          slug: "pets",          icon: "🐾", id: 9  },
+  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26 },
+  { name: "Otros",             slug: "other",         icon: "📦", id: 10 },
 ];
 
 const CAT_NAMES: Record<string, string> = Object.fromEntries(CATEGORIES.map(c => [c.slug, c.name]));
 
-// Subcategory slug → display metadata
-const SUBCAT_META: Record<string, { label: string; href: string; icon: string }> = {
-  // vehicles
-  auto:         { label: "Autos",          href: "/category/vehicles?type=auto",              icon: "🚗" },
-  camioneta:    { label: "Camionetas",     href: "/category/vehicles?type=camioneta",          icon: "🚙" },
-  moto:         { label: "Motos",          href: "/category/vehicles?type=moto",              icon: "🏍️" },
-  // phones
-  smartphone:   { label: "Smartphones",   href: "/category/phones",                           icon: "📱" },
-  // electronics
-  notebook:     { label: "Notebooks",     href: "/category/electronics",                      icon: "💻" },
-  tv:           { label: "Televisores",   href: "/category/electronics",                      icon: "📺" },
-  consola:      { label: "Consolas",      href: "/category/electronics",                      icon: "🎮" },
-  // appliances
-  heladera:     { label: "Heladeras",     href: "/category/appliances",                       icon: "🧊" },
-  lavarropas:   { label: "Lavarropas",    href: "/category/appliances",                       icon: "🌀" },
-  aire:         { label: "Aire acond.",   href: "/category/appliances",                       icon: "❄️" },
-  // real estate
-  departamento: { label: "Departamentos", href: "/category/real-estate?re_type=departamento", icon: "🏢" },
-  casa:         { label: "Casas",         href: "/category/real-estate?re_type=casa",          icon: "🏠" },
-  terreno:      { label: "Terrenos",      href: "/category/real-estate?re_type=terreno",       icon: "🌿" },
-  // babies
-  juguete:      { label: "Juguetes",      href: "/category/babies",                           icon: "🧸" },
-  coche:        { label: "Coches bebé",   href: "/category/babies",                           icon: "🍼" },
-};
 
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 async function getHomeData() {
   const supabase = await createClient();
-  const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, featured_level, attributes, listing_images(url, position)";
+  const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
   const [
-    { data: featuredVehicles },
-    { data: featuredRealEstate },
+    { data: allFeatured },
     { data: recent },
     { count: totalListings },
     { count: totalSellers },
     { data: catCounts },
   ] = await Promise.all([
-    supabase.from("listings").select(FIELDS).eq("status","active").eq("featured_level","gold").eq("category_id",2).order("created_at",{ascending:false}).limit(12),
-    supabase.from("listings").select(FIELDS).eq("status","active").eq("featured_level","gold").eq("category_id",3).order("created_at",{ascending:false}).limit(12),
-    supabase.from("listings").select("id,title,price,currency,condition,neighborhood,created_at,listing_images(url,position),categories(name,slug)").eq("status","active").is("featured_level",null).order("created_at",{ascending:false}).limit(10),
+    supabase.from("listings").select(FIELDS).eq("status","active").eq("featured_level","gold").order("created_at",{ascending:false}).limit(32),
+    supabase.from("listings").select("id,title,price,currency,condition,neighborhood,created_at,view_count,listing_images!inner(url,position),categories(name,slug)").eq("status","active").order("created_at",{ascending:false}).limit(8),
     supabase.from("listings").select("*",{count:"exact",head:true}).eq("status","active"),
     supabase.from("profiles").select("*",{count:"exact",head:true}),
-    supabase.from("listings").select("category_id, attributes").eq("status","active"),
+    supabase.from("listings").select("category_id, view_count").eq("status","active"),
   ]);
+
+  // Fetch store info separately to avoid FK join dependency
+  const userIds = [...new Set((allFeatured ?? []).map((l: any) => l.user_id).filter(Boolean))];
+  const { data: storeProfiles } = userIds.length > 0
+    ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
+    : { data: [] };
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
+  for (const p of storeProfiles ?? []) storeMap[p.id] = p;
+
   const counts: Record<number,number> = {};
-  const subcatCounts: Record<string, number> = {};
+  const viewsByCategory: Record<number, number> = {};
   for (const row of catCounts ?? []) {
     counts[row.category_id] = (counts[row.category_id]??0)+1;
-    const sc = (row.attributes as any)?.sub_category as string | undefined;
-    if (sc && SUBCAT_META[sc]) subcatCounts[sc] = (subcatCounts[sc] ?? 0) + 1;
+    viewsByCategory[row.category_id] = (viewsByCategory[row.category_id]??0) + (row.view_count??0);
   }
-  const topSubcats = Object.entries(subcatCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([sc]) => SUBCAT_META[sc]);
-  return { featuredVehicles:featuredVehicles??[], featuredRealEstate:featuredRealEstate??[], recent:recent??[], totalListings:totalListings??0, totalSellers:totalSellers??0, categoryCounts:counts, topSubcats };
+  const totalViews = Object.values(viewsByCategory).reduce((a,b)=>a+b,0);
+  const topSubcats = CATEGORIES
+    .map(c => ({ ...c, score: totalViews > 0 ? (viewsByCategory[c.id]??0) : (counts[c.id]??0) }))
+    .filter(c => (counts[c.id]??0) > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+    .map(c => ({ label: c.name, href: `/category/${c.slug}`, slug: c.slug }));
+  const featured = shuffle(allFeatured ?? []).slice(0, 16).map((l: any) => ({
+    ...l,
+    is_store: storeMap[l.user_id]?.is_store ?? null,
+    store_name: storeMap[l.user_id]?.store_name ?? null,
+  }));
+  return { featured, recent:recent??[], totalListings:totalListings??0, totalSellers:totalSellers??0, categoryCounts:counts, topSubcats };
 }
 
 function cover(listing: any): string | null {
@@ -96,11 +99,12 @@ function cover(listing: any): string | null {
 export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { featuredVehicles, featuredRealEstate, recent, totalListings, totalSellers, categoryCounts, topSubcats } = await getHomeData();
-  const mapped = CATEGORIES.map((c,i)=>({...c, count: categoryCounts[i+1]??0}));
+  const { featured, recent, totalListings, totalSellers, categoryCounts, topSubcats } = await getHomeData();
+  const mapped = CATEGORIES.map((c)=>({...c, count: categoryCounts[c.id]??0}));
   const pinned = mapped.slice(0, 3);
-  const rest = mapped.slice(3).sort((a,b)=>b.count-a.count);
-  const categoriesWithCount = [...pinned, ...rest];
+  const rest = mapped.slice(3).filter(c => c.slug !== "other").sort((a,b)=>b.count-a.count);
+  const other = mapped.find(c => c.slug === "other");
+  const categoriesWithCount = [...pinned, ...rest, ...(other ? [other] : [])];
 
   return (
     <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
@@ -109,7 +113,7 @@ export default async function HomePage() {
       <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px" }}>
         <div style={{
           display: "grid",
-          gridTemplateColumns: "220px 1fr 240px",
+          gridTemplateColumns: "220px minmax(0, 1fr) 240px",
           gridTemplateAreas: `"sidebar hero right" "sidebar main right"`,
           gap: "16px",
           alignItems: "start",
@@ -125,40 +129,30 @@ export default async function HomePage() {
             gridArea: "hero",
             borderRadius: "16px",
             backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80')",
-            backgroundSize: "cover", backgroundPosition: "center",
+            backgroundSize: "cover", backgroundPosition: "center 60%",
             display: "flex", gap: "0",
-            minHeight: "210px", position: "relative",
+            minHeight: "200px", position: "relative",
+            overflow: "hidden",
           }}>
-            {/* dark overlay for readability */}
-            <div style={{ position:"absolute", inset:0, background:"rgba(10,30,60,0.35)", pointerEvents:"none" }} />
+            {/* gradient overlay — darker at bottom, lighter at top for depth */}
+            <div style={{ position:"absolute", inset:0, background:"linear-gradient(160deg, rgba(10,20,60,0.45) 0%, rgba(10,30,80,0.60) 100%)", pointerEvents:"none" }} />
 
             {/* White search card */}
-            <HeroSearch topSubcats={topSubcats.length > 0 ? topSubcats : Object.values(SUBCAT_META).slice(0, 5)} />
+            <HeroSearch topSubcats={topSubcats} />
 
           </div>
 
           {/* ── MAIN CONTENT ── */}
           <div style={{ gridArea: "main", display: "flex", flexDirection: "column", gap: "16px" }}>
 
-            {/* Featured Vehicles */}
-            {featuredVehicles.length > 0 && (
+            {/* All-category Premium carousel — shuffled on every load */}
+            {featured.length > 0 ? (
               <FeaturedCarousel
-                title="🚗 Vehículos Premium"
-                items={featuredVehicles.map((l:any)=>({...l, cover_image: cover(l)}))}
-                href="/category/vehicles"
+                title="👑 Destacados"
+                items={featured.map((l:any)=>({...l, cover_image: cover(l)}))}
+                href="/listings"
               />
-            )}
-
-            {/* Featured Real Estate */}
-            {featuredRealEstate.length > 0 && (
-              <FeaturedCarousel
-                title="🏠 Inmuebles Premium"
-                items={featuredRealEstate.map((l:any)=>({...l, cover_image: cover(l)}))}
-                href="/category/real-estate"
-              />
-            )}
-
-            {featuredVehicles.length === 0 && featuredRealEstate.length === 0 && (
+            ) : (
               <div style={{ background:"#fffbeb", border:"1px solid #fde68a", borderRadius:"10px", padding:"10px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:"12px" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
                   <span style={{ fontSize:"16px" }}>⭐</span>
@@ -174,6 +168,9 @@ export default async function HomePage() {
                 </Link>
               </div>
             )}
+
+            {/* Tiendas Virtuales */}
+            <StoreCards />
 
             {/* Últimos avisos — grid/list toggle */}
             <RecentListings items={recent.map((l:any) => ({
@@ -191,6 +188,7 @@ export default async function HomePage() {
       </div>
 
       <Footer />
+      <PublishFAB />
     </div>
   );
 }

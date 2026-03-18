@@ -8,10 +8,11 @@ export const dynamic = 'force-dynamic'
 
 const navItems = [
   { label: '🏠 Inicio',          href: '/dashboard' },
-  { label: '📋 Mis avisos',       href: '/my-listings' },
-  { label: '❤️ Favoritos',        href: '/favorites' },
-  { label: '💬 Mensajes',         href: '/messages' },
-  { label: '⚙️ Configuración',    href: '/settings' },
+  { label: '📋 Mis avisos',       href: '/dashboard/my-listings' },
+  { label: '🏪 Mi Tienda',        href: '/dashboard/store' },
+  { label: '❤️ Favoritos',        href: '/dashboard/favorites' },
+  { label: '💬 Mensajes',         href: '/dashboard/messages' },
+  { label: '⚙️ Configuración',    href: '/dashboard/settings' },
   { label: '⭐ Planes Pro',       href: '/upgrade' },
 ]
 
@@ -21,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { count: unreadCount }] = await Promise.all([
+  const [{ data: profile }, { count: unreadCount }, { count: listingsCount }, { count: favoritesCount }] = await Promise.all([
     supabase
       .from('profiles')
       .select('username, full_name, avatar_url, is_pro')
@@ -32,6 +33,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .select('id', { count: 'exact', head: true })
       .eq('receiver_id', user.id)
       .eq('is_read', false),
+    supabase
+      .from('listings')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'active'),
+    supabase
+      .from('listing_favorites')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('user_id', user.id),
   ])
 
   return (
@@ -81,7 +91,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   }}
                   className="hover:bg-gray-50">
                     <span>{item.label}</span>
-                    {item.href === '/messages' && (unreadCount ?? 0) > 0 && (
+                    {item.href === '/dashboard/messages' && (unreadCount ?? 0) > 0 && (
                       <span style={{
                         background: '#ef4444', color: '#fff',
                         fontSize: '11px', fontWeight: 700,
@@ -89,6 +99,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
                         minWidth: '20px', textAlign: 'center',
                       }}>
                         {unreadCount}
+                      </span>
+                    )}
+                    {item.href === '/dashboard/my-listings' && (listingsCount ?? 0) > 0 && (
+                      <span style={{
+                        background: '#f1f5f9', color: '#64748b',
+                        fontSize: '11px', fontWeight: 700,
+                        padding: '1px 7px', borderRadius: '20px',
+                        minWidth: '20px', textAlign: 'center',
+                      }}>
+                        {listingsCount}
+                      </span>
+                    )}
+                    {item.href === '/dashboard/favorites' && (favoritesCount ?? 0) > 0 && (
+                      <span style={{
+                        background: '#fef2f2', color: '#ef4444',
+                        fontSize: '11px', fontWeight: 700,
+                        padding: '1px 7px', borderRadius: '20px',
+                        minWidth: '20px', textAlign: 'center',
+                      }}>
+                        {favoritesCount}
                       </span>
                     )}
                   </div>

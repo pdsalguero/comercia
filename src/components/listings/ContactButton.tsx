@@ -7,11 +7,14 @@ interface Props {
   listingTitle: string;
   sellerId: string;
   sellerName: string;
+  defaultMessage?: string;
+  triggerLabel?: string;
+  triggerStyle?: "button" | "link";
 }
 
-export function ContactButton({ listingId, listingTitle, sellerId, sellerName }: Props) {
+export function ContactButton({ listingId, listingTitle, sellerId, sellerName, defaultMessage = "", triggerLabel, triggerStyle = "button" }: Props) {
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(defaultMessage);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,26 +49,48 @@ export function ContactButton({ listingId, listingTitle, sellerId, sellerName }:
     setOpen(false);
     setSent(false);
     setError(null);
-    setMessage("");
+    setMessage(defaultMessage);
+  }
+
+  function handleOpen() {
+    setMessage(defaultMessage);
+    setOpen(true);
   }
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        style={{
-          flex: 1, padding: "11px 8px", background: "#f1f5f9", color: "#334155",
-          border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "13px",
-          fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-        }}
-      >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
-        </svg>
-        Contactar
-      </button>
+      {triggerStyle === "link" ? (
+        <button
+          onClick={handleOpen}
+          style={{
+            background: "none", border: "1.5px dashed #c7d2fe", borderRadius: "8px",
+            padding: "8px 14px", cursor: "pointer", fontFamily: "inherit",
+            display: "inline-flex", alignItems: "center", gap: "7px",
+            color: "#6366f1", fontWeight: 700, fontSize: "15px",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          {triggerLabel ?? "Consultar precio"}
+        </button>
+      ) : (
+        <button
+          onClick={handleOpen}
+          style={{
+            flex: 1, padding: "11px 8px", background: "#f1f5f9", color: "#334155",
+            border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "13px",
+            fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          {triggerLabel ?? "Contactar"}
+        </button>
+      )}
 
       {open && (
         <div

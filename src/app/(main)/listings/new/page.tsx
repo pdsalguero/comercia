@@ -185,12 +185,11 @@ const FUELS = [
 const TRANSMISIONS = ["Manual", "Automática", "CVT"];
 
 const TECH_GROUPS: Record<string, { label: string; items: [string, string][] }> = {
-  celulares:   { label: "Celulares y Teléfonos",      items: [["celular","Celulares y Smartphones"],["acc-celular","Accesorios para Celulares"],["repuesto-celular","Repuestos de Celulares"]] },
-  computacion: { label: "Computación",                items: [["notebook","Notebook / Laptop"],["pc","PC / Computadora de escritorio"],["tablet","Tablets y Accesorios"],["monitor","Monitores y Accesorios"],["componentes-pc","Componentes de PC"],["impresion","Impresión"],["conectividad","Conectividad y Redes"]] },
-  camaras:     { label: "Cámaras y Accesorios",       items: [["camara","Cámaras Digitales"],["acc-camara","Accesorios para Cámaras"],["filmadora","Filmadoras y Cámaras de Acción"]] },
-  consolas:    { label: "Consolas y Videojuegos",     items: [["videojuego","Videojuegos"],["consola-ps","Para PlayStation"],["consola-nintendo","Para Nintendo"],["consola","Otras consolas"]] },
-  electronica: { label: "Electrónica, Audio y Video", items: [["audio","Audio / Parlantes"],["acc-audio-video","Accesorios para Audio y Video"],["componentes-electronicos","Componentes Electrónicos"],["drone","Drones y Accesorios"],["audio-vehiculo","Audio para Vehículos"]] },
-  tv:          { label: "Televisores",                items: [["tv","Televisores"]] },
+  computacion: { label: "Computación",                items: [["notebook","Notebook / Laptop"],["pc","PC / Computadora de escritorio"],["tablet","Tablets y Accesorios"],["monitor","Monitores y Accesorios"],["componentes-pc","Componentes de PC"],["impresion","Impresión"],["conectividad","Conectividad y Redes"],["otro-comp","Otro"]] },
+  camaras:     { label: "Cámaras y Accesorios",       items: [["camara","Cámaras Digitales"],["acc-camara","Accesorios para Cámaras"],["filmadora","Filmadoras y Cámaras de Acción"],["otro-camara","Otro"]] },
+  consolas:    { label: "Consolas y Videojuegos",     items: [["videojuego","Videojuegos"],["consola-ps","Para PlayStation"],["consola-nintendo","Para Nintendo"],["consola","Otras consolas"],["otro-consola","Otro"]] },
+  electronica: { label: "Electrónica, Audio y Video", items: [["audio","Audio / Parlantes"],["acc-audio-video","Accesorios para Audio y Video"],["componentes-electronicos","Componentes Electrónicos"],["drone","Drones y Accesorios"],["audio-vehiculo","Audio para Vehículos"],["otro-elec","Otro"]] },
+  tv:          { label: "Televisores",                items: [["tv","Televisores"],["otro-tv","Otro"]] },
   otros:       { label: "Otros",                      items: [["otro","Otro"]] },
 };
 
@@ -402,12 +401,28 @@ function Badge({
 
 function FocusInp({
   style,
+  type,
+  onChange,
   ...rest
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   const [focused, setFocused] = useState(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onChange && type !== "number") {
+      const v = e.target.value;
+      const cap = v ? v.charAt(0).toUpperCase() + v.slice(1) : v;
+      if (cap !== v) {
+        onChange({ ...e, target: { ...e.target, value: cap } } as React.ChangeEvent<HTMLInputElement>);
+        return;
+      }
+    }
+    onChange?.(e);
+  };
   return (
     <input
       {...rest}
+      type={type}
+      onChange={handleChange}
+      autoCapitalize="sentences"
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={{
@@ -843,6 +858,12 @@ export default function NewListingPage() {
   const isVehicle = categoryId === 2;
   const isRealEstate = categoryId === 3;
   const isTechnology = categoryId === 1;
+  const isPets = categoryId === 9;
+  const isServices = categoryId === 26;
+  const PET_ANIMAL_TYPES = ["perros", "gatos", "aves", "peces", "roedores", "reptiles", "caballos"];
+  const PET_ANIMAL_FIELDS = ["breed", "age", "sex", "vaccinated", "pedigree", "is_adoption"];
+  const isPetAnimal = isPets && PET_ANIMAL_TYPES.includes(attrs.sub_category ?? "");
+  const isPetProduct = isPets && !!attrs.sub_category && !isPetAnimal;
 
   const vehicleModels = useMemo(() => getModels(attrs.brand ?? ""), [attrs.brand]);
   const vehicleVersions = useMemo(
@@ -859,7 +880,7 @@ export default function NewListingPage() {
     { ok: photos.length > 0, label: "Foto" },
     { ok: title.length > 5, label: "Título" },
     { ok: categoryId > 0, label: "Categoría" },
-    { ok: !!condition, label: "Estado" },
+    { ok: isPets || isServices || !!condition, label: "Estado" },
     { ok: !!zone, label: "Zona" },
     { ok: description.length > 20, label: "Descripción" },
   ];
@@ -1001,6 +1022,16 @@ export default function NewListingPage() {
       if (!attrs.sub_category) missing.push("Tipo de vehículo");
       if (!attrs.brand) missing.push("Marca");
       if (!attrs.model) missing.push("Modelo");
+      if (missing.length > 0) {
+        setValidationErrors(missing);
+        return;
+      }
+    }
+    // Technology-specific required fields
+    if (isTechnology) {
+      const missing: string[] = [];
+      if (!techGroup) missing.push("Grupo");
+      if (!attrs.sub_category) missing.push("Tipo");
       if (missing.length > 0) {
         setValidationErrors(missing);
         return;
@@ -1708,7 +1739,7 @@ export default function NewListingPage() {
                   </Field>
 
                   {(photos.length > 0 || categoryId > 0) && (<>
-                  {!isVehicle && !isRealEstate && (
+                  {!isVehicle && !isRealEstate && !isServices && (!isPets || isPetProduct) && (
                     <Field label="Estado" required>
                       <FocusSel
                         value={condition}
@@ -2120,7 +2151,11 @@ export default function NewListingPage() {
                   {/* ── GENERIC category fields (phones, appliances, babies, beauty, clothing, etc.) ── */}
                   {!isVehicle && !isRealEstate && !isTechnology && catConfig?.fields && (
                     <>
-                      {catConfig.fields.filter(f => f.type !== "checkbox").map(field => (
+                      {catConfig.fields.filter(f => f.type !== "checkbox").filter(f => {
+                        if (!isPets) return true;
+                        if (PET_ANIMAL_FIELDS.includes(f.key)) return isPetAnimal;
+                        return true;
+                      }).map(field => (
                         <Field key={field.key} label={field.label} required={field.required}>
                           {field.type === "select" ? (
                             <FocusSel
@@ -2163,11 +2198,11 @@ export default function NewListingPage() {
                           )}
                         </Field>
                       ))}
-                      {catConfig.fields.filter(f => f.type === "checkbox").length > 0 && (
+                      {catConfig.fields.filter(f => f.type === "checkbox").filter(f => !isPets || PET_ANIMAL_FIELDS.includes(f.key) ? isPetAnimal : true).length > 0 && (
                         <div style={{ gridColumn: "span 2" }}>
                           <label style={{ ...T.lbl, display: "block", marginBottom: "10px" }}>Características</label>
                           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
-                            {catConfig.fields.filter(f => f.type === "checkbox").map(field => (
+                            {catConfig.fields.filter(f => f.type === "checkbox").filter(f => !isPets || PET_ANIMAL_FIELDS.includes(f.key) ? isPetAnimal : true).map(field => (
                               <CheckItem key={field.key} label={field.label} value={!!attrs[field.key]} onChange={(v) => handleAttr(field.key, v)} />
                             ))}
                           </div>
@@ -2394,7 +2429,12 @@ export default function NewListingPage() {
                               ))}
                             </FocusSel>
                           ) : (
-                            <FocusInp value={locality} onChange={(e) => setLocality(e.target.value)} placeholder="Ciudad o localidad" disabled={!zone} />
+                            <FocusInp
+                              value={locality}
+                              onChange={(e) => setLocality(e.target.value)}
+                              placeholder="Ciudad o localidad"
+                              disabled={!zone}
+                            />
                           )}
                         </Field>
                       </div>

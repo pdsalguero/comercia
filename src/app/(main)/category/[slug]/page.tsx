@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { RE_LOCATIONS, ALL_RE_ZONES } from "@/lib/re-locations";
+import { OrderSelect } from "@/components/ui/OrderSelect";
 
 const VEHICLE_BRANDS = [
   { value: "toyota", label: "Toyota" },
@@ -57,13 +58,15 @@ const CATEGORY_META: Record<string, { name: string; icon: string }> = {
   electronics:     { name: "Tecnología",         icon: "💻" },
   appliances:      { name: "Electrodomésticos",  icon: "🧊" },
   clothing:        { name: "Ropa y Calzado",     icon: "👗" },
-  "home-garden":   { name: "Hogar y Jardín",     icon: "🛋️" },
+  "home-garden":   { name: "Hogar y Muebles", icon: "🛋️" },
   sports:          { name: "Deportes",           icon: "⚽" },
   tools:           { name: "Herramientas",       icon: "🔧" },
   babies:          { name: "Bebés y Niños",      icon: "👶" },
-  books:           { name: "Libros",             icon: "📚" },
+  books:           { name: "Música, Libros y Revistas", icon: "📚" },
   "beauty-health": { name: "Belleza y Salud",    icon: "💄" },
+  toys:            { name: "Juegos y Juguetes",  icon: "🧸" },
   pets:            { name: "Mascotas",           icon: "🐾" },
+  services:        { name: "Servicios",          icon: "🛠️" },
   other:           { name: "Otros",              icon: "📦" },
 };
 
@@ -99,13 +102,140 @@ const APPLIANCE_TYPES = [
   { value: "otro-electrod", label: "Otros" },
 ];
 
+const HG_TYPES = [
+  { value: "decoracion",      label: "Decoración y Ambientación" },
+  { value: "cocina-comedor",  label: "Cocina y Comedor" },
+  { value: "banos",           label: "Baños y Sanitarios" },
+  { value: "dormitorio",      label: "Dormitorio y Descanso" },
+  { value: "limpieza",        label: "Limpieza del Hogar" },
+  { value: "iluminacion",     label: "Iluminación" },
+  { value: "jardin-exterior", label: "Jardín y Exterior" },
+  { value: "muebles",         label: "Muebles y Estantes" },
+  { value: "organizacion",    label: "Organización y Almacenaje" },
+  { value: "seguridad",       label: "Seguridad del Hogar" },
+  { value: "textil",          label: "Textiles del Hogar" },
+  { value: "otro",            label: "Otro" },
+];
+
+const SPORTS_TYPES = [
+  { value: "futbol",    label: "Fútbol" },
+  { value: "bicicleta", label: "Bicicleta" },
+  { value: "fitness",   label: "Fitness / Gym" },
+  { value: "pelota",    label: "Pelotas / Equipos" },
+  { value: "raqueta",   label: "Raqueta / Pala" },
+  { value: "natacion",  label: "Natación" },
+  { value: "camping",   label: "Camping / Outdoor" },
+  { value: "ropa-dep",  label: "Ropa deportiva" },
+  { value: "otro",      label: "Otro" },
+];
+
+const TOOLS_TYPES = [
+  { value: "accesorios", label: "Accesorios para Herramientas" },
+  { value: "cajas-org",  label: "Cajas y Organizadores" },
+  { value: "electrica",  label: "Herramientas Eléctricas" },
+  { value: "industrial", label: "Herramientas Industriales" },
+  { value: "manual",     label: "Herramientas Manuales" },
+  { value: "neumatica",  label: "Herramientas Neumáticas" },
+  { value: "jardineria", label: "Herramientas para Jardín" },
+  { value: "medicion",   label: "Medición y Diagnóstico" },
+  { value: "soldadura",  label: "Soldadura y Corte" },
+  { value: "otro",       label: "Otro" },
+];
+
+const TOYS_TYPES = [
+  { value: "juguetes-accion",   label: "Juguetes de Acción" },
+  { value: "arte-manualidades", label: "Arte y Manualidades" },
+  { value: "construccion",      label: "Construcción y Encastre" },
+  { value: "juegos-mesa",       label: "Juegos de Mesa y Cartas" },
+  { value: "juegos-exterior",   label: "Juegos al Aire Libre" },
+  { value: "peluches",          label: "Peluches y Muñecos" },
+  { value: "vehiculos-juguete", label: "Vehículos de Juguete" },
+  { value: "juguetes-bebe",     label: "Juguetes para Bebés" },
+  { value: "electronicos",      label: "Electrónicos para Niños" },
+  { value: "puzzles",           label: "Puzzles y Rompecabezas" },
+  { value: "patines",           label: "Patines y Monopatines" },
+  { value: "instrumentos",      label: "Instrumentos Musicales Infantiles" },
+  { value: "coleccionables",    label: "Figuritas y Coleccionables" },
+  { value: "otro",              label: "Otro" },
+];
+
+const BOOKS_TYPES = [
+  { value: "libros",      label: "Libros" },
+  { value: "revistas",    label: "Revistas y Publicaciones" },
+  { value: "comic-manga", label: "Cómics y Manga" },
+  { value: "ebooks",      label: "Libros Digitales" },
+  { value: "musica",      label: "Música (CDs y Vinilos)" },
+  { value: "peliculas",   label: "Películas y Series" },
+  { value: "cursos",      label: "Cursos y Tutoriales" },
+  { value: "catalogos",   label: "Catálogos e Instructivos" },
+  { value: "otro",        label: "Otro" },
+];
+
+const PETS_TYPES = [
+  { value: "perros",        label: "Perros" },
+  { value: "gatos",         label: "Gatos" },
+  { value: "aves",          label: "Aves y Pájaros" },
+  { value: "peces",         label: "Peces y Acuarios" },
+  { value: "roedores",      label: "Roedores y Conejos" },
+  { value: "reptiles",      label: "Reptiles y Anfibios" },
+  { value: "caballos",      label: "Caballos y Equinos" },
+  { value: "collar-correa", label: "Collares y Correas" },
+  { value: "ropa-mascotas", label: "Ropa y Accesorios" },
+  { value: "jaulas-camas",  label: "Jaulas, Camas y Transportes" },
+  { value: "higiene",       label: "Higiene y Cuidado" },
+  { value: "alimentacion",  label: "Alimentación y Snacks" },
+  { value: "juguetes-mas",  label: "Juguetes para Mascotas" },
+  { value: "otro",          label: "Otro" },
+];
+
+const SERVICES_TYPES = [
+  { value: "asesoramiento",  label: "Asesoramiento Legal y Contable" },
+  { value: "belleza-serv",   label: "Belleza y Estética" },
+  { value: "diseno",         label: "Diseño y Comunicación" },
+  { value: "cursos",         label: "Cursos y Clases" },
+  { value: "delivery",       label: "Delivery y Envíos" },
+  { value: "eventos",        label: "Fiestas y Eventos" },
+  { value: "fotografia",     label: "Fotografía y Audiovisual" },
+  { value: "construccion",   label: "Construcción y Reformas" },
+  { value: "imprenta",       label: "Imprenta y Gráfica" },
+  { value: "mecanica",       label: "Mecánica y Vehículos" },
+  { value: "salud",          label: "Salud y Bienestar" },
+  { value: "mascotas-serv",  label: "Servicios para Mascotas" },
+  { value: "limpieza",       label: "Limpieza y Mantenimiento" },
+  { value: "informatica",    label: "Informática y Tecnología" },
+  { value: "transporte",     label: "Transporte y Mudanzas" },
+  { value: "turismo",        label: "Turismo y Viajes" },
+  { value: "otro",           label: "Otro" },
+];
+
+const TECH_GROUPS: Record<string, { label: string; items: string[] }> = {
+  computacion: { label: "Computación",                items: ["notebook","pc","tablet","monitor","componentes-pc","impresion","conectividad","otro-comp"] },
+  camaras:     { label: "Cámaras y Accesorios",       items: ["camara","acc-camara","filmadora","otro-camara"] },
+  consolas:    { label: "Consolas y Videojuegos",     items: ["videojuego","consola-ps","consola-nintendo","consola","otro-consola"] },
+  electronica: { label: "Electrónica, Audio y Video", items: ["audio","acc-audio-video","componentes-electronicos","drone","audio-vehiculo","otro-elec"] },
+  tv:          { label: "Televisores",                items: ["tv","otro-tv"] },
+  otros:       { label: "Otros",                      items: ["otro"] },
+};
+// reverse map: sub_category → group key
+const SUBCAT_TO_GROUP: Record<string, string> = {};
+for (const [g, { items }] of Object.entries(TECH_GROUPS)) for (const s of items) SUBCAT_TO_GROUP[s] = g;
+
 const BABY_TYPES = [
-  { value: "coche-bebe", label: "Coches de bebé" },
-  { value: "ropa-bebe", label: "Ropa de bebé" },
-  { value: "juguete", label: "Juguetes" },
-  { value: "cuna", label: "Cunas y moisés" },
-  { value: "silla-auto", label: "Sillas para auto" },
-  { value: "acc-bebe", label: "Accesorios" },
+  { value: "andadores",    label: "Andadores y Vehículos" },
+  { value: "bano",         label: "Artículos de Baño" },
+  { value: "maternidad",   label: "Maternidad y Embarazo" },
+  { value: "chupetes",     label: "Chupetes y Mordillos" },
+  { value: "alimentacion", label: "Comida y Alimentación" },
+  { value: "corralito",    label: "Corralitos y Cunas" },
+  { value: "cuarto",       label: "Cuarto del Bebé" },
+  { value: "higiene",      label: "Higiene y Cuidado" },
+  { value: "juguetes-bebe",label: "Juguetes para Bebés" },
+  { value: "lactancia",    label: "Lactancia" },
+  { value: "paseo",        label: "Paseo y Transporte" },
+  { value: "ropa",         label: "Ropa y Calzado" },
+  { value: "salud",        label: "Salud del Bebé" },
+  { value: "seguridad",    label: "Seguridad para Bebés" },
+  { value: "otro",         label: "Otro" },
 ];
 
 const BEAUTY_TYPES = [
@@ -171,15 +301,33 @@ type SP = {
   pets_allowed?: string; air_conditioning?: string; grill?: string;
   security?: string; private_complex?: string; credit_eligible?: string;
   // electronics
-  tech_type?: string; tech_brand?: string;
+  tech_group?: string; tech_type?: string; tech_brand?: string; tech_province?: string; tech_condition?: string;
   // phones
-  phone_type?: string; phone_brand?: string; phone_storage?: string;
+  phone_type?: string; phone_brand?: string; phone_storage?: string; phone_condition?: string;
+  phone_ram?: string; phone_os?: string; phone_sim?: string; phone_province?: string;
+  phone_box?: string; phone_charger?: string; phone_unlocked?: string; phone_trade?: string;
   // appliances
-  appliance_type?: string;
+  appliance_type?: string; appliance_brand?: string; appliance_condition?: string; appliance_province?: string;
+  // clothing
+  clothing_type?: string; clothing_gender?: string; clothing_brand?: string; clothing_condition?: string; clothing_province?: string;
   // babies
-  baby_type?: string;
+  baby_type?: string; baby_brand?: string; baby_condition?: string; baby_province?: string;
   // beauty
-  beauty_type?: string;
+  beauty_type?: string; beauty_brand?: string; beauty_condition?: string; beauty_province?: string;
+  // home-garden
+  hg_type?: string; hg_brand?: string; hg_condition?: string; hg_province?: string;
+  // sports
+  sport_type?: string; sport_brand?: string; sport_condition?: string; sport_province?: string;
+  // tools
+  tool_type?: string; tool_brand?: string; tool_condition?: string; tool_province?: string;
+  // toys
+  toy_type?: string; toy_brand?: string; toy_condition?: string; toy_province?: string;
+  // books
+  book_type?: string; book_condition?: string; book_province?: string;
+  // pets
+  pet_type?: string; pet_province?: string;
+  // services
+  serv_type?: string; serv_province?: string;
   // price
   price_min?: string; price_max?: string;
   // view
@@ -204,8 +352,16 @@ export default async function CategoryPage({
   const isPhones = slug === "phones";
   const isElectronics = slug === "electronics";
   const isAppliances = slug === "appliances";
+  const isClothing = slug === "clothing";
   const isBabies = slug === "babies";
   const isBeauty = slug === "beauty-health";
+  const isHomeGarden = slug === "home-garden";
+  const isSports = slug === "sports";
+  const isTools = slug === "tools";
+  const isToys = slug === "toys";
+  const isBooks = slug === "books";
+  const isPets = slug === "pets";
+  const isServices = slug === "services";
 
   const supabase = await createClient();
 
@@ -222,7 +378,7 @@ export default async function CategoryPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = supabase
     .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, listing_images(url, position)`)
+    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
     .eq("status", "active")
     .eq("category_id", cat.id) as any;
 
@@ -262,28 +418,105 @@ export default async function CategoryPage({
   if (isPhones) {
     if (sp.phone_type) query = query.eq("attributes->>sub_category" as any, sp.phone_type);
     if (sp.phone_brand) query = query.eq("attributes->>brand" as any, sp.phone_brand);
-    if (sp.phone_storage) query = query.eq("attributes->>storage" as any, sp.phone_storage);
+    if (sp.phone_storage) query = query.eq("attributes->>storage" as any, sp.phone_storage.toLowerCase());
+    if (sp.phone_condition) query = query.eq("condition", sp.phone_condition);
+    if (sp.phone_ram) query = query.eq("attributes->>ram" as any, sp.phone_ram);
+    if (sp.phone_os) query = query.eq("attributes->>os" as any, sp.phone_os);
+    if (sp.phone_sim) query = query.eq("attributes->>sim_type" as any, sp.phone_sim);
+    if (sp.phone_province) query = query.ilike("neighborhood", `%${sp.phone_province}%`);
   }
 
   // Electronics-specific JSON filters
   if (isElectronics) {
     if (sp.tech_type) query = query.eq("attributes->>sub_category" as any, sp.tech_type);
+    else if (sp.tech_group && TECH_GROUPS[sp.tech_group]) query = query.in("attributes->>sub_category" as any, TECH_GROUPS[sp.tech_group].items);
     if (sp.tech_brand) query = query.eq("attributes->>brand" as any, sp.tech_brand);
+    if (sp.tech_province) query = query.ilike("neighborhood", `%${sp.tech_province}%`);
+    if (sp.tech_condition) query = query.eq("condition", sp.tech_condition);
   }
 
   // Appliances-specific JSON filters
   if (isAppliances) {
     if (sp.appliance_type) query = query.eq("attributes->>sub_category" as any, sp.appliance_type);
+    if (sp.appliance_brand) query = query.eq("attributes->>brand" as any, sp.appliance_brand);
+    if (sp.appliance_condition) query = query.eq("condition", sp.appliance_condition);
+    if (sp.appliance_province) query = query.ilike("neighborhood", `%${sp.appliance_province}%`);
+  }
+
+  // Clothing-specific JSON filters
+  if (isClothing) {
+    if (sp.clothing_type) query = query.eq("attributes->>sub_category" as any, sp.clothing_type);
+    if (sp.clothing_gender) query = query.eq("attributes->>gender" as any, sp.clothing_gender);
+    if (sp.clothing_brand) query = query.eq("attributes->>brand" as any, sp.clothing_brand);
+    if (sp.clothing_condition) query = query.eq("condition", sp.clothing_condition);
+    if (sp.clothing_province) query = query.ilike("neighborhood", `%${sp.clothing_province}%`);
   }
 
   // Babies-specific JSON filters
   if (isBabies) {
     if (sp.baby_type) query = query.eq("attributes->>sub_category" as any, sp.baby_type);
+    if (sp.baby_brand) query = query.eq("attributes->>brand" as any, sp.baby_brand);
+    if (sp.baby_condition) query = query.eq("condition", sp.baby_condition);
+    if (sp.baby_province) query = query.ilike("neighborhood", `%${sp.baby_province}%`);
   }
 
   // Beauty-specific JSON filters
   if (isBeauty) {
     if (sp.beauty_type) query = query.eq("attributes->>sub_category" as any, sp.beauty_type);
+    if (sp.beauty_brand) query = query.eq("attributes->>brand" as any, sp.beauty_brand);
+    if (sp.beauty_condition) query = query.eq("condition", sp.beauty_condition);
+    if (sp.beauty_province) query = query.ilike("neighborhood", `%${sp.beauty_province}%`);
+  }
+
+  // Home-garden-specific JSON filters
+  if (isHomeGarden) {
+    if (sp.hg_type) query = query.eq("attributes->>sub_category" as any, sp.hg_type);
+    if (sp.hg_brand) query = query.eq("attributes->>brand" as any, sp.hg_brand);
+    if (sp.hg_condition) query = query.eq("condition", sp.hg_condition);
+    if (sp.hg_province) query = query.ilike("neighborhood", `%${sp.hg_province}%`);
+  }
+
+  // Sports-specific JSON filters
+  if (isSports) {
+    if (sp.sport_type) query = query.eq("attributes->>sub_category" as any, sp.sport_type);
+    if (sp.sport_brand) query = query.eq("attributes->>brand" as any, sp.sport_brand);
+    if (sp.sport_condition) query = query.eq("condition", sp.sport_condition);
+    if (sp.sport_province) query = query.ilike("neighborhood", `%${sp.sport_province}%`);
+  }
+
+  // Tools-specific JSON filters
+  if (isTools) {
+    if (sp.tool_type) query = query.eq("attributes->>sub_category" as any, sp.tool_type);
+    if (sp.tool_brand) query = query.eq("attributes->>brand" as any, sp.tool_brand);
+    if (sp.tool_condition) query = query.eq("condition", sp.tool_condition);
+    if (sp.tool_province) query = query.ilike("neighborhood", `%${sp.tool_province}%`);
+  }
+
+  // Toys-specific JSON filters
+  if (isToys) {
+    if (sp.toy_type) query = query.eq("attributes->>sub_category" as any, sp.toy_type);
+    if (sp.toy_brand) query = query.eq("attributes->>brand" as any, sp.toy_brand);
+    if (sp.toy_condition) query = query.eq("condition", sp.toy_condition);
+    if (sp.toy_province) query = query.ilike("neighborhood", `%${sp.toy_province}%`);
+  }
+
+  // Books-specific JSON filters
+  if (isBooks) {
+    if (sp.book_type) query = query.eq("attributes->>sub_category" as any, sp.book_type);
+    if (sp.book_condition) query = query.eq("condition", sp.book_condition);
+    if (sp.book_province) query = query.ilike("neighborhood", `%${sp.book_province}%`);
+  }
+
+  // Pets-specific JSON filters
+  if (isPets) {
+    if (sp.pet_type) query = query.eq("attributes->>sub_category" as any, sp.pet_type);
+    if (sp.pet_province) query = query.ilike("neighborhood", `%${sp.pet_province}%`);
+  }
+
+  // Services-specific JSON filters
+  if (isServices) {
+    if (sp.serv_type) query = query.eq("attributes->>sub_category" as any, sp.serv_type);
+    if (sp.serv_province) query = query.ilike("neighborhood", `%${sp.serv_province}%`);
   }
 
   // Real-estate-specific JSON filters
@@ -304,10 +537,19 @@ export default async function CategoryPage({
   // featured_level sorted in JS after fetch (gold > silver > bronze > null)
   if (sp.order === "price_asc") query = query.order("price", { ascending: true });
   else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
+  else if (sp.order === "views") query = query.order("view_count", { ascending: false });
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
   const { data: rawListings } = await (query as any).limit(200);
+
+  // Fetch store info separately (FK join causes empty results when FK constraint is missing)
+  const userIds = [...new Set(((rawListings as any[]) ?? []).map((l: any) => l.user_id).filter(Boolean))];
+  const { data: storeProfiles } = userIds.length > 0
+    ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
+    : { data: [] };
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
+  for (const p of (storeProfiles ?? [])) (storeMap as any)[p.id] = p;
 
   // Numeric and boolean filters done in JS (PostgREST can't reliably cast JSONB text fields)
   const RE_FEAT_KEYS = RE_FEATURES.map(f => f.key);
@@ -333,12 +575,18 @@ export default async function CategoryPage({
         if ((sp as any)[feat] === "1" && !a[feat]) return false;
       }
     }
+    if (isPhones) {
+      if (sp.phone_box === "1" && !a.includes_box) return false;
+      if (sp.phone_charger === "1" && !a.includes_charger) return false;
+      if (sp.phone_unlocked === "1" && !a.unlocked) return false;
+      if (sp.phone_trade === "1" && !a.accepts_trade) return false;
+    }
     return true;
   });
   const listings = filtered?.slice().sort((a: any, b: any) => {
-    // When price sort is active, sort only by price
     if (sp.order === "price_asc") return (a.price ?? 0) - (b.price ?? 0);
     if (sp.order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
+    if (sp.order === "views") return (b.view_count ?? 0) - (a.view_count ?? 0);
     // Default: featured first (gold > silver > bronze > null)
     const fa = FEAT_ORDER[a.featured_level ?? ""] ?? 3;
     const fb = FEAT_ORDER[b.featured_level ?? ""] ?? 3;
@@ -349,19 +597,65 @@ export default async function CategoryPage({
   let brandCounts: Record<string, number> = {};
   let typeCounts: Record<string, number> = {};
   let reTypeCounts: Record<string, number> = {};
+  let techGroupCounts: Record<string, number> = {};
   let techTypeCounts: Record<string, number> = {};
   let techBrandCounts: Record<string, number> = {};
+  let techProvinceCounts: Record<string, number> = {};
+  let techConditionCounts: Record<string, number> = {};
   let phoneBrandCounts: Record<string, number> = {};
   let phoneTypeCounts: Record<string, number> = {};
+  let phoneStorageCounts: Record<string, number> = {};
+  let phoneRamCounts: Record<string, number> = {};
+  let phoneOsCounts: Record<string, number> = {};
+  let phoneSimCounts: Record<string, number> = {};
+  let phoneConditionCounts: Record<string, number> = {};
+  let phoneProvinceCounts: Record<string, number> = {};
   let applianceTypeCounts: Record<string, number> = {};
+  let applianceBrandCounts: Record<string, number> = {};
+  let applianceConditionCounts: Record<string, number> = {};
+  let applianceProvinceCounts: Record<string, number> = {};
+  let clothingTypeCounts: Record<string, number> = {};
+  let clothingGenderCounts: Record<string, number> = {};
+  let clothingBrandCounts: Record<string, number> = {};
+  let clothingConditionCounts: Record<string, number> = {};
+  let clothingProvinceCounts: Record<string, number> = {};
   let babyTypeCounts: Record<string, number> = {};
+  let babyBrandCounts: Record<string, number> = {};
+  let babyConditionCounts: Record<string, number> = {};
+  let babyProvinceCounts: Record<string, number> = {};
   let beautyTypeCounts: Record<string, number> = {};
+  let beautyBrandCounts: Record<string, number> = {};
+  let beautyConditionCounts: Record<string, number> = {};
+  let beautyProvinceCounts: Record<string, number> = {};
+  let hgTypeCounts: Record<string, number> = {};
+  let hgBrandCounts: Record<string, number> = {};
+  let hgConditionCounts: Record<string, number> = {};
+  let hgProvinceCounts: Record<string, number> = {};
+  let sportTypeCounts: Record<string, number> = {};
+  let sportBrandCounts: Record<string, number> = {};
+  let sportConditionCounts: Record<string, number> = {};
+  let sportProvinceCounts: Record<string, number> = {};
+  let toolTypeCounts: Record<string, number> = {};
+  let toolBrandCounts: Record<string, number> = {};
+  let toolConditionCounts: Record<string, number> = {};
+  let toolProvinceCounts: Record<string, number> = {};
+  let toyTypeCounts: Record<string, number> = {};
+  let toyBrandCounts: Record<string, number> = {};
+  let toyConditionCounts: Record<string, number> = {};
+  let toyProvinceCounts: Record<string, number> = {};
+  let bookTypeCounts: Record<string, number> = {};
+  let bookConditionCounts: Record<string, number> = {};
+  let bookProvinceCounts: Record<string, number> = {};
+  let petTypeCounts: Record<string, number> = {};
+  let petProvinceCounts: Record<string, number> = {};
+  let servTypeCounts: Record<string, number> = {};
+  let servProvinceCounts: Record<string, number> = {};
   let vProvinceCounts: Record<string, number> = {};
   let vZoneCounts: Record<string, number> = {};
-  if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isBabies || isBeauty) {
+  if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices) {
     const { data: all } = await supabase
       .from("listings")
-      .select("attributes")
+      .select("attributes, condition, neighborhood")
       .eq("status", "active")
       .eq("category_id", cat.id);
     for (const row of all ?? []) {
@@ -386,17 +680,188 @@ export default async function CategoryPage({
       if (isRealEstate && t) reTypeCounts[t] = (reTypeCounts[t] ?? 0) + 1;
       if (isElectronics) {
         const b = (row.attributes as any)?.brand;
-        if (t) techTypeCounts[t] = (techTypeCounts[t] ?? 0) + 1;
-        if (b) techBrandCounts[b] = (techBrandCounts[b] ?? 0) + 1;
+        if (t) {
+          techTypeCounts[t] = (techTypeCounts[t] ?? 0) + 1;
+          const grp = SUBCAT_TO_GROUP[t];
+          if (grp) techGroupCounts[grp] = (techGroupCounts[grp] ?? 0) + 1;
+        }
+        const groupItems = sp.tech_group ? TECH_GROUPS[sp.tech_group]?.items ?? [] : null;
+        const typeMatchesGroup = !groupItems || (t && groupItems.includes(t));
+        if (b && (!sp.tech_type || t === sp.tech_type) && typeMatchesGroup) techBrandCounts[b] = (techBrandCounts[b] ?? 0) + 1;
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.tech_type || t === sp.tech_type) && typeMatchesGroup && (!sp.tech_brand || b === sp.tech_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) techProvinceCounts[prov] = (techProvinceCounts[prov] ?? 0) + 1;
+        }
+        const cond = (row as any).condition;
+        if (cond && (!sp.tech_type || t === sp.tech_type) && typeMatchesGroup && (!sp.tech_brand || b === sp.tech_brand)) {
+          techConditionCounts[cond] = (techConditionCounts[cond] ?? 0) + 1;
+        }
       }
       if (isPhones) {
         const b = (row.attributes as any)?.brand;
+        const storage = (row.attributes as any)?.storage;
+        const ram = (row.attributes as any)?.ram;
+        const os = (row.attributes as any)?.os;
+        const sim = (row.attributes as any)?.sim_type;
         if (t) phoneTypeCounts[t] = (phoneTypeCounts[t] ?? 0) + 1;
         if (b) phoneBrandCounts[b] = (phoneBrandCounts[b] ?? 0) + 1;
+        if (storage) phoneStorageCounts[storage] = (phoneStorageCounts[storage] ?? 0) + 1;
+        if (ram) phoneRamCounts[ram] = (phoneRamCounts[ram] ?? 0) + 1;
+        if (os) phoneOsCounts[os] = (phoneOsCounts[os] ?? 0) + 1;
+        if (sim) phoneSimCounts[sim] = (phoneSimCounts[sim] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond) phoneConditionCounts[cond] = (phoneConditionCounts[cond] ?? 0) + 1;
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) phoneProvinceCounts[prov] = (phoneProvinceCounts[prov] ?? 0) + 1;
+        }
       }
-      if (isAppliances && t) applianceTypeCounts[t] = (applianceTypeCounts[t] ?? 0) + 1;
-      if (isBabies && t) babyTypeCounts[t] = (babyTypeCounts[t] ?? 0) + 1;
-      if (isBeauty && t) beautyTypeCounts[t] = (beautyTypeCounts[t] ?? 0) + 1;
+      if (isAppliances) {
+        const b = (row.attributes as any)?.brand;
+        if (t) applianceTypeCounts[t] = (applianceTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.appliance_type || t === sp.appliance_type)) applianceBrandCounts[b] = (applianceBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.appliance_type || t === sp.appliance_type) && (!sp.appliance_brand || b === sp.appliance_brand)) {
+          applianceConditionCounts[cond] = (applianceConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.appliance_type || t === sp.appliance_type) && (!sp.appliance_brand || b === sp.appliance_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) applianceProvinceCounts[prov] = (applianceProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isClothing) {
+        const b = (row.attributes as any)?.brand as string | undefined;
+        const g = (row.attributes as any)?.gender as string | undefined;
+        if (t) clothingTypeCounts[t] = (clothingTypeCounts[t] ?? 0) + 1;
+        if (g && (!sp.clothing_type || t === sp.clothing_type)) clothingGenderCounts[g] = (clothingGenderCounts[g] ?? 0) + 1;
+        if (b && (!sp.clothing_type || t === sp.clothing_type) && (!sp.clothing_gender || g === sp.clothing_gender)) {
+          clothingBrandCounts[b.trim()] = (clothingBrandCounts[b.trim()] ?? 0) + 1;
+        }
+        const cond = (row as any).condition;
+        if (cond && (!sp.clothing_type || t === sp.clothing_type) && (!sp.clothing_gender || g === sp.clothing_gender)) {
+          clothingConditionCounts[cond] = (clothingConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.clothing_type || t === sp.clothing_type) && (!sp.clothing_gender || g === sp.clothing_gender)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) clothingProvinceCounts[prov] = (clothingProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isBabies) {
+        const b = (row.attributes as any)?.brand;
+        if (t) babyTypeCounts[t] = (babyTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.baby_type || t === sp.baby_type)) babyBrandCounts[b] = (babyBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.baby_type || t === sp.baby_type) && (!sp.baby_brand || b === sp.baby_brand)) {
+          babyConditionCounts[cond] = (babyConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.baby_type || t === sp.baby_type) && (!sp.baby_brand || b === sp.baby_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) babyProvinceCounts[prov] = (babyProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isBeauty) {
+        const b = (row.attributes as any)?.brand;
+        if (t) beautyTypeCounts[t] = (beautyTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.beauty_type || t === sp.beauty_type)) beautyBrandCounts[b] = (beautyBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.beauty_type || t === sp.beauty_type) && (!sp.beauty_brand || b === sp.beauty_brand)) {
+          beautyConditionCounts[cond] = (beautyConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.beauty_type || t === sp.beauty_type) && (!sp.beauty_brand || b === sp.beauty_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) beautyProvinceCounts[prov] = (beautyProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isHomeGarden) {
+        const b = (row.attributes as any)?.brand;
+        if (t) hgTypeCounts[t] = (hgTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.hg_type || t === sp.hg_type)) hgBrandCounts[b] = (hgBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.hg_type || t === sp.hg_type) && (!sp.hg_brand || b === sp.hg_brand)) {
+          hgConditionCounts[cond] = (hgConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.hg_type || t === sp.hg_type) && (!sp.hg_brand || b === sp.hg_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) hgProvinceCounts[prov] = (hgProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isSports) {
+        const b = (row.attributes as any)?.brand;
+        if (t) sportTypeCounts[t] = (sportTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.sport_type || t === sp.sport_type)) sportBrandCounts[b] = (sportBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.sport_type || t === sp.sport_type) && (!sp.sport_brand || b === sp.sport_brand)) {
+          sportConditionCounts[cond] = (sportConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.sport_type || t === sp.sport_type) && (!sp.sport_brand || b === sp.sport_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) sportProvinceCounts[prov] = (sportProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isTools) {
+        const b = (row.attributes as any)?.brand;
+        if (t) toolTypeCounts[t] = (toolTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.tool_type || t === sp.tool_type)) toolBrandCounts[b] = (toolBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.tool_type || t === sp.tool_type) && (!sp.tool_brand || b === sp.tool_brand)) {
+          toolConditionCounts[cond] = (toolConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.tool_type || t === sp.tool_type) && (!sp.tool_brand || b === sp.tool_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) toolProvinceCounts[prov] = (toolProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isToys) {
+        const b = (row.attributes as any)?.brand;
+        if (t) toyTypeCounts[t] = (toyTypeCounts[t] ?? 0) + 1;
+        if (b && (!sp.toy_type || t === sp.toy_type)) toyBrandCounts[b] = (toyBrandCounts[b] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.toy_type || t === sp.toy_type) && (!sp.toy_brand || b === sp.toy_brand)) {
+          toyConditionCounts[cond] = (toyConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.toy_type || t === sp.toy_type) && (!sp.toy_brand || b === sp.toy_brand)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) toyProvinceCounts[prov] = (toyProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isBooks) {
+        if (t) bookTypeCounts[t] = (bookTypeCounts[t] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond && (!sp.book_type || t === sp.book_type)) {
+          bookConditionCounts[cond] = (bookConditionCounts[cond] ?? 0) + 1;
+        }
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.book_type || t === sp.book_type)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) bookProvinceCounts[prov] = (bookProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isPets) {
+        if (t) petTypeCounts[t] = (petTypeCounts[t] ?? 0) + 1;
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.pet_type || t === sp.pet_type)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) petProvinceCounts[prov] = (petProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
+      if (isServices) {
+        if (t) servTypeCounts[t] = (servTypeCounts[t] ?? 0) + 1;
+        const nb = (row as any).neighborhood as string | undefined;
+        if (nb && (!sp.serv_type || t === sp.serv_type)) {
+          const prov = nb.includes(",") ? nb.split(",").pop()!.trim() : nb.trim();
+          if (prov) servProvinceCounts[prov] = (servProvinceCounts[prov] ?? 0) + 1;
+        }
+      }
     }
   }
 
@@ -417,15 +882,33 @@ export default async function CategoryPage({
       grill: sp.grill, security: sp.security, private_complex: sp.private_complex,
       credit_eligible: sp.credit_eligible,
       // electronics
-      tech_type: sp.tech_type, tech_brand: sp.tech_brand,
+      tech_group: sp.tech_group, tech_type: sp.tech_type, tech_brand: sp.tech_brand, tech_province: sp.tech_province, tech_condition: sp.tech_condition,
       // phones
-      phone_type: sp.phone_type, phone_brand: sp.phone_brand, phone_storage: sp.phone_storage,
+      phone_type: sp.phone_type, phone_brand: sp.phone_brand, phone_storage: sp.phone_storage, phone_condition: sp.phone_condition,
+      phone_ram: sp.phone_ram, phone_os: sp.phone_os, phone_sim: sp.phone_sim, phone_province: sp.phone_province,
+      phone_box: sp.phone_box, phone_charger: sp.phone_charger, phone_unlocked: sp.phone_unlocked, phone_trade: sp.phone_trade,
       // appliances
-      appliance_type: sp.appliance_type,
+      appliance_type: sp.appliance_type, appliance_brand: sp.appliance_brand, appliance_condition: sp.appliance_condition, appliance_province: sp.appliance_province,
+      // clothing
+      clothing_type: sp.clothing_type, clothing_gender: sp.clothing_gender, clothing_brand: sp.clothing_brand, clothing_condition: sp.clothing_condition, clothing_province: sp.clothing_province,
       // babies
-      baby_type: sp.baby_type,
+      baby_type: sp.baby_type, baby_brand: sp.baby_brand, baby_condition: sp.baby_condition, baby_province: sp.baby_province,
       // beauty
-      beauty_type: sp.beauty_type,
+      beauty_type: sp.beauty_type, beauty_brand: sp.beauty_brand, beauty_condition: sp.beauty_condition, beauty_province: sp.beauty_province,
+      // home-garden
+      hg_type: sp.hg_type, hg_brand: sp.hg_brand, hg_condition: sp.hg_condition, hg_province: sp.hg_province,
+      // sports
+      sport_type: sp.sport_type, sport_brand: sp.sport_brand, sport_condition: sp.sport_condition, sport_province: sp.sport_province,
+      // tools
+      tool_type: sp.tool_type, tool_brand: sp.tool_brand, tool_condition: sp.tool_condition, tool_province: sp.tool_province,
+      // toys
+      toy_type: sp.toy_type, toy_brand: sp.toy_brand, toy_condition: sp.toy_condition, toy_province: sp.toy_province,
+      // books
+      book_type: sp.book_type, book_condition: sp.book_condition, book_province: sp.book_province,
+      // pets
+      pet_type: sp.pet_type, pet_province: sp.pet_province,
+      // services
+      serv_type: sp.serv_type, serv_province: sp.serv_province,
       // price
       price_min: sp.price_min, price_max: sp.price_max,
       // view
@@ -717,76 +1200,79 @@ export default async function CategoryPage({
 
           {/* ── Electronics filters ── */}
 
+          {/* Grupo (electronics) */}
+          {isElectronics && Object.keys(techGroupCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Grupo
+              </div>
+              {Object.entries(TECH_GROUPS).filter(([k]) => (techGroupCounts[k] ?? 0) > 0).map(([k, g]) => {
+                const active = sp.tech_group === k;
+                return (
+                  <Link key={k} href={buildUrl({ tech_group: active ? undefined : k, tech_type: undefined })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{g.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        {techGroupCounts[k]}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
           {/* Tipo de producto */}
-          {isElectronics && (
+          {isElectronics && Object.keys(techTypeCounts).length > 0 && (
             <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
               <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 Tipo de producto
               </div>
               {[
-                { group: "Celulares y Teléfonos", items: [
-                  { value: "celular", label: "Celulares y Smartphones" },
-                  { value: "acc-celular", label: "Accesorios para Celulares" },
-                  { value: "repuesto-celular", label: "Repuestos de Celulares" },
-                ]},
-                { group: "Computación", items: [
-                  { value: "notebook", label: "Notebook / Laptop" },
-                  { value: "pc", label: "PC / Escritorio" },
-                  { value: "tablet", label: "Tablets" },
-                  { value: "monitor", label: "Monitores" },
-                  { value: "componentes-pc", label: "Componentes de PC" },
-                  { value: "impresion", label: "Impresión" },
-                  { value: "conectividad", label: "Conectividad y Redes" },
-                ]},
-                { group: "Cámaras y Accesorios", items: [
-                  { value: "camara", label: "Cámaras Digitales" },
-                  { value: "acc-camara", label: "Accesorios para Cámaras" },
-                  { value: "filmadora", label: "Filmadoras" },
-                ]},
-                { group: "Consolas y Videojuegos", items: [
-                  { value: "videojuego", label: "Videojuegos" },
-                  { value: "consola-ps", label: "Para PlayStation" },
-                  { value: "consola-nintendo", label: "Para Nintendo" },
-                  { value: "consola", label: "Otras consolas" },
-                ]},
-                { group: "Electrónica, Audio y Video", items: [
-                  { value: "audio", label: "Audio / Parlantes" },
-                  { value: "acc-audio-video", label: "Electrónica / Audio y Video" },
-                  { value: "drone", label: "Drones" },
-                  { value: "audio-vehiculo", label: "Audio para Vehículos" },
-                ]},
-                { group: "Televisores", items: [
-                  { value: "tv", label: "Televisores" },
-                ]},
-              ].map(({ group, items }) => {
-                const visible = items.filter(i => (techTypeCounts[i.value] ?? 0) > 0);
-                if (visible.length === 0) return null;
+                { value: "notebook", label: "Notebook / Laptop" },
+                { value: "pc", label: "PC / Escritorio" },
+                { value: "tablet", label: "Tablets" },
+                { value: "monitor", label: "Monitores" },
+                { value: "componentes-pc", label: "Componentes de PC" },
+                { value: "impresion", label: "Impresión" },
+                { value: "conectividad", label: "Conectividad y Redes" },
+                { value: "camara", label: "Cámaras Digitales" },
+                { value: "acc-camara", label: "Accesorios para Cámaras" },
+                { value: "filmadora", label: "Filmadoras" },
+                { value: "videojuego", label: "Videojuegos" },
+                { value: "consola-ps", label: "Para PlayStation" },
+                { value: "consola-nintendo", label: "Para Nintendo" },
+                { value: "consola", label: "Otras consolas" },
+                { value: "audio", label: "Audio / Parlantes" },
+                { value: "acc-audio-video", label: "Electrónica / Audio y Video" },
+                { value: "drone", label: "Drones" },
+                { value: "audio-vehiculo", label: "Audio para Vehículos" },
+                { value: "tv", label: "Televisores" },
+              ].filter(t => (techTypeCounts[t.value] ?? 0) > 0 && (!sp.tech_group || TECH_GROUPS[sp.tech_group]?.items.includes(t.value))).map(t => {
+                const active = sp.tech_type === t.value;
                 return (
-                  <div key={group}>
-                    <div style={{ padding: "6px 16px 3px", fontSize: "10px", fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.5px", background: "#fafafa" }}>
-                      {group}
+                  <Link key={t.value} href={buildUrl({ tech_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        {techTypeCounts[t.value]}
+                      </span>
                     </div>
-                    {visible.map((t) => {
-                      const active = sp.tech_type === t.value;
-                      return (
-                        <Link key={t.value} href={buildUrl({ tech_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
-                          <div style={{
-                            padding: "7px 16px", fontSize: "13px", cursor: "pointer",
-                            display: "flex", justifyContent: "space-between", alignItems: "center",
-                            background: active ? "#eff6ff" : "transparent",
-                            color: active ? "#2563eb" : "#444",
-                            fontWeight: active ? 700 : 400,
-                            borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
-                          }}>
-                            <span>{t.label}</span>
-                            <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
-                              {techTypeCounts[t.value]}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -812,6 +1298,37 @@ export default async function CategoryPage({
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                          {count}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Provincia (electronics) */}
+          {isElectronics && Object.keys(techProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Provincia
+              </div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(techProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.tech_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ tech_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        background: active ? "#eff6ff" : "transparent",
+                        color: active ? "#2563eb" : "#444",
+                        fontWeight: active ? 700 : 400,
+                        borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                      }}>
+                        <span>{prov}</span>
                         <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {count}
                         </span>
@@ -861,10 +1378,12 @@ export default async function CategoryPage({
                 Marca
               </div>
               <div style={{ maxHeight: "220px", overflowY: "auto" }}>
-                {PHONE_BRANDS.filter(b => (phoneBrandCounts[b.value] ?? 0) > 0).map((b) => {
-                  const active = sp.phone_brand === b.value;
+                {Object.entries(phoneBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const knownLabel = PHONE_BRANDS.find(b => b.value === brand)?.label;
+                  const label = knownLabel ?? (brand.charAt(0).toUpperCase() + brand.slice(1));
+                  const active = sp.phone_brand === brand;
                   return (
-                    <Link key={b.value} href={buildUrl({ phone_brand: active ? undefined : b.value })} style={{ textDecoration: "none" }}>
+                    <Link key={brand} href={buildUrl({ phone_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{
                         padding: "8px 16px", fontSize: "13px", cursor: "pointer",
                         display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -873,9 +1392,9 @@ export default async function CategoryPage({
                         fontWeight: active ? 700 : 400,
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
-                        <span>{b.label}</span>
+                        <span>{label}</span>
                         <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
-                          {phoneBrandCounts[b.value]}
+                          {count}
                         </span>
                       </div>
                     </Link>
@@ -886,18 +1405,104 @@ export default async function CategoryPage({
           )}
 
           {/* Almacenamiento (phones) */}
-          {isPhones && (
+          {isPhones && Object.keys(phoneStorageCounts).length > 0 && (
             <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
               <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 Almacenamiento
               </div>
               <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                {["32GB", "64GB", "128GB", "256GB", "512GB", "1TB"].map(s => {
-                  const active = sp.phone_storage === s;
+                {[{v:"16gb",l:"16 GB"},{v:"32gb",l:"32 GB"},{v:"64gb",l:"64 GB"},{v:"128gb",l:"128 GB"},{v:"256gb",l:"256 GB"},{v:"512gb",l:"512 GB"},{v:"1tb",l:"1 TB"}].filter(s => phoneStorageCounts[s.v] > 0).map(s => {
+                  const active = sp.phone_storage === s.v;
                   return (
-                    <Link key={s} href={buildUrl({ phone_storage: active ? undefined : s })} style={{ textDecoration: "none" }}>
+                    <Link key={s.v} href={buildUrl({ phone_storage: active ? undefined : s.v })} style={{ textDecoration: "none" }}>
                       <span style={{ display: "inline-block", padding: "5px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", background: active ? "#2563eb" : "#f1f5f9", color: active ? "#fff" : "#555" }}>
-                        {s}
+                        {s.l}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* RAM (phones) */}
+          {isPhones && Object.keys(phoneRamCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Memoria RAM
+              </div>
+              <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {[{v:"2gb",l:"2 GB"},{v:"3gb",l:"3 GB"},{v:"4gb",l:"4 GB"},{v:"6gb",l:"6 GB"},{v:"8gb",l:"8 GB"},{v:"12gb",l:"12 GB"},{v:"16gb",l:"16 GB"}].filter(s => phoneRamCounts[s.v] > 0).map(s => {
+                  const active = sp.phone_ram === s.v;
+                  return (
+                    <Link key={s.v} href={buildUrl({ phone_ram: active ? undefined : s.v })} style={{ textDecoration: "none" }}>
+                      <span style={{ display: "inline-block", padding: "5px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", background: active ? "#2563eb" : "#f1f5f9", color: active ? "#fff" : "#555" }}>
+                        {s.l}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Sistema operativo (phones) */}
+          {isPhones && Object.keys(phoneOsCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Sistema Operativo
+              </div>
+              {[{v:"android",l:"Android"},{v:"ios",l:"iOS (iPhone)"},{v:"harmonyos",l:"HarmonyOS"}].filter(o => phoneOsCounts[o.v] > 0).map(o => {
+                const active = sp.phone_os === o.v;
+                return (
+                  <Link key={o.v} href={buildUrl({ phone_os: active ? undefined : o.v })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      {o.l}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Tipo de SIM (phones) */}
+          {isPhones && Object.keys(phoneSimCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Tipo de SIM
+              </div>
+              {[{v:"nano-sim",l:"Nano SIM"},{v:"dual-sim",l:"Dual SIM"},{v:"esim",l:"eSIM"},{v:"dual-sim-esim",l:"Dual SIM + eSIM"},{v:"micro-sim",l:"Micro SIM"}].filter(s => phoneSimCounts[s.v] > 0).map(s => {
+                const active = sp.phone_sim === s.v;
+                return (
+                  <Link key={s.v} href={buildUrl({ phone_sim: active ? undefined : s.v })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      {s.l}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+
+          {/* Características (phones) */}
+          {isPhones && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Características
+              </div>
+              <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                {[
+                  { param: "phone_box", label: "Con caja original" },
+                  { param: "phone_charger", label: "Con cargador" },
+                  { param: "phone_unlocked", label: "Liberado" },
+                  { param: "phone_trade", label: "Acepta permuta" },
+                ].map(f => {
+                  const active = (sp as any)[f.param] === "1";
+                  return (
+                    <Link key={f.param} href={buildUrl({ [f.param]: active ? undefined : "1" } as any)} style={{ textDecoration: "none" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", border: active ? "1.5px solid #2563eb" : "1.5px solid #e2e8f0", background: active ? "#eff6ff" : "#fff", color: active ? "#2563eb" : "#555", width: "100%", boxSizing: "border-box" as const }}>
+                        {active ? "✓ " : ""}{f.label}
                       </span>
                     </Link>
                   );
@@ -937,6 +1542,616 @@ export default async function CategoryPage({
             </div>
           )}
 
+          {/* Marca (appliances) */}
+          {isAppliances && Object.keys(applianceBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Marca
+              </div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(applianceBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.appliance_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ appliance_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (appliances) */}
+          {isAppliances && Object.keys(applianceConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Estado
+              </div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => applianceConditionCounts[c.value] > 0).map(c => {
+                const active = sp.appliance_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ appliance_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{applianceConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (appliances) */}
+          {isAppliances && Object.keys(applianceProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Provincia
+              </div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(applianceProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.appliance_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ appliance_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Home-garden filters ── */}
+
+          {/* Tipo (home-garden) */}
+          {isHomeGarden && Object.keys(hgTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {HG_TYPES.filter(t => (hgTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.hg_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ hg_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{hgTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Marca (home-garden) */}
+          {isHomeGarden && Object.keys(hgBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(hgBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.hg_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ hg_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (home-garden) */}
+          {isHomeGarden && Object.keys(hgConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => hgConditionCounts[c.value] > 0).map(c => {
+                const active = sp.hg_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ hg_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{hgConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (home-garden) */}
+          {isHomeGarden && Object.keys(hgProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(hgProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.hg_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ hg_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Sports filters ── */}
+
+          {/* Tipo (sports) */}
+          {isSports && Object.keys(sportTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {SPORTS_TYPES.filter(t => (sportTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.sport_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ sport_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{sportTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Marca (sports) */}
+          {isSports && Object.keys(sportBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(sportBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.sport_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ sport_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (sports) */}
+          {isSports && Object.keys(sportConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => sportConditionCounts[c.value] > 0).map(c => {
+                const active = sp.sport_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ sport_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{sportConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (sports) */}
+          {isSports && Object.keys(sportProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(sportProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.sport_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ sport_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Tools filters ── */}
+
+          {/* Tipo (tools) */}
+          {isTools && Object.keys(toolTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {TOOLS_TYPES.filter(t => (toolTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.tool_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ tool_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toolTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Marca (tools) */}
+          {isTools && Object.keys(toolBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(toolBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.tool_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ tool_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (tools) */}
+          {isTools && Object.keys(toolConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => toolConditionCounts[c.value] > 0).map(c => {
+                const active = sp.tool_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ tool_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toolConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (tools) */}
+          {isTools && Object.keys(toolProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(toolProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.tool_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ tool_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Toys filters ── */}
+
+          {/* Tipo (toys) */}
+          {isToys && Object.keys(toyTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {TOYS_TYPES.filter(t => (toyTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.toy_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ toy_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toyTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Marca (toys) */}
+          {isToys && Object.keys(toyBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(toyBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.toy_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ toy_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (toys) */}
+          {isToys && Object.keys(toyConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => toyConditionCounts[c.value] > 0).map(c => {
+                const active = sp.toy_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ toy_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toyConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (toys) */}
+          {isToys && Object.keys(toyProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(toyProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.toy_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ toy_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Books filters ── */}
+
+          {/* Tipo (books) */}
+          {isBooks && Object.keys(bookTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {BOOKS_TYPES.filter(t => (bookTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.book_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ book_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{bookTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Estado (books) */}
+          {isBooks && Object.keys(bookConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => bookConditionCounts[c.value] > 0).map(c => {
+                const active = sp.book_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ book_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{bookConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (books) */}
+          {isBooks && Object.keys(bookProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(bookProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.book_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ book_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Pets filters ── */}
+
+          {/* Tipo (pets) */}
+          {isPets && Object.keys(petTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {PETS_TYPES.filter(t => (petTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.pet_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ pet_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{petTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (pets) */}
+          {isPets && Object.keys(petProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(petProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.pet_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ pet_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Services filters ── */}
+
+          {/* Rubro (services) */}
+          {isServices && Object.keys(servTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Rubro</div>
+              {SERVICES_TYPES.filter(t => (servTypeCounts[t.value] ?? 0) > 0).map((t) => {
+                const active = sp.serv_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ serv_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{servTypeCounts[t.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (services) */}
+          {isServices && Object.keys(servProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(servProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.serv_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ serv_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Clothing filters ── */}
+
+          {/* Tipo (clothing) */}
+          {isClothing && Object.keys(clothingTypeCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tipo</div>
+              {[{value:"ropa",label:"Ropa"},{value:"calzado",label:"Calzado"},{value:"accesorio",label:"Accesorio"},{value:"bolso",label:"Bolso / Cartera"},{value:"otro",label:"Otro"}].filter(o => (clothingTypeCounts[o.value] ?? 0) > 0).map(o => {
+                const active = sp.clothing_type === o.value;
+                return (
+                  <Link key={o.value} href={buildUrl({ clothing_type: active ? undefined : o.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{o.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingTypeCounts[o.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Género (clothing) */}
+          {isClothing && Object.keys(clothingGenderCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Género</div>
+              {[{value:"mujer",label:"Mujer"},{value:"hombre",label:"Hombre"},{value:"unisex",label:"Unisex"},{value:"nino",label:"Niño/a"},{value:"bebe",label:"Bebé"},{value:"otro",label:"Otro"}].filter(o => (clothingGenderCounts[o.value] ?? 0) > 0).map(o => {
+                const active = sp.clothing_gender === o.value;
+                return (
+                  <Link key={o.value} href={buildUrl({ clothing_gender: active ? undefined : o.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{o.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingGenderCounts[o.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Marca (clothing) */}
+          {isClothing && Object.keys(clothingBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(clothingBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.clothing_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ clothing_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (clothing) */}
+          {isClothing && Object.keys(clothingConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => clothingConditionCounts[c.value] > 0).map(c => {
+                const active = sp.clothing_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ clothing_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (clothing) */}
+          {isClothing && Object.keys(clothingProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(clothingProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.clothing_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ clothing_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* ── Babies filters ── */}
 
           {/* Tipo de artículo bebé */}
@@ -968,6 +2183,64 @@ export default async function CategoryPage({
             </div>
           )}
 
+          {/* Marca (babies) */}
+          {isBabies && Object.keys(babyBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(babyBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.baby_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ baby_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (babies) */}
+          {isBabies && Object.keys(babyConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => babyConditionCounts[c.value] > 0).map(c => {
+                const active = sp.baby_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ baby_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{babyConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (babies) */}
+          {isBabies && Object.keys(babyProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(babyProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.baby_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ baby_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* ── Beauty & Health filters ── */}
 
           {/* Tipo (beauty) */}
@@ -996,6 +2269,64 @@ export default async function CategoryPage({
                   </Link>
                 );
               })}
+            </div>
+          )}
+
+          {/* Marca (beauty) */}
+          {isBeauty && Object.keys(beautyBrandCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Marca</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(beautyBrandCounts).sort((a, b) => b[1] - a[1]).map(([brand, count]) => {
+                  const active = sp.beauty_brand === brand;
+                  return (
+                    <Link key={brand} href={buildUrl({ beauty_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span style={{ textTransform: "capitalize" }}>{brand}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Estado (beauty) */}
+          {isBeauty && Object.keys(beautyConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</div>
+              {[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].filter(c => beautyConditionCounts[c.value] > 0).map(c => {
+                const active = sp.beauty_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ beauty_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{beautyConditionCounts[c.value]}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Provincia (beauty) */}
+          {isBeauty && Object.keys(beautyProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Provincia</div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(beautyProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.beauty_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ beauty_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -1205,6 +2536,103 @@ export default async function CategoryPage({
             </div>
           )}
 
+          {/* Provincia (phones) */}
+          {isPhones && Object.keys(phoneProvinceCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Provincia
+              </div>
+              <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                {Object.entries(phoneProvinceCounts).sort((a, b) => b[1] - a[1]).map(([prov, count]) => {
+                  const active = sp.phone_province === prov;
+                  return (
+                    <Link key={prov} href={buildUrl({ phone_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        background: active ? "#eff6ff" : "transparent",
+                        color: active ? "#2563eb" : "#444",
+                        fontWeight: active ? 700 : 400,
+                        borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                      }}>
+                        <span>{prov}</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                          {count}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Condición (phones) */}
+          {isPhones && Object.keys(phoneConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Condición
+              </div>
+              {[
+                { value: "new", label: "Nuevo" },
+                { value: "like_new", label: "Como nuevo" },
+                { value: "very_good", label: "Muy bueno" },
+                { value: "good", label: "Bueno" },
+                { value: "fair", label: "Regular" },
+              ].filter(c => phoneConditionCounts[c.value] > 0).map(c => {
+                const active = sp.phone_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ phone_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      {c.label}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Estado (electronics) */}
+          {isElectronics && Object.keys(techConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Estado
+              </div>
+              {[
+                { value: "new", label: "Nuevo" },
+                { value: "like_new", label: "Como nuevo" },
+                { value: "very_good", label: "Muy bueno" },
+                { value: "good", label: "Bueno" },
+                { value: "fair", label: "Regular" },
+              ].filter(c => techConditionCounts[c.value] > 0).map(c => {
+                const active = sp.tech_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ tech_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        {techConditionCounts[c.value]}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
           {/* Price */}
           <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
             {Object.entries(sp).map(([k, v]) =>
@@ -1259,42 +2687,32 @@ export default async function CategoryPage({
               {sp.re_type && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{RE_PROPERTY_TYPES.find(t => t.value === sp.re_type)?.label ?? sp.re_type}</span></>)}
               {sp.tech_type && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{sp.tech_type}</span></>)}
               {sp.tech_brand && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600, textTransform: "capitalize" }}>{sp.tech_brand}</span></>)}
+              {sp.clothing_brand && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{sp.clothing_brand}</span></>)}
               <span style={{ color: "#94a3b8", fontSize: "12px", marginLeft: "4px" }}>({listings?.length ?? 0})</span>
             </div>
 
             {/* Controls */}
-            <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap", width: "100%" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
               <form method="GET" action={`/category/${slug}`} style={{ display: "flex", gap: "6px", flex: 1, minWidth: 0 }}>
                 {Object.entries(sp).map(([k, v]) =>
-                  v && k !== "q" ? <input key={k} type="hidden" name={k} value={v} /> : null
+                  v && k !== "q" && k !== "order" ? <input key={k} type="hidden" name={k} value={v} /> : null
                 )}
                 <input name="q" defaultValue={sp.q} placeholder="Buscar en esta categoría..."
                   style={{
                     border: "1.5px solid #e2e8f0", borderRadius: "8px",
-                    padding: "7px 12px", fontSize: "13px", outline: "none", flex: 1, minWidth: 0,
+                    padding: "9px 14px", fontSize: "14px", outline: "none", flex: 1, minWidth: 0,
                   }} />
                 <button type="submit" style={{
                   background: "#2563eb", color: "#fff", border: "none", borderRadius: "8px",
-                  padding: "7px 14px", fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                  padding: "9px 18px", fontSize: "14px", fontWeight: 700, cursor: "pointer", flexShrink: 0,
                 }}>Buscar</button>
               </form>
 
-              <div style={{ display: "flex", gap: "4px" }}>
-                {[
-                  { value: "", label: "Recientes" },
-                  { value: "price_asc", label: "Menor precio" },
-                  { value: "price_desc", label: "Mayor precio" },
-                ].map(opt => (
-                  <Link key={opt.value} href={buildUrl({ order: opt.value || undefined })} style={{ textDecoration: "none" }}>
-                    <span style={{
-                      display: "inline-block", padding: "6px 11px", borderRadius: "6px",
-                      fontSize: "12px", fontWeight: 600, cursor: "pointer",
-                      background: (sp.order ?? "") === opt.value ? "#2563eb" : "#f1f5f9",
-                      color: (sp.order ?? "") === opt.value ? "#fff" : "#555",
-                    }}>{opt.label}</span>
-                  </Link>
-                ))}
-              </div>
+              <OrderSelect
+                value={sp.order ?? ""}
+                action={`/category/${slug}`}
+                hiddenFields={Object.fromEntries(Object.entries(sp).filter(([k, v]) => v && k !== "order") as [string, string][])}
+              />
 
               {/* Grid / List toggle */}
               <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
@@ -1328,8 +2746,65 @@ export default async function CategoryPage({
           {/* Active filter chips */}
           {hasFilters && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
-              {sp.type && <Chip label={`Tipo: ${VEHICLE_TYPES.find(t => t.value === sp.type)?.label ?? sp.type}`} href={buildUrl({ type: undefined })} />}
-              {sp.brand && <Chip label={`Marca: ${VEHICLE_BRANDS.find(b => b.value === sp.brand)?.label ?? sp.brand}`} href={buildUrl({ brand: undefined })} />}
+              {isVehicles && sp.type && <Chip label={`Tipo: ${VEHICLE_TYPES.find(t => t.value === sp.type)?.label ?? sp.type}`} href={buildUrl({ type: undefined })} />}
+              {isVehicles && sp.brand && <Chip label={`Marca: ${VEHICLE_BRANDS.find(b => b.value === sp.brand)?.label ?? sp.brand}`} href={buildUrl({ brand: undefined })} />}
+              {isElectronics && sp.tech_group && <Chip label={TECH_GROUPS[sp.tech_group]?.label ?? sp.tech_group} href={buildUrl({ tech_group: undefined, tech_type: undefined })} />}
+              {isElectronics && sp.tech_type && <Chip label={`Tipo: ${sp.tech_type}`} href={buildUrl({ tech_type: undefined })} />}
+              {isElectronics && sp.tech_brand && <Chip label={`Marca: ${sp.tech_brand.charAt(0).toUpperCase() + sp.tech_brand.slice(1)}`} href={buildUrl({ tech_brand: undefined })} />}
+              {isElectronics && sp.tech_province && <Chip label={sp.tech_province} href={buildUrl({ tech_province: undefined })} />}
+              {isElectronics && sp.tech_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.tech_condition)?.label ?? sp.tech_condition} href={buildUrl({ tech_condition: undefined })} />}
+              {isClothing && sp.clothing_type && <Chip label={`Tipo: ${[{value:"ropa",label:"Ropa"},{value:"calzado",label:"Calzado"},{value:"accesorio",label:"Accesorio"},{value:"bolso",label:"Bolso / Cartera"},{value:"otro",label:"Otro"}].find(o=>o.value===sp.clothing_type)?.label ?? sp.clothing_type}`} href={buildUrl({ clothing_type: undefined })} />}
+              {isClothing && sp.clothing_gender && <Chip label={[{value:"mujer",label:"Mujer"},{value:"hombre",label:"Hombre"},{value:"unisex",label:"Unisex"},{value:"nino",label:"Niño/a"},{value:"bebe",label:"Bebé"},{value:"otro",label:"Otro"}].find(o=>o.value===sp.clothing_gender)?.label ?? sp.clothing_gender} href={buildUrl({ clothing_gender: undefined })} />}
+              {isClothing && sp.clothing_brand && <Chip label={`Marca: ${sp.clothing_brand.charAt(0).toUpperCase() + sp.clothing_brand.slice(1)}`} href={buildUrl({ clothing_brand: undefined })} />}
+              {isClothing && sp.clothing_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.clothing_condition)?.label ?? sp.clothing_condition} href={buildUrl({ clothing_condition: undefined })} />}
+              {isClothing && sp.clothing_province && <Chip label={sp.clothing_province} href={buildUrl({ clothing_province: undefined })} />}
+              {isAppliances && sp.appliance_type && <Chip label={`Tipo: ${APPLIANCE_TYPES.find(t => t.value === sp.appliance_type)?.label ?? sp.appliance_type}`} href={buildUrl({ appliance_type: undefined })} />}
+              {isAppliances && sp.appliance_brand && <Chip label={`Marca: ${sp.appliance_brand.charAt(0).toUpperCase() + sp.appliance_brand.slice(1)}`} href={buildUrl({ appliance_brand: undefined })} />}
+              {isAppliances && sp.appliance_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.appliance_condition)?.label ?? sp.appliance_condition} href={buildUrl({ appliance_condition: undefined })} />}
+              {isAppliances && sp.appliance_province && <Chip label={sp.appliance_province} href={buildUrl({ appliance_province: undefined })} />}
+              {isBabies && sp.baby_type && <Chip label={`Tipo: ${BABY_TYPES.find(t => t.value === sp.baby_type)?.label ?? sp.baby_type}`} href={buildUrl({ baby_type: undefined })} />}
+              {isBabies && sp.baby_brand && <Chip label={`Marca: ${sp.baby_brand.charAt(0).toUpperCase() + sp.baby_brand.slice(1)}`} href={buildUrl({ baby_brand: undefined })} />}
+              {isBabies && sp.baby_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.baby_condition)?.label ?? sp.baby_condition} href={buildUrl({ baby_condition: undefined })} />}
+              {isBabies && sp.baby_province && <Chip label={sp.baby_province} href={buildUrl({ baby_province: undefined })} />}
+              {isBeauty && sp.beauty_type && <Chip label={`Tipo: ${BEAUTY_TYPES.find(t => t.value === sp.beauty_type)?.label ?? sp.beauty_type}`} href={buildUrl({ beauty_type: undefined })} />}
+              {isBeauty && sp.beauty_brand && <Chip label={`Marca: ${sp.beauty_brand.charAt(0).toUpperCase() + sp.beauty_brand.slice(1)}`} href={buildUrl({ beauty_brand: undefined })} />}
+              {isBeauty && sp.beauty_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.beauty_condition)?.label ?? sp.beauty_condition} href={buildUrl({ beauty_condition: undefined })} />}
+              {isBeauty && sp.beauty_province && <Chip label={sp.beauty_province} href={buildUrl({ beauty_province: undefined })} />}
+              {isHomeGarden && sp.hg_type && <Chip label={`Tipo: ${HG_TYPES.find(t => t.value === sp.hg_type)?.label ?? sp.hg_type}`} href={buildUrl({ hg_type: undefined })} />}
+              {isHomeGarden && sp.hg_brand && <Chip label={`Marca: ${sp.hg_brand.charAt(0).toUpperCase() + sp.hg_brand.slice(1)}`} href={buildUrl({ hg_brand: undefined })} />}
+              {isHomeGarden && sp.hg_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.hg_condition)?.label ?? sp.hg_condition} href={buildUrl({ hg_condition: undefined })} />}
+              {isHomeGarden && sp.hg_province && <Chip label={sp.hg_province} href={buildUrl({ hg_province: undefined })} />}
+              {isSports && sp.sport_type && <Chip label={`Tipo: ${SPORTS_TYPES.find(t => t.value === sp.sport_type)?.label ?? sp.sport_type}`} href={buildUrl({ sport_type: undefined })} />}
+              {isSports && sp.sport_brand && <Chip label={`Marca: ${sp.sport_brand.charAt(0).toUpperCase() + sp.sport_brand.slice(1)}`} href={buildUrl({ sport_brand: undefined })} />}
+              {isSports && sp.sport_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.sport_condition)?.label ?? sp.sport_condition} href={buildUrl({ sport_condition: undefined })} />}
+              {isSports && sp.sport_province && <Chip label={sp.sport_province} href={buildUrl({ sport_province: undefined })} />}
+              {isTools && sp.tool_type && <Chip label={`Tipo: ${TOOLS_TYPES.find(t => t.value === sp.tool_type)?.label ?? sp.tool_type}`} href={buildUrl({ tool_type: undefined })} />}
+              {isTools && sp.tool_brand && <Chip label={`Marca: ${sp.tool_brand.charAt(0).toUpperCase() + sp.tool_brand.slice(1)}`} href={buildUrl({ tool_brand: undefined })} />}
+              {isTools && sp.tool_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.tool_condition)?.label ?? sp.tool_condition} href={buildUrl({ tool_condition: undefined })} />}
+              {isTools && sp.tool_province && <Chip label={sp.tool_province} href={buildUrl({ tool_province: undefined })} />}
+              {isToys && sp.toy_type && <Chip label={`Tipo: ${TOYS_TYPES.find(t => t.value === sp.toy_type)?.label ?? sp.toy_type}`} href={buildUrl({ toy_type: undefined })} />}
+              {isToys && sp.toy_brand && <Chip label={`Marca: ${sp.toy_brand.charAt(0).toUpperCase() + sp.toy_brand.slice(1)}`} href={buildUrl({ toy_brand: undefined })} />}
+              {isToys && sp.toy_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.toy_condition)?.label ?? sp.toy_condition} href={buildUrl({ toy_condition: undefined })} />}
+              {isToys && sp.toy_province && <Chip label={sp.toy_province} href={buildUrl({ toy_province: undefined })} />}
+              {isBooks && sp.book_type && <Chip label={`Tipo: ${BOOKS_TYPES.find(t => t.value === sp.book_type)?.label ?? sp.book_type}`} href={buildUrl({ book_type: undefined })} />}
+              {isBooks && sp.book_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.book_condition)?.label ?? sp.book_condition} href={buildUrl({ book_condition: undefined })} />}
+              {isBooks && sp.book_province && <Chip label={sp.book_province} href={buildUrl({ book_province: undefined })} />}
+              {isPets && sp.pet_type && <Chip label={`Tipo: ${PETS_TYPES.find(t => t.value === sp.pet_type)?.label ?? sp.pet_type}`} href={buildUrl({ pet_type: undefined })} />}
+              {isPets && sp.pet_province && <Chip label={sp.pet_province} href={buildUrl({ pet_province: undefined })} />}
+              {isServices && sp.serv_type && <Chip label={`Rubro: ${SERVICES_TYPES.find(t => t.value === sp.serv_type)?.label ?? sp.serv_type}`} href={buildUrl({ serv_type: undefined })} />}
+              {isServices && sp.serv_province && <Chip label={sp.serv_province} href={buildUrl({ serv_province: undefined })} />}
+              {isPhones && sp.phone_type && <Chip label={`Tipo: ${PHONE_TYPES.find(t => t.value === sp.phone_type)?.label ?? sp.phone_type}`} href={buildUrl({ phone_type: undefined })} />}
+              {isPhones && sp.phone_brand && <Chip label={`Marca: ${sp.phone_brand.charAt(0).toUpperCase() + sp.phone_brand.slice(1)}`} href={buildUrl({ phone_brand: undefined })} />}
+              {isPhones && sp.phone_storage && <Chip label={sp.phone_storage === "1tb" ? "1 TB" : sp.phone_storage.replace("gb", " GB").replace("tb", " TB")} href={buildUrl({ phone_storage: undefined })} />}
+              {isPhones && sp.phone_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.phone_condition)?.label ?? sp.phone_condition} href={buildUrl({ phone_condition: undefined })} />}
+              {isPhones && sp.phone_ram && <Chip label={`RAM: ${sp.phone_ram.toUpperCase()}`} href={buildUrl({ phone_ram: undefined })} />}
+              {isPhones && sp.phone_os && <Chip label={[{v:"android",l:"Android"},{v:"ios",l:"iOS"},{v:"harmonyos",l:"HarmonyOS"}].find(o=>o.v===sp.phone_os)?.l ?? sp.phone_os} href={buildUrl({ phone_os: undefined })} />}
+              {isPhones && sp.phone_sim && <Chip label={[{v:"nano-sim",l:"Nano SIM"},{v:"dual-sim",l:"Dual SIM"},{v:"esim",l:"eSIM"},{v:"dual-sim-esim",l:"Dual SIM+eSIM"},{v:"micro-sim",l:"Micro SIM"}].find(s=>s.v===sp.phone_sim)?.l ?? sp.phone_sim} href={buildUrl({ phone_sim: undefined })} />}
+              {isPhones && sp.phone_province && <Chip label={sp.phone_province} href={buildUrl({ phone_province: undefined })} />}
+              {isPhones && sp.phone_box === "1" && <Chip label="Con caja original" href={buildUrl({ phone_box: undefined })} />}
+              {isPhones && sp.phone_charger === "1" && <Chip label="Con cargador" href={buildUrl({ phone_charger: undefined })} />}
+              {isPhones && sp.phone_unlocked === "1" && <Chip label="Liberado" href={buildUrl({ phone_unlocked: undefined })} />}
+              {isPhones && sp.phone_trade === "1" && <Chip label="Acepta permuta" href={buildUrl({ phone_trade: undefined })} />}
               {sp.fuel && <Chip label={`Combustible: ${FUELS.find(f => f.value === sp.fuel)?.label ?? sp.fuel}`} href={buildUrl({ fuel: undefined })} />}
               {sp.transmission && <Chip label={`Transmisión: ${TRANSMISSIONS.find(t => t.value === sp.transmission)?.label ?? sp.transmission}`} href={buildUrl({ transmission: undefined })} />}
               {sp.year_from && <Chip label={`Desde ${sp.year_from}`} href={buildUrl({ year_from: undefined })} />}
@@ -1444,6 +2919,10 @@ export default async function CategoryPage({
                       neighborhood={listing.neighborhood}
                       featured_level={(listing as any).featured_level ?? null}
                       attributes={listing.attributes as Record<string, string | number | boolean | null> | undefined}
+                      view_count={(listing as any).view_count ?? null}
+                      created_at={(listing as any).created_at ?? null}
+                      is_store={storeMap[(listing as any).user_id]?.is_store ?? null}
+                      store_name={storeMap[(listing as any).user_id]?.store_name ?? null}
                     />
                   );
                 })}

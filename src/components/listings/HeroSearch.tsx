@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
 const PROVINCES = [
   "Todo el país",
@@ -24,11 +25,12 @@ interface Suggestion {
 interface TopSubcat {
   label: string;
   href: string;
-  icon: string;
+  slug: string;
 }
 
 export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
   const [query, setQuery] = useState("");
+  const [province, setProvince] = useState("San Juan");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -74,10 +76,11 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
   }, []);
 
   const handleSearch = () => {
-    if (query.trim()) {
-      setShowSuggestions(false);
-      router.push(`/listings?q=${encodeURIComponent(query.trim())}`);
-    }
+    setShowSuggestions(false);
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    if (province) params.set("location", province);
+    router.push(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const dropdown = showSuggestions && suggestions.length > 0 && rect ? createPortal(
@@ -143,18 +146,20 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
 
   return (
     <div style={{
-      flex: 1, margin: "18px",
+      flex: 1, margin: "auto 28px",
       background: "rgba(255,255,255,0.97)",
-      borderRadius: "12px", padding: "20px 22px",
-      backdropFilter: "blur(8px)",
-      boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+      borderRadius: "14px", padding: "20px 24px",
+      backdropFilter: "blur(10px)",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
+      alignSelf: "center",
+      zIndex: 1,
     }}>
-      <div style={{ fontSize: "22px", fontWeight: 900, color: "#0f172a", marginBottom: "14px", lineHeight: 1.2 }}>
+      <div style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", marginBottom: "12px", lineHeight: 1.2 }}>
         ✨ Comprá y vendé usados con IA
       </div>
 
       {/* Search row */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: topSubcats.length > 0 ? "12px" : "0" }}>
         {/* Text input with suggestions */}
         <div ref={searchRef} style={{ flex: 1, minWidth: 0, position: "relative" }}>
           <div ref={inputWrapRef} style={{
@@ -194,7 +199,7 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
 
         {/* Province select */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <select name="province" defaultValue="San Juan" style={{
+          <select value={province} onChange={(e) => setProvince(e.target.value)} style={{
             appearance: "none", WebkitAppearance: "none",
             border: "1.5px solid #e2e8f0", borderRadius: "10px",
             padding: "0 26px 0 30px", height: "44px", width: "140px",
@@ -233,22 +238,31 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
         </button>
       </div>
 
-      {/* Quick category pills */}
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-        {topSubcats.map(cat => (
-          <Link key={cat.label} href={cat.href} style={{ textDecoration: "none" }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: "5px",
-              background: "#f8fafc", border: "1.5px solid #e2e8f0",
-              borderRadius: "20px", padding: "5px 12px",
-              fontSize: "12px", fontWeight: 600, color: "#334155",
-              cursor: "pointer",
-            }}>
-              <span>{cat.icon}</span> {cat.label}
-            </span>
-          </Link>
-        ))}
-      </div>
+      {/* Top categories pills */}
+      {topSubcats.length > 0 && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {topSubcats.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={cat.href}
+              style={{
+                display: "flex", alignItems: "center", gap: "5px",
+                background: "#f1f5f9", borderRadius: "20px",
+                padding: "5px 10px 5px 8px",
+                fontSize: "12px", fontWeight: 600, color: "#334155",
+                textDecoration: "none", whiteSpace: "nowrap",
+                border: "1px solid #e2e8f0",
+                transition: "background 0.15s",
+              }}
+              className="hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200"
+            >
+              <CategoryIcon slug={cat.slug} size={14} />
+              {cat.label}
+            </Link>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 }

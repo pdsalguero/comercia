@@ -17,6 +17,22 @@ interface ListingCardProps {
   featured_level?: "gold" | "silver" | "bronze" | null;
   attributes?: Record<string, string | number | boolean | null>;
   size?: "normal" | "large";
+  view_count?: number | null;
+  created_at?: string | null;
+  is_store?: boolean | null;
+  store_name?: string | null;
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return "hace un momento";
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+  const days = Math.floor(diff / 86400);
+  if (days < 30) return `hace ${days} días`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `hace ${months} meses`;
+  return `hace ${Math.floor(months / 12)} años`;
 }
 
 function formatPrice(price: number, currency = "ARS") {
@@ -33,6 +49,10 @@ export function ListingCard({
   neighborhood,
   featured_level,
   attributes,
+  view_count,
+  created_at,
+  is_store,
+  store_name,
 }: ListingCardProps) {
   const year = attributes?.year;
   const km = attributes?.mileage ?? attributes?.km;
@@ -46,9 +66,10 @@ export function ListingCard({
     : null;
   const brandModelLine = brand || model ? [brand, model].filter(Boolean).join(" · ") : null;
 
-  // Show province if zone is known, otherwise fall back to neighborhood
+  // Show province if zone is known, otherwise fall back to neighborhood (extract province if "locality, province")
   const zoneSlug = attributes?.zone as string | undefined;
-  const locationLabel = (zoneSlug && ZONE_TO_PROVINCE[zoneSlug]) ?? neighborhood ?? "Argentina";
+  const rawLocation = (zoneSlug && ZONE_TO_PROVINCE[zoneSlug]) ?? neighborhood ?? "Argentina";
+  const locationLabel = rawLocation.includes(",") ? rawLocation.split(",").pop()!.trim() : rawLocation;
 
   return (
     <Link href={`/listings/${id}`} style={{ textDecoration: "none", display: "block" }}>
@@ -78,9 +99,9 @@ export function ListingCard({
         className="hover:-translate-y-1 hover:shadow-md"
       >
         {/* Image */}
-        <div style={{ height: "200px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
+        <div style={{ height: "155px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
           {cover_image ? (
-            <img src={cover_image} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={cover_image} alt={title} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           ) : (
             <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>
               📦
@@ -118,6 +139,23 @@ export function ListingCard({
             </div>
           )}
 
+          {is_store && (
+            <div style={{
+              position: "absolute", bottom: "8px", left: "8px",
+              background: "rgba(15,23,42,0.72)",
+              backdropFilter: "blur(4px)",
+              color: "#fff", borderRadius: "6px", padding: "3px 7px",
+              fontSize: "10px", fontWeight: 700,
+              display: "flex", alignItems: "center", gap: "4px",
+            }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"/>
+                <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
+              </svg>
+              {store_name ?? "Tienda"}
+            </div>
+          )}
+
           <FavoriteButton listingId={id} variant="card" />
         </div>
 
@@ -132,8 +170,8 @@ export function ListingCard({
             {title}
           </h3>
 
-          <div style={{ fontSize: "20px", fontWeight: 800, color: "#111", marginBottom: "4px" }}>
-            {formatPrice(price, currency)}
+          <div style={{ fontSize: "20px", fontWeight: 800, color: price === 0 ? "#6366f1" : "#111", marginBottom: "4px" }}>
+            {price === 0 ? "Consultar" : formatPrice(price, currency)}
           </div>
 
           {hasVehicleMeta && (
@@ -154,9 +192,25 @@ export function ListingCard({
             </div>
           )}
 
-          <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", gap: "4px" }}>
-            <PinIcon size={11} />
-            <span>{locationLabel}</span>
+          <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <PinIcon size={11} />
+              <span>{locationLabel}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {view_count != null && view_count > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#aaa" }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span>{view_count.toLocaleString("es-AR")}</span>
+                </div>
+              )}
+              {created_at && (
+                <span style={{ color: "#bbb", fontSize: "11px" }}>{timeAgo(created_at)}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

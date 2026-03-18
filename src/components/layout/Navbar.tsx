@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/components/ui/Logo";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
 interface Suggestion {
   id: string;
@@ -16,11 +18,32 @@ interface Suggestion {
 export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: boolean }) {
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const catRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const CATEGORIES = [
+    { name: "Vehículos",             slug: "vehicles"      },
+    { name: "Inmuebles",             slug: "real-estate"   },
+    { name: "Celulares",             slug: "phones"        },
+    { name: "Tecnología",            slug: "electronics"   },
+    { name: "Electrodomésticos",     slug: "appliances"    },
+    { name: "Ropa y Calzado",        slug: "clothing"      },
+    { name: "Hogar y Muebles",       slug: "home-garden"   },
+    { name: "Deportes",              slug: "sports"        },
+    { name: "Herramientas",          slug: "tools"         },
+    { name: "Bebés y Niños",         slug: "babies"        },
+    { name: "Música, Libros y Rev.", slug: "books"         },
+    { name: "Belleza y Salud",       slug: "beauty-health" },
+    { name: "Juegos y Juguetes",     slug: "toys"          },
+    { name: "Mascotas",              slug: "pets"          },
+    { name: "Servicios",             slug: "services"      },
+    { name: "Otros",                 slug: "other"         },
+  ];
 
   // Fetch suggestions with debounce
   useEffect(() => {
@@ -44,6 +67,9 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
+      }
+      if (catRef.current && !catRef.current.contains(e.target as Node)) {
+        setCatOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -95,17 +121,8 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
           }}
         >
           {/* Logo */}
-          <Link href="/" style={{ flexShrink: 0 }}>
-            <span
-              style={{
-                fontSize: "22px",
-                fontWeight: 900,
-                color: "#0f172a",
-                letterSpacing: "-0.5px",
-              }}
-            >
-              Comerx<span style={{ color: "#6366f1" }}>IA</span>
-            </span>
+          <Link href="/" style={{ flexShrink: 0, textDecoration: "none" }}>
+            <Logo height={34} />
           </Link>
 
           {/* Nav links — desktop */}
@@ -113,25 +130,69 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
             className="hidden md:flex items-center gap-5"
             style={{ marginLeft: "8px" }}
           >
-            {[
-              { label: "Avisos", href: "/listings" },
-              { label: "Categorías", href: "/listings" },
-              { label: "Vendedores", href: "/listings" },
-            ].map((l) => (
-              <Link
-                key={l.href + l.label}
-                href={l.href}
+            {/* Categorías dropdown */}
+            <div ref={catRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => setCatOpen((o) => !o)}
                 style={{
-                  fontSize: "14px",
-                  color: "#64748b",
-                  fontWeight: 500,
-                  whiteSpace: "nowrap",
+                  fontSize: "14px", color: catOpen ? "#6366f1" : "#64748b",
+                  fontWeight: 500, background: "none", border: "none",
+                  cursor: "pointer", display: "flex", alignItems: "center",
+                  gap: "4px", padding: 0, whiteSpace: "nowrap",
                 }}
-                className="hover:text-indigo-600 transition-colors"
               >
-                {l.label}
-              </Link>
-            ))}
+                Categorías
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: catOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+
+              {catOpen && (
+                <div style={{
+                  position: "absolute", top: "calc(100% + 12px)", left: 0,
+                  background: "#fff", borderRadius: "12px",
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                  zIndex: 200, minWidth: "220px", overflow: "hidden",
+                }}>
+                  {CATEGORIES.map((cat, i) => (
+                    <Link
+                      key={cat.slug}
+                      href={`/category/${cat.slug}`}
+                      onClick={() => setCatOpen(false)}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <div style={{
+                        padding: "9px 16px",
+                        fontSize: "13px", color: "#334155",
+                        display: "flex", alignItems: "center", gap: "10px",
+                        borderTop: i > 0 ? "1px solid #f8fafc" : "none",
+                        cursor: "pointer",
+                      }}
+                      className="hover:bg-indigo-50 hover:text-indigo-700"
+                      >
+                        <CategoryIcon slug={cat.slug} size={18} />
+                        {cat.name}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link href="/listings" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
+              className="hover:text-indigo-600 transition-colors">
+              Avisos
+            </Link>
+            <Link href="/tiendas" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
+              className="hover:text-indigo-600 transition-colors">
+              Tiendas
+            </Link>
+            <Link href="/listings?view=sellers" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
+              className="hover:text-indigo-600 transition-colors">
+              Vendedores
+            </Link>
           </div>
 
           {/* Search bar — center */}
@@ -365,57 +426,6 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
         </div>
       </div>
 
-      {/* Category nav — subtle */}
-      <div
-        style={{ background: "#fff", borderBottom: "1px solid #f1f5f9" }}
-        className="hidden md:block"
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "0 24px",
-            display: "flex",
-            gap: "24px",
-            overflowX: "auto",
-          }}
-        >
-          {[
-            { name: "Vehículos",     slug: "vehicles" },
-            { name: "Inmuebles",     slug: "real-estate" },
-            { name: "Celulares",     slug: "phones" },
-            { name: "Electrónica",   slug: "electronics" },
-            { name: "Electrod.",     slug: "appliances" },
-            { name: "Ropa",          slug: "clothing" },
-            { name: "Hogar",         slug: "home-garden" },
-            { name: "Deportes",      slug: "sports" },
-            { name: "Herramientas",  slug: "tools" },
-            { name: "Bebés",         slug: "babies" },
-            { name: "Libros",        slug: "books" },
-            { name: "Belleza",       slug: "beauty-health" },
-            { name: "Mascotas",      slug: "pets" },
-            { name: "Otros",         slug: "other" },
-          ].map((cat) => (
-            <Link key={cat.slug} href={`/category/${cat.slug}`}>
-              <span
-                style={{
-                  display: "inline-block",
-                  padding: "8px 2px",
-                  fontSize: "13px",
-                  color: "#64748b",
-                  whiteSpace: "nowrap",
-                  borderBottom: "2px solid transparent",
-                  transition: "all 0.15s",
-                }}
-                className="hover:text-indigo-600 hover:border-indigo-400"
-              >
-                {cat.name}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* Mobile menu */}
       {menuOpen && (
         <div
@@ -455,6 +465,11 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
               />
             </div>
           )}
+          <div style={{ display: "flex", gap: "16px" }}>
+            <Link href="/listings" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Avisos</Link>
+            <Link href="/tiendas" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Tiendas</Link>
+            <Link href="/listings?view=sellers" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Vendedores</Link>
+          </div>
           <Link href="/listings/new" onClick={() => setMenuOpen(false)}>
             <button
               style={{

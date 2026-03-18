@@ -47,18 +47,17 @@ function RealEstateIcon({ size = 28 }: Props) {
 function ElectronicsIcon({ size = 28 }: Props) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      {/* phone body */}
-      <rect x="9" y="2" width="14" height="28" rx="4"
-        fill="#ede9fe" stroke="#7c3aed" strokeWidth="1.7"/>
-      {/* screen */}
-      <rect x="11" y="7" width="10" height="16" rx="1.5"
-        fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.2"/>
-      {/* home button */}
-      <circle cx="16" cy="27" r="1.5" fill="#7c3aed"/>
-      {/* speaker */}
-      <path d="M13 4.5h6" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round"/>
-      {/* screen shine */}
-      <path d="M13 9 L13 11" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* laptop screen */}
+      <rect x="4" y="4" width="24" height="17" rx="2.5"
+        fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.6"/>
+      {/* screen content */}
+      <rect x="7" y="7" width="18" height="11" rx="1"
+        fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.1"/>
+      {/* base/keyboard */}
+      <path d="M2 21h28l-2 4a2 2 0 01-2 2H6a2 2 0 01-2-2l-2-4z"
+        fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* trackpad */}
+      <rect x="13" y="23" width="6" height="2" rx="1" fill="#93c5fd"/>
     </svg>
   );
 }
@@ -169,6 +168,23 @@ function PetsIcon({ size = 28 }: Props) {
       {/* knuckle lines */}
       <path d="M13 20.5 C13 22 14 23 16 23 C18 23 19 22 19 20.5"
         stroke="#ca8a04" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// ── Servicios ─────────────────────────────────────────────
+function ServicesIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      {/* wrench handle */}
+      <path d="M20 4C16.7 4 14 6.7 14 10C14 10.9 14.2 11.7 14.6 12.4L4 23L5.5 26.5L9 28L20 17.4C20.7 17.8 21.5 18 22 18C25.3 18 28 15.3 28 12C28 11.2 27.8 10.4 27.4 9.7L24 13L22 11L25.3 7.7C24.5 5.6 22.4 4 20 4Z"
+        fill="#cffafe" stroke="#0891b2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* screwdriver shaft */}
+      <path d="M3 6L8 11L11 8L6 3L3 6Z"
+        fill="#cffafe" stroke="#0891b2" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M8 11L13 23" stroke="#0891b2" strokeWidth="1.8" strokeLinecap="round"/>
+      {/* highlight dot */}
+      <circle cx="21" cy="10" r="1.5" fill="#0891b2"/>
     </svg>
   );
 }
@@ -333,6 +349,29 @@ function BeautyHealthIcon({ size = 28 }: Props) {
   );
 }
 
+// ── Juegos y Juguetes ─────────────────────────────────────
+function ToysIcon({ size = 28 }: Props) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      {/* teddy bear head */}
+      <circle cx="16" cy="14" r="9" fill="#fef3c7" stroke="#d97706" strokeWidth="1.6"/>
+      {/* ears */}
+      <circle cx="9" cy="7" r="3" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5"/>
+      <circle cx="23" cy="7" r="3" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5"/>
+      {/* inner ears */}
+      <circle cx="9" cy="7" r="1.5" fill="#fde68a"/>
+      <circle cx="23" cy="7" r="1.5" fill="#fde68a"/>
+      {/* eyes */}
+      <circle cx="13" cy="12" r="1.5" fill="#d97706"/>
+      <circle cx="19" cy="12" r="1.5" fill="#d97706"/>
+      {/* nose */}
+      <ellipse cx="16" cy="16" rx="2.5" ry="1.5" fill="#d97706"/>
+      {/* smile */}
+      <path d="M13 18 Q16 21 19 18" stroke="#d97706" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
 // ── All categories ────────────────────────────────────────
 export function CategoryIcon({ slug, size = 28 }: { slug: string; size?: number }) {
   switch (slug) {
@@ -349,6 +388,8 @@ export function CategoryIcon({ slug, size = 28 }: { slug: string; size?: number 
     case "appliances":    return <AppliancesIcon size={size} />;
     case "babies":        return <BabiesIcon size={size} />;
     case "beauty-health": return <BeautyHealthIcon size={size} />;
+    case "toys":          return <ToysIcon size={size} />;
+    case "services":      return <ServicesIcon size={size} />;
     case "other":         return <OtherIcon size={size} />;
     default:              return <OtherIcon size={size} />;
   }

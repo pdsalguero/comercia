@@ -5,6 +5,25 @@ import { ListingCard } from "@/components/listings/ListingCard";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import PinIcon from "@/components/ui/PinIcon";
 
+const CATEGORY_NAMES: Record<string, string> = {
+  vehicles:        "Vehículos",
+  "real-estate":   "Inmuebles",
+  phones:          "Celulares",
+  electronics:     "Tecnología",
+  appliances:      "Electrodomésticos",
+  clothing:        "Ropa y Calzado",
+  "home-garden":   "Hogar y Muebles",
+  sports:          "Deportes",
+  tools:           "Herramientas",
+  babies:          "Bebés y Niños",
+  books:           "Música, Libros y Revistas",
+  "beauty-health": "Belleza y Salud",
+  toys:            "Juegos y Juguetes",
+  pets:            "Mascotas",
+  services:        "Servicios",
+  other:           "Otros",
+};
+
 type SP = {
   q?: string;
   cat?: string;
@@ -50,7 +69,7 @@ export default async function SellerPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = supabase
     .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, category_id, categories(id, name, slug), listing_images(url, position)`)
+    .select(`id, title, price, currency, condition, neighborhood, created_at, view_count, attributes, featured_level, category_id, categories(id, name, slug), listing_images(url, position)`)
     .eq("status", "active")
     .eq("user_id", userId) as any;
 
@@ -145,7 +164,7 @@ export default async function SellerPage({
               return (
                 <Link key={cat.id} href={buildUrl(base, sp, { cat: active ? undefined : String(cat.id) })} style={{ textDecoration: "none" }}>
                   <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span>{cat.name}</span>
+                    <span>{CATEGORY_NAMES[cat.slug] ?? cat.name}</span>
                     <span style={{ fontSize: "11px", color: active ? "#93c5fd" : "#94a3b8" }}>{cat.count}</span>
                   </div>
                 </Link>
@@ -296,6 +315,8 @@ export default async function SellerPage({
                 cover_image={cover}
                 attributes={l.attributes}
                 featured_level={l.featured_level}
+                view_count={l.view_count ?? null}
+                created_at={l.created_at ?? null}
               />
               );
             })}

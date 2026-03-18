@@ -2,21 +2,24 @@ import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import Link from "next/link";
+import { OrderSelect } from "@/components/ui/OrderSelect";
 
 const CATEGORIES = [
   { name: "Vehículos",         slug: "vehicles",      icon: "🚗" },
   { name: "Inmuebles",         slug: "real-estate",   icon: "🏠" },
   { name: "Celulares",         slug: "phones",        icon: "📱" },
-  { name: "Electrónica",       slug: "electronics",   icon: "💻" },
+  { name: "Tecnología",        slug: "electronics",   icon: "💻" },
   { name: "Electrodomésticos", slug: "appliances",    icon: "🧊" },
   { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗" },
-  { name: "Muebles y Hogar",   slug: "home-garden",   icon: "🛋️" },
+  { name: "Hogar y Muebles", slug: "home-garden", icon: "🛋️" },
   { name: "Deportes",          slug: "sports",        icon: "⚽" },
   { name: "Herramientas",      slug: "tools",         icon: "🔧" },
   { name: "Bebés y Niños",     slug: "babies",        icon: "👶" },
-  { name: "Libros y Juegos",   slug: "books",         icon: "📚" },
+  { name: "Música, Libros y Revistas", slug: "books",         icon: "📚" },
   { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄" },
+  { name: "Juegos y Juguetes", slug: "toys",          icon: "🧸" },
   { name: "Mascotas",          slug: "pets",          icon: "🐾" },
+  { name: "Servicios",         slug: "services",      icon: "🛠️" },
   { name: "Otros",             slug: "other",         icon: "📦" },
 ];
 
@@ -52,11 +55,10 @@ export default async function ListingsPage({
     categoryId = cat?.id ?? null;
   }
 
-  // Per-category counts
-  const { data: catCountRows } = await supabase
-    .from("listings")
-    .select("category_id")
-    .eq("status", "active");
+  // Per-category counts (respects location filter)
+  let countQuery = supabase.from("listings").select("category_id").eq("status", "active");
+  if (location) countQuery = countQuery.ilike("neighborhood", `%${location}%`);
+  const { data: catCountRows } = await countQuery;
 
   const catCounts: Record<number, number> = {};
   for (const row of catCountRows ?? []) {
@@ -71,11 +73,11 @@ export default async function ListingsPage({
   const slugToId: Record<string, number> = {};
   for (const c of dbCategories ?? []) slugToId[c.slug] = c.id;
 
-  // Build main query
+  // Build main query (profiles fetched separately to avoid FK join issues)
   let query = supabase
     .from("listings")
     .select(`
-      id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level,
+      id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id,
       listing_images(url, position)
     `)
     .eq("status", "active");
@@ -90,19 +92,36 @@ export default async function ListingsPage({
   // featured_level sorted in JS after fetch (gold > silver > bronze > null)
   if (order === "price_asc") query = query.order("price", { ascending: true });
   else if (order === "price_desc") query = query.order("price", { ascending: false });
+  else if (order === "views") query = query.order("view_count", { ascending: false });
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
   const { data: rawData } = await query.limit(60);
-  const listings = rawData?.slice().sort((a, b) => {
+  const sorted = rawData?.slice().sort((a, b) => {
+    if (order === "price_asc") return ((a as any).price ?? 0) - ((b as any).price ?? 0);
+    if (order === "price_desc") return ((b as any).price ?? 0) - ((a as any).price ?? 0);
+    if (order === "views") return ((b as any).view_count ?? 0) - ((a as any).view_count ?? 0);
     const fa = FEAT_ORDER[(a as any).featured_level ?? ""] ?? 3;
     const fb = FEAT_ORDER[(b as any).featured_level ?? ""] ?? 3;
     return fa - fb;
   }) ?? [];
 
+  // Fetch store profiles separately
+  const userIds = [...new Set(sorted.map((l: any) => l.user_id).filter(Boolean))];
+  const { data: storeProfiles } = userIds.length > 0
+    ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
+    : { data: [] };
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
+  for (const p of storeProfiles ?? []) storeMap[p.id] = p;
+
+  const listings = sorted.map((l: any) => ({
+    ...l,
+    profiles: storeMap[l.user_id] ?? null,
+  }));
+
   // Build URL helper preserving all params except the one changed
   function buildUrl(overrides: Record<string, string | undefined>) {
-    const merged = { q, category, condition, price_min, price_max, order, ...overrides };
+    const merged = { q, category, condition, price_min, price_max, order, location, ...overrides };
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) {
       if (v) sp.set(k, v);
@@ -279,48 +298,40 @@ export default async function ListingsPage({
           </div>
 
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <form method="GET" action="/listings" style={{ display: "flex", gap: "6px" }}>
+            <form method="GET" action="/listings" style={{ display: "flex", gap: "6px", flex: 1 }}>
               {category && <input type="hidden" name="category" value={category} />}
               {condition && <input type="hidden" name="condition" value={condition} />}
               {price_min && <input type="hidden" name="price_min" value={price_min} />}
               {price_max && <input type="hidden" name="price_max" value={price_max} />}
-              {order && <input type="hidden" name="order" value={order} />}
               <input
                 name="q"
                 defaultValue={q}
-                placeholder="Buscar..."
+                placeholder="Buscar en todos los avisos..."
                 style={{
                   border: "1.5px solid #e2e8f0", borderRadius: "8px",
-                  padding: "7px 12px", fontSize: "13px", outline: "none", width: "180px",
+                  padding: "9px 14px", fontSize: "14px", outline: "none", flex: 1,
                 }}
               />
               <button type="submit" style={{
                 background: "#2563eb", color: "#fff", border: "none",
-                borderRadius: "8px", padding: "7px 14px",
-                fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                borderRadius: "8px", padding: "9px 18px",
+                fontSize: "14px", fontWeight: 700, cursor: "pointer", flexShrink: 0,
               }}>
                 Buscar
               </button>
             </form>
 
-            <div style={{ display: "flex", gap: "4px" }}>
-              {[
-                { value: "", label: "Recientes" },
-                { value: "price_asc", label: "Menor precio" },
-                { value: "price_desc", label: "Mayor precio" },
-              ].map((opt) => (
-                <Link key={opt.value} href={buildUrl({ order: opt.value || undefined })} style={{ textDecoration: "none" }}>
-                  <span style={{
-                    display: "inline-block", padding: "6px 11px", borderRadius: "6px",
-                    fontSize: "12px", fontWeight: 600, cursor: "pointer",
-                    background: (order ?? "") === opt.value ? "#2563eb" : "#f1f5f9",
-                    color: (order ?? "") === opt.value ? "#fff" : "#555",
-                  }}>
-                    {opt.label}
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <OrderSelect
+              value={order ?? ""}
+              action="/listings"
+              hiddenFields={Object.fromEntries([
+                ...(q ? [["q", q]] : []),
+                ...(category ? [["category", category]] : []),
+                ...(condition ? [["condition", condition]] : []),
+                ...(price_min ? [["price_min", price_min]] : []),
+                ...(price_max ? [["price_max", price_max]] : []),
+              ])}
+            />
           </div>
         </div>
 
@@ -355,6 +366,10 @@ export default async function ListingsPage({
                     neighborhood={listing.neighborhood}
                     featured_level={(listing as any).featured_level ?? null}
                     attributes={listing.attributes as Record<string, string | number | boolean | null> | undefined}
+                    view_count={(listing as any).view_count ?? null}
+                    created_at={(listing as any).created_at ?? null}
+                    is_store={(listing as any).profiles?.is_store ?? null}
+                    store_name={(listing as any).profiles?.store_name ?? null}
                   />
                 );
               })}

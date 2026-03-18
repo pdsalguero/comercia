@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/ui/Logo";
 
 export function Footer() {
   return (
@@ -12,9 +13,7 @@ export function Footer() {
         {/* Logo + tagline */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <Link href="/" style={{ textDecoration: "none" }}>
-            <span style={{ fontSize: "16px", fontWeight: 900, color: "#fff", letterSpacing: "-0.5px" }}>
-              Comerx<span style={{ color: "#818cf8" }}>IA</span>
-            </span>
+            <Logo height={26} />
           </Link>
           <span style={{ fontSize: "12px", color: "#334155" }}>·</span>
           <span style={{ fontSize: "12px", color: "#475569" }}>El marketplace inteligente de Argentina</span>

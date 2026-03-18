@@ -37,9 +37,10 @@ const RE_SUBCAT: Record<string, string> = {
 
 const CATEGORY_NAMES: Record<number, string> = {
   1: "Tecnología", 2: "Vehículos", 3: "Inmuebles", 4: "Ropa",
-  5: "Hogar", 6: "Deportes", 7: "Herramientas", 8: "Libros",
+  5: "Hogar", 6: "Deportes", 7: "Herramientas", 8: "Música",
   9: "Mascotas", 10: "Otros",
   21: "Celulares", 22: "Electrodomésticos", 23: "Bebés y Niños", 24: "Belleza y Salud",
+  25: "Juguetes", 26: "Servicios",
 };
 
 const CATEGORY_SLUGS: Record<number, string> = {
@@ -47,6 +48,7 @@ const CATEGORY_SLUGS: Record<number, string> = {
   5: "home-garden", 6: "sports", 7: "tools", 8: "books",
   9: "pets", 10: "other",
   21: "phones", 22: "appliances", 23: "babies", 24: "beauty-health",
+  25: "toys", 26: "services",
 };
 
 const VEHICLE_TYPE_LABELS: Record<string, string> = {
@@ -126,7 +128,7 @@ async function getListing(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
-    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, listing_images(url, position)`)
+    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, listing_images(url, position)`)
     .eq("id", id)
     .eq("status", "active")
     .single();
@@ -135,7 +137,7 @@ async function getListing(id: string) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url, created_at")
+    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp")
     .eq("id", data.user_id)
     .single();
 
@@ -158,7 +160,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   const attrs = (listing.attributes as Record<string, any>) ?? {};
   const currency = (listing as any).currency ?? "ARS";
-  const profile = (listing as any).profile as { full_name: string | null; avatar_url: string | null; created_at: string | null } | null;
+  const profile = (listing as any).profile as { full_name: string | null; avatar_url: string | null; created_at: string | null; is_store?: boolean; store_name?: string | null; store_slug?: string | null; store_type?: string | null; store_logo_url?: string | null; store_verified?: boolean } | null;
   const userId = (listing as any).user_id as string;
   const currencySymbol = currency === "USD" ? "U$D" : "$";
 
@@ -265,7 +267,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const boolTags = isVehicle ? boolExtras : isRealEstate ? realEstateBoolExtras : genericBoolTags;
   const tabLabel = isVehicle ? "Detalles del vehículo" : isRealEstate ? "Detalles del inmueble" : "Características";
 
-  const whatsappPhone = attrs.whatsapp_phone as string | undefined;
+  const whatsappPhone = (attrs.whatsapp_phone as string | undefined) || (profile as any)?.store_whatsapp || null;
   const whatsappUrl = whatsappPhone
     ? `https://wa.me/${whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, vi tu publicación "${listing.title}" en ComerxIA y me interesa`)}`
     : null;
@@ -333,23 +335,43 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </>
               )}
 
-              {!isVehicle && !isRealEstate && catConfig && attrs.sub_category && (
-                <>
-                  {sep}
-                  <Link href={`/category/${catSlug}?type=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
-                    {catConfig.fields.find(f => f.key === "sub_category")?.options?.find(o => o.value === attrs.sub_category)?.label ?? String(attrs.sub_category)}
-                  </Link>
-                </>
-              )}
+              {!isVehicle && !isRealEstate && catConfig && attrs.sub_category && (() => {
+                const TYPE_PARAM: Record<number, string> = {
+                  4: "clothing_type", 5: "hg_type", 6: "sport_type", 7: "tool_type",
+                  22: "appliance_type", 21: "phone_type", 1: "tech_type",
+                  23: "baby_type", 24: "beauty_type", 25: "toy_type",
+                  8: "book_type", 9: "pet_type", 26: "serv_type",
+                };
+                const typeParam = TYPE_PARAM[listing.category_id] ?? "type";
+                const label = catConfig.fields.find(f => f.key === "sub_category")?.options?.find(o => o.value === attrs.sub_category)?.label ?? String(attrs.sub_category);
+                return (
+                  <>
+                    {sep}
+                    <Link href={`/category/${catSlug}?${typeParam}=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
+                      {label}
+                    </Link>
+                  </>
+                );
+              })()}
 
-              {!isVehicle && !isRealEstate && catConfig && attrs.brand && (
-                <>
-                  {sep}
-                  <Link href={`/category/${catSlug}?brand=${encodeURIComponent(attrs.brand)}`} style={{ ...linkStyle, textTransform: "capitalize" }}>
-                    {catConfig.fields.find(f => f.key === "brand")?.options?.find(o => o.value === attrs.brand)?.label ?? String(attrs.brand)}
-                  </Link>
-                </>
-              )}
+              {!isVehicle && !isRealEstate && catConfig && attrs.brand && (() => {
+                const BRAND_PARAM: Record<number, string> = {
+                  4: "clothing_brand", 5: "hg_brand", 6: "sport_brand", 7: "tool_brand",
+                  22: "appliance_brand", 21: "phone_brand", 1: "tech_brand",
+                  23: "baby_brand", 24: "beauty_brand", 25: "toy_brand",
+                  26: "serv_brand",
+                };
+                const brandParam = BRAND_PARAM[listing.category_id] ?? "brand";
+                const label = catConfig.fields.find(f => f.key === "brand")?.options?.find(o => o.value === attrs.brand)?.label ?? String(attrs.brand);
+                return (
+                  <>
+                    {sep}
+                    <Link href={`/category/${catSlug}?${brandParam}=${encodeURIComponent(attrs.brand)}`} style={{ ...linkStyle, textTransform: "capitalize" }}>
+                      {label}
+                    </Link>
+                  </>
+                );
+              })()}
 
               {!isVehicle && (
                 <>
@@ -413,9 +435,16 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             {/* Main card */}
             <div style={{ background: "#fff", borderRadius: "8px", padding: "20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
 
-              {/* Time */}
-              <div style={{ fontSize: "12px", color: "#999", marginBottom: "6px" }}>
-                Publicado {timeAgo(listing.created_at)}
+              {/* Time + views */}
+              <div style={{ fontSize: "12px", color: "#999", marginBottom: "6px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <span>Publicado {timeAgo(listing.created_at)}</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  {(listing.view_count ?? 0).toLocaleString("es-AR")} visitas
+                </span>
               </div>
 
               {/* Title */}
@@ -445,7 +474,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     <span style={{ fontSize: "30px", fontWeight: 600, letterSpacing: "-1px" }}>{Number(listing.price).toLocaleString("es-AR")}</span>
                   </div>
                 ) : (
-                  <div style={{ fontSize: "16px", color: "#999" }}>Precio a consultar</div>
+                  <ContactButton
+                    listingId={listing.id}
+                    listingTitle={listing.title}
+                    sellerId={userId}
+                    sellerName={sellerName}
+                    triggerStyle="link"
+                    triggerLabel="Precio a consultar"
+                    defaultMessage={`Hola ${sellerName}, me interesa tu publicación "${listing.title}". ¿Me podrías indicar el precio?`}
+                  />
                 )}
               </div>
 
@@ -469,25 +506,42 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             {/* Seller card */}
             <div style={{ background: "#fff", borderRadius: "8px", padding: "18px 20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
               <p style={{ fontSize: "11px", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.6px", margin: "0 0 12px" }}>
-                Vendedor
+                {profile?.is_store ? "Tienda" : "Vendedor"}
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                 <div style={{
-                  width: "42px", height: "42px", borderRadius: "50%", flexShrink: 0,
+                  width: "42px", height: "42px", borderRadius: profile?.is_store ? "10px" : "50%", flexShrink: 0,
                   background: "#e0e7ff", display: "flex", alignItems: "center",
                   justifyContent: "center", fontSize: "18px", overflow: "hidden",
                 }}>
-                  {profile?.avatar_url
+                  {profile?.is_store && profile.store_logo_url
+                    ? <img src={profile.store_logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : profile?.avatar_url
                     ? <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : "👤"}
+                    : profile?.is_store ? "🏪" : "👤"}
                 </div>
                 <div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b" }}>
-                    {sellerName}
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b" }}>
+                      {profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
+                    </div>
+                    {profile?.is_store && profile.store_verified && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#2563eb" title="Tienda verificada">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    )}
                   </div>
                   <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
-                    Vendedor particular
-                    {profile?.created_at && ` · Miembro desde ${memberSince(profile.created_at)}`}
+                    {profile?.is_store
+                      ? (profile.store_type === "inmobiliaria" ? "Inmobiliaria"
+                        : profile.store_type === "automotora" ? "Automotora"
+                        : profile.store_type === "electronica" ? "Tienda de tecnología"
+                        : profile.store_type === "ropa" ? "Tienda de ropa"
+                        : profile.store_type === "agencia" ? "Agencia"
+                        : profile.store_type === "servicios" ? "Empresa de servicios"
+                        : "Tienda")
+                      : "Vendedor particular"}
+                    {!profile?.is_store && profile?.created_at && ` · Miembro desde ${memberSince(profile.created_at)}`}
                   </div>
                 </div>
               </div>
@@ -533,7 +587,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </div>
 
               <Link
-                href={`/seller/${userId}`}
+                href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
                 style={{
                   display: "block", width: "100%", padding: "10px",
                   background: "#f8fafc", color: "#2563eb",
@@ -542,7 +596,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   textDecoration: "none", boxSizing: "border-box",
                 }}
               >
-                Ver más avisos del vendedor
+                {profile?.is_store ? "Ver tienda" : "Ver más avisos del vendedor"}
               </Link>
             </div>
 

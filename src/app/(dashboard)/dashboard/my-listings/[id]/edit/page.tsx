@@ -53,8 +53,9 @@ async function addImage(listingId: string, url: string): Promise<void> {
   revalidatePath("/my-listings");
 }
 
-export default async function EditListingPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditListingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ upgraded?: string }> }) {
   const { id } = await params;
+  const { upgraded } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -96,6 +97,13 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
         <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#1e293b", margin: "0 0 4px" }}>Editar aviso</h1>
         <p style={{ fontSize: "13px", color: "#94a3b8", margin: 0 }}>Los cambios se aplican de inmediato en el aviso publicado.</p>
       </div>
+
+      {/* Plan aplicado */}
+      {upgraded && listing.featured_level && (
+        <div style={{ background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "12px 18px", fontSize: "13px", color: "#16a34a", fontWeight: 600 }}>
+          ✅ Plan activado correctamente. Tu aviso ya está destacado.
+        </div>
+      )}
 
       {/* Upsell destacado */}
       {!listing.featured_level && (

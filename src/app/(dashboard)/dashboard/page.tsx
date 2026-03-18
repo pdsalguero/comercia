@@ -89,7 +89,7 @@ export default async function DashboardPage() {
       <div style={{ background: '#fff', borderRadius: '8px', padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#333' }}>Mis últimos avisos</h2>
-          <Link href="/my-listings" style={{ fontSize: '13px', color: '#3483fa' }}>
+          <Link href="/dashboard/my-listings" style={{ fontSize: '13px', color: '#3483fa' }}>
             Ver todos →
           </Link>
         </div>

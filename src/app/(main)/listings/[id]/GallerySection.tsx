@@ -18,15 +18,44 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
     );
   }
 
-  const thumbs = images.slice(0, 4);
-  const extra = images.length - 4;
-
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+      {/* MercadoLibre-style: vertical thumbs on left + main image on right */}
+      <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
 
-        {/* Main image with arrows */}
-        <div style={{ width: "100%", height: "420px", background: "#f8f9fa", position: "relative", cursor: "zoom-in" }}
+        {/* Vertical thumbnail strip */}
+        {images.length > 1 && (
+          <div style={{
+            display: "flex", flexDirection: "column", gap: "6px",
+            width: "68px", flexShrink: 0,
+            maxHeight: "420px", overflowY: "auto",
+          }}>
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  width: "68px", height: "68px", flexShrink: 0,
+                  padding: 0, border: "2px solid",
+                  borderColor: i === active ? "#3483fa" : "#e2e8f0",
+                  borderRadius: "6px", overflow: "hidden",
+                  cursor: "pointer", background: "#f8f9fa",
+                  transition: "border-color 0.15s",
+                }}
+              >
+                <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Main image */}
+        <div
+          style={{
+            flex: 1, height: "420px", background: "#f8f9fa",
+            borderRadius: "8px", position: "relative",
+            cursor: "zoom-in", overflow: "hidden",
+          }}
           onClick={() => { setZoomed(false); setLightbox(true); }}
         >
           <img
@@ -40,14 +69,14 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             <button
               onClick={(e) => { e.stopPropagation(); prev(); }}
               style={{
-                position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)",
-                width: "40px", height: "40px", borderRadius: "50%",
+                position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)",
+                width: "36px", height: "36px", borderRadius: "50%",
                 background: "#fff", border: "none", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 10px rgba(0,0,0,.18)",
+                boxShadow: "0 2px 8px rgba(0,0,0,.18)",
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
@@ -58,14 +87,14 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             <button
               onClick={(e) => { e.stopPropagation(); next(); }}
               style={{
-                position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
-                width: "40px", height: "40px", borderRadius: "50%",
+                position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)",
+                width: "36px", height: "36px", borderRadius: "50%",
                 background: "#fff", border: "none", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 10px rgba(0,0,0,.18)",
+                boxShadow: "0 2px 8px rgba(0,0,0,.18)",
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
@@ -82,40 +111,6 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             </div>
           )}
         </div>
-
-        {/* Thumbnails row */}
-        {images.length > 1 && (
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(images.length, 4)}, 1fr)`, gap: "2px", marginTop: "2px" }}>
-            {thumbs.map((img, i) => {
-              const isLast = i === 3 && extra > 0;
-              return (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  style={{
-                    position: "relative", padding: 0, border: "none",
-                    borderRadius: 0, overflow: "hidden", cursor: "pointer",
-                    height: "110px",
-                    outline: i === active ? "3px solid #3483fa" : "none",
-                    outlineOffset: "-3px", background: "none",
-                  }}
-                >
-                  <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  {isLast && (
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      background: "rgba(0,0,0,.55)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "#fff", fontSize: "18px", fontWeight: 700,
-                    }}>
-                      +{extra}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* Lightbox */}
@@ -192,9 +187,32 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             </button>
           )}
 
+          {/* Thumbnail strip in lightbox */}
+          {images.length > 1 && (
+            <div style={{
+              position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)",
+              display: "flex", gap: "8px", padding: "8px 12px",
+              background: "rgba(0,0,0,.4)", borderRadius: "10px",
+            }}>
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setActive(i); setZoomed(false); }}
+                  style={{
+                    width: "44px", height: "44px", padding: 0,
+                    border: "2px solid", borderColor: i === active ? "#fff" : "transparent",
+                    borderRadius: "4px", overflow: "hidden", cursor: "pointer", background: "none",
+                  }}
+                >
+                  <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Counter */}
           <div style={{
-            position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)",
+            position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)",
             background: "rgba(255,255,255,.15)", color: "#fff",
             fontSize: "13px", fontWeight: 600, padding: "4px 14px", borderRadius: "20px",
           }}>
