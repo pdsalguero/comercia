@@ -6,6 +6,7 @@ import { DetailTabs } from "./DetailTabs";
 import { getCategoryConfig } from "@/lib/category-config";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
+import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
 import { ViewTracker } from "@/components/listings/ViewTracker";
 
@@ -137,11 +138,42 @@ async function getListing(id: string) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp")
+    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone")
     .eq("id", data.user_id)
     .single();
 
   return { ...data, profile: profile ?? null };
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params;
+  const listing = await getListing(id);
+  if (!listing) return { title: "Aviso no encontrado" };
+
+  const images = ((listing.listing_images as any[]) ?? [])
+    .sort((a, b) => a.position - b.position);
+  const firstImage = images[0]?.url ?? null;
+  const currency = (listing as any).currency === "USD" ? "U$D" : "$";
+  const priceStr = listing.price
+    ? `${currency} ${listing.price.toLocaleString("es-AR")}`
+    : "Consultar precio";
+  const desc = listing.description
+    ? listing.description.slice(0, 155).replace(/\n/g, " ")
+    : `${listing.title} — ${priceStr}. ${listing.neighborhood ?? "San Juan"}.`;
+
+  return {
+    title: `${listing.title} — ${priceStr}`,
+    description: desc,
+    openGraph: {
+      title: `${listing.title} — ${priceStr}`,
+      description: desc,
+      ...(firstImage ? { images: [{ url: firstImage, width: 800, height: 600 }] } : {}),
+      type: "website",
+    },
+    alternates: { canonical: `/listings/${id}` },
+  };
 }
 
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -267,7 +299,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const boolTags = isVehicle ? boolExtras : isRealEstate ? realEstateBoolExtras : genericBoolTags;
   const tabLabel = isVehicle ? "Detalles del vehículo" : isRealEstate ? "Detalles del inmueble" : "Características";
 
-  const whatsappPhone = (attrs.whatsapp_phone as string | undefined) || (profile as any)?.store_whatsapp || null;
+  const canShowPhone = (profile as any)?.show_phone !== false; // default true until migration runs
+  const rawPhone = (attrs.whatsapp_phone as string | undefined)
+    || (profile as any)?.store_whatsapp
+    || (profile as any)?.phone
+    || null;
+  const whatsappPhone = canShowPhone ? rawPhone : null;
   const whatsappUrl = whatsappPhone
     ? `https://wa.me/${whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, vi tu publicación "${listing.title}" en ComerxIA y me interesa`)}`
     : null;
@@ -283,8 +320,36 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     { show: !!attrs.negotiable_price,icon: "💬", label: "Precio negociable" },
   ].filter(b => b.show);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: listing.title,
+    description: listing.description ?? listing.title,
+    image: images.map((i) => i.url),
+    url: `https://comercia.com.ar/listings/${listing.id}`,
+    ...(listing.price ? {
+      offers: {
+        "@type": "Offer",
+        price: listing.price,
+        priceCurrency: (listing as any).currency ?? "ARS",
+        availability: "https://schema.org/InStock",
+        itemCondition: (listing as any).condition === "new"
+          ? "https://schema.org/NewCondition"
+          : "https://schema.org/UsedCondition",
+        seller: {
+          "@type": profile?.is_store ? "Organization" : "Person",
+          name: profile?.store_name ?? profile?.full_name ?? "Vendedor",
+        },
+      },
+    } : {}),
+  };
+
   return (
     <div style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ViewTracker listingId={listing.id} />
       <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
 

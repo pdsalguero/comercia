@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 const CAT_LABEL: Record<string, string> = {
   "real-estate": "Inmuebles",
   "vehicles":    "Vehículos",
@@ -135,7 +137,7 @@ export default async function TiendasPage() {
 
   const { data: listings } = await supabase
     .from("listings")
-    .select("user_id, images, category_id")
+    .select("user_id, category_id, listing_images(url, position)")
     .eq("status", "active")
     .in("user_id", storeIds);
 
@@ -154,7 +156,7 @@ export default async function TiendasPage() {
     const mainCat = Object.values(catMap).sort((a, b) => b.count - a.count)[0] ?? null;
     // Pick a sample image: banner > logo > first listing image
     const sampleImg = store.store_banner_url
-      || (sl.find((l) => (l as any).images?.length)?.images as string[] | null)?.[0]
+      || (sl.find((l) => (l as any).listing_images?.length)?.listing_images as { url: string }[] | null)?.[0]?.url
       || null;
     return { ...store, listing_count: sl.length, main_cat: mainCat, sample_image: sampleImg };
   });

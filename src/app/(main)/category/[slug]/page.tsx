@@ -6,6 +6,7 @@ import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { RE_LOCATIONS, ALL_RE_ZONES } from "@/lib/re-locations";
 import { OrderSelect } from "@/components/ui/OrderSelect";
+import type { Metadata } from "next";
 
 const VEHICLE_BRANDS = [
   { value: "toyota", label: "Toyota" },
@@ -333,6 +334,24 @@ type SP = {
   // view
   view?: string;
 };
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params;
+  const meta = CATEGORY_META[slug];
+  if (!meta) return { title: "Categoría" };
+  return {
+    title: `${meta.name} en San Juan`,
+    description: `Comprá y vendé ${meta.name.toLowerCase()} en San Juan. Los mejores avisos clasificados en ComerxIA.`,
+    alternates: { canonical: `/category/${slug}` },
+    openGraph: {
+      title: `${meta.name} en San Juan | ComerxIA`,
+      description: `Encontrá ${meta.name.toLowerCase()} en San Juan. Marketplace con IA.`,
+      type: "website",
+    },
+  };
+}
 
 export default async function CategoryPage({
   params,

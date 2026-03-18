@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { FavoriteButton } from "./FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
 import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
@@ -29,10 +30,16 @@ function timeAgo(dateStr: string) {
   if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
   if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
   const days = Math.floor(diff / 86400);
+  if (days === 1) return "hace 1 día";
   if (days < 30) return `hace ${days} días`;
   const months = Math.floor(days / 30);
+  if (months === 1) return "hace 1 mes";
   if (months < 12) return `hace ${months} meses`;
   return `hace ${Math.floor(months / 12)} años`;
+}
+
+function isToday(dateStr: string) {
+  return Date.now() - new Date(dateStr).getTime() < 86400 * 1000;
 }
 
 function formatPrice(price: number, currency = "ARS") {
@@ -54,6 +61,12 @@ export function ListingCard({
   is_store,
   store_name,
 }: ListingCardProps) {
+  // Resolve date label client-side only to avoid SSR/hydration mismatch with Date.now()
+  const [dateLabel, setDateLabel] = useState<"today" | string | null>(null);
+  useEffect(() => {
+    if (!created_at) return;
+    setDateLabel(isToday(created_at) ? "today" : timeAgo(created_at));
+  }, [created_at]);
   const year = attributes?.year;
   const km = attributes?.mileage ?? attributes?.km;
   const hasVehicleMeta = year || km;
@@ -142,17 +155,25 @@ export function ListingCard({
           {is_store && (
             <div style={{
               position: "absolute", bottom: "8px", left: "8px",
-              background: "rgba(15,23,42,0.72)",
-              backdropFilter: "blur(4px)",
-              color: "#fff", borderRadius: "6px", padding: "3px 7px",
-              fontSize: "10px", fontWeight: 700,
-              display: "flex", alignItems: "center", gap: "4px",
+              background: "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(6px)",
+              color: "#0f172a", borderRadius: "20px", padding: "3px 9px 3px 6px",
+              fontSize: "11px", fontWeight: 700,
+              display: "flex", alignItems: "center", gap: "5px",
+              boxShadow: "0 1px 6px rgba(0,0,0,0.18)",
+              letterSpacing: "0.01em",
             }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"/>
-                <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
-              </svg>
-              {store_name ?? "Tienda"}
+              <span style={{
+                width: "18px", height: "18px", borderRadius: "50%",
+                background: "linear-gradient(135deg,#3b82f6,#6366f1)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"/>
+                  <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
+                </svg>
+              </span>
+              {store_name ?? "Tienda oficial"}
             </div>
           )}
 
@@ -192,12 +213,12 @@ export function ListingCard({
             </div>
           )}
 
-          <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <PinIcon size={11} />
               <span>{locationLabel}</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "20px" }}>
               {view_count != null && view_count > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#aaa" }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -207,8 +228,20 @@ export function ListingCard({
                   <span>{view_count.toLocaleString("es-AR")}</span>
                 </div>
               )}
-              {created_at && (
-                <span style={{ color: "#bbb", fontSize: "11px" }}>{timeAgo(created_at)}</span>
+              {dateLabel && (
+                dateLabel === "today" ? (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", height: "20px",
+                    background: "linear-gradient(135deg,#22c55e,#16a34a)",
+                    color: "#fff", borderRadius: "5px",
+                    padding: "0 7px", fontSize: "10px", fontWeight: 800,
+                    letterSpacing: "0.3px", whiteSpace: "nowrap",
+                  }}>
+                    Publicado hoy
+                  </span>
+                ) : (
+                  <span style={{ color: "#bbb", fontSize: "11px", lineHeight: "20px" }}>{dateLabel}</span>
+                )
               )}
             </div>
           </div>

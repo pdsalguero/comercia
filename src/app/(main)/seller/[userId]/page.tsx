@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import PinIcon from "@/components/ui/PinIcon";
+import { OrderSelect } from "@/components/ui/OrderSelect";
 
 const CATEGORY_NAMES: Record<string, string> = {
   vehicles:        "Vehículos",
@@ -59,11 +60,29 @@ export default async function SellerPage({
   // Fetch seller profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url")
+    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_logo_url, store_banner_url, store_type, store_verified, store_whatsapp, store_description, phone")
     .eq("id", userId)
     .single();
 
   if (!profile) notFound();
+
+  const canShowPhone = (profile as any).show_phone !== false; // default true until migration runs
+  const whatsappNumber = canShowPhone
+    ? (profile.store_whatsapp ?? (profile as any).phone ?? null)
+    : null;
+  const displayName = profile.is_store ? (profile.store_name ?? profile.full_name) : profile.full_name;
+  const avatarUrl = profile.is_store ? (profile.store_logo_url ?? profile.avatar_url) : profile.avatar_url;
+  const memberSince = profile.created_at
+    ? new Date(profile.created_at).toLocaleDateString("es-AR", { year: "numeric", month: "long" })
+    : null;
+
+  const STORE_TYPE_LABELS: Record<string, string> = {
+    particular: "Vendedor particular", inmobiliaria: "Inmobiliaria",
+    automotora: "Automotora / Concesionaria", tienda: "Tienda general",
+    electronica: "Tienda de tecnología", ropa: "Tienda de ropa",
+    agencia: "Agencia", servicios: "Empresa de servicios",
+  };
+  const storeTypeLabel = profile.store_type ? (STORE_TYPE_LABELS[profile.store_type] ?? profile.store_type) : "Vendedor particular";
 
   // Fetch all active listings from this seller (with category info)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,26 +146,106 @@ export default async function SellerPage({
   const hasFilters = !!(sp.q || sp.cat || sp.price_min || sp.price_max);
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 16px", display: "flex", gap: "16px", alignItems: "flex-start" }}>
+    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 16px" }}>
+
+      {/* ── Seller hero banner ── */}
+      <div style={{ background: "#fff", borderRadius: "14px", overflow: "hidden", marginBottom: "20px", border: "1px solid #f0f0f0", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+        {/* Banner bg */}
+        <div style={{
+          height: "72px",
+          background: profile.store_banner_url
+            ? `url(${profile.store_banner_url}) center/cover`
+            : "linear-gradient(135deg, #1e3a5f 0%, #3b82f6 50%, #6366f1 100%)",
+          position: "relative",
+        }}>
+          {profile.is_store && profile.store_verified && (
+            <div style={{ position: "absolute", top: "10px", right: "14px", background: "rgba(255,255,255,0.9)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, color: "#16a34a", display: "flex", alignItems: "center", gap: "4px" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Tienda verificada
+            </div>
+          )}
+        </div>
+
+        {/* Profile info row */}
+        <div style={{ padding: "0 20px 16px", display: "flex", alignItems: "flex-end", gap: "14px", flexWrap: "wrap" }}>
+          {/* Avatar */}
+          <div style={{
+            width: "60px", height: "60px", borderRadius: "50%",
+            border: "3px solid #fff", overflow: "hidden",
+            background: "#e2e8f0", flexShrink: 0,
+            marginTop: "-30px", display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          }}>
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            }
+          </div>
+
+          {/* Name + meta */}
+          <div style={{ flex: 1, paddingTop: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <h1 style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", margin: 0 }}>
+                {displayName ?? "Vendedor"}
+              </h1>
+              {profile.is_store && (
+                <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "2px 10px", fontSize: "11px", fontWeight: 700 }}>
+                  Tienda oficial
+                </span>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginTop: "4px" }}>
+              <span style={{ fontSize: "12px", color: "#64748b" }}>{storeTypeLabel}</span>
+              {memberSince && (
+                <span style={{ fontSize: "12px", color: "#94a3b8" }}>Miembro desde {memberSince}</span>
+              )}
+              <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+                {(allSellerListings as any[])?.length ?? 0} publicaciones
+              </span>
+            </div>
+            {profile.store_description && (
+              <p style={{ fontSize: "13px", color: "#475569", margin: "6px 0 0", lineHeight: 1.5 }}>
+                {profile.store_description}
+              </p>
+            )}
+          </div>
+
+          {/* WhatsApp button — always visible, disabled if hidden or no number */}
+          {whatsappNumber ? (
+            <a href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flexShrink: 0, marginTop: "10px" }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                padding: "7px 14px", borderRadius: "8px",
+                background: "linear-gradient(135deg,#16a34a,#22c55e)",
+                boxShadow: "0 3px 10px rgba(34,197,94,0.35)",
+                fontSize: "13px", fontWeight: 700, color: "#fff", cursor: "pointer",
+              }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.998-1.412A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+                </svg>
+                Contactar por WhatsApp
+              </div>
+            </a>
+          ) : (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              padding: "11px 24px", borderRadius: "10px",
+              background: "#f1f5f9", fontSize: "13px", fontWeight: 700,
+              color: "#94a3b8", cursor: "not-allowed", flexShrink: 0, marginTop: "10px",
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.35 }}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.998-1.412A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+              {!canShowPhone ? "Teléfono oculto" : "Sin WhatsApp"}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Content ── */}
+      <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
 
       {/* ── Left sidebar ── */}
       <aside style={{ width: "220px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "10px", position: "sticky", top: "76px" }}>
-
-        {/* Seller card */}
-        <div style={{ background: "#fff", borderRadius: "10px", padding: "14px 16px", border: "1px solid #f0f0f0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", background: "#e2e8f0", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {profile.avatar_url
-                ? <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              }
-            </div>
-            <div>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b" }}>{profile.full_name ?? "Vendedor"}</div>
-              <div style={{ fontSize: "11px", color: "#94a3b8" }}>{(allSellerListings as any[])?.length ?? 0} publicaciones</div>
-            </div>
-          </div>
-        </div>
 
         {/* Categories */}
         {categories.length > 1 && (
@@ -213,7 +312,7 @@ export default async function SellerPage({
           <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", color: "#64748b", flexWrap: "wrap" }}>
             <Link href="/" style={{ color: "#64748b", textDecoration: "none" }}>Inicio</Link>
             <span style={{ color: "#cbd5e1" }}>›</span>
-            <span style={{ color: "#1e293b", fontWeight: 600 }}>{profile.full_name ?? "Vendedor"}</span>
+            <span style={{ color: "#1e293b", fontWeight: 600 }}>{displayName ?? "Vendedor"}</span>
             {sp.cat && categories.find(c => String(c.id) === sp.cat) && (
               <>
                 <span style={{ color: "#cbd5e1" }}>›</span>
@@ -236,22 +335,11 @@ export default async function SellerPage({
               </button>
             </form>
 
-            <div style={{ display: "flex", gap: "4px" }}>
-              {[
-                { value: "", label: "Recientes" },
-                { value: "price_asc", label: "Menor precio" },
-                { value: "price_desc", label: "Mayor precio" },
-              ].map(opt => (
-                <Link key={opt.value} href={buildUrl(base, sp, { order: opt.value || undefined })} style={{ textDecoration: "none" }}>
-                  <span style={{
-                    display: "inline-block", padding: "6px 11px", borderRadius: "6px",
-                    fontSize: "12px", fontWeight: 600, cursor: "pointer",
-                    background: (sp.order ?? "") === opt.value ? "#2563eb" : "#f1f5f9",
-                    color: (sp.order ?? "") === opt.value ? "#fff" : "#555",
-                  }}>{opt.label}</span>
-                </Link>
-              ))}
-            </div>
+            <OrderSelect
+              value={sp.order ?? ""}
+              action={base}
+              hiddenFields={Object.fromEntries(Object.entries(sp).filter(([k, v]) => v && k !== "order") as [string, string][])}
+            />
 
             {/* Grid / List toggle */}
             <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
@@ -372,10 +460,11 @@ export default async function SellerPage({
         )}
       </div>
 
-      {/* Right sidebar */}
-      <div style={{ width: "220px", flexShrink: 0 }}>
-        <RightSidebar />
-      </div>
+        {/* Right sidebar */}
+        <div style={{ width: "220px", flexShrink: 0 }}>
+          <RightSidebar />
+        </div>
+      </div>{/* end content flex */}
     </div>
   );
 }
