@@ -101,7 +101,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
           </Link>
         </div>
       ) : view === "grid" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", padding: "14px" }}>
+        <div className="grid-cols-4" style={{ padding: "14px" }}>
           {items.map((l) => {
             const img = cover(l);
             return (

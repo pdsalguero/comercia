@@ -280,10 +280,10 @@ export default async function TiendaPage({
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 16px 40px", display: "flex", gap: "16px", alignItems: "flex-start" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 16px 40px" }} className="listing-layout">
 
         {/* Sidebar */}
-        <aside style={{ width: "210px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "10px", position: "sticky", top: "76px" }}>
+        <aside className="listing-sidebar" style={{ position: "sticky", top: "76px" }}>
 
           {categories.length > 0 && (
             <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
@@ -471,7 +471,7 @@ export default async function TiendaPage({
               No se encontraron publicaciones
             </div>
           ) : isGrid ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
+            <div className="grid-cols-auto">
               {listings.map((l: any) => {
                 const cover = l.listing_images?.sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))[0]?.url ?? null;
                 return (

@@ -451,7 +451,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         })()}
 
         {/* ── 2-column layout ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: "16px", alignItems: "start" }}>
+        <div className="detail-grid">
 
           {/* ════ LEFT COLUMN ════ */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -495,7 +495,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </div>
 
           {/* ════ RIGHT COLUMN — sticky ════ */}
-          <div style={{ position: "sticky", top: "72px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div className="detail-sticky" style={{ position: "sticky", top: "72px", display: "flex", flexDirection: "column", gap: "12px" }}>
 
             {/* Main card */}
             <div style={{ background: "#fff", borderRadius: "8px", padding: "20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>

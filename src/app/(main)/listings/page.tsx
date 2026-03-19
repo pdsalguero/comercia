@@ -132,13 +132,10 @@ export default async function ListingsPage({
 
   return (
     <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
-    <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+    <div className="listing-layout">
 
       {/* ── Sidebar ── */}
-      <aside style={{
-        width: "220px", flexShrink: 0,
-        display: "flex", flexDirection: "column", gap: "12px",
-      }}>
+      <aside className="listing-sidebar">
 
         {/* Categories */}
         <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
@@ -351,7 +348,7 @@ export default async function ListingsPage({
           const featured = listings.filter((l) => (l as any).featured_level);
           const regular  = listings.filter((l) => !(l as any).featured_level);
           const cardGrid = (items: typeof listings) => (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px" }}>
+            <div className="grid-cols-auto">
               {items.map((listing) => {
                 const images = listing.listing_images as { url: string; position: number }[] | null;
                 const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null;
@@ -385,7 +382,9 @@ export default async function ListingsPage({
       </div>
 
       {/* ── RIGHT SIDEBAR ── */}
-      <RightSidebar />
+      <div className="sidebar-hide">
+        <RightSidebar />
+      </div>
 
     </div>
     </div>

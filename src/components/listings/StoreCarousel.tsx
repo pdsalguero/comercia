@@ -98,7 +98,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
       </div>
 
       {/* Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "10px" }}>
+      <div className="grid-cols-4" style={{ gap: "10px" }}>
         {visible.map((store, idx) => {
           const bg = store.store_banner_url
             ? undefined

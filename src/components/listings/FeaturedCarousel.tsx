@@ -95,7 +95,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
       </div>
 
       {/* Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px" }}>
+      <div className="grid-cols-4">
         {visible.map((l) => (
           <ListingCard
             key={l.id}

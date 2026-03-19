@@ -23,3 +23,104 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 3px; }
+
+/* ── Responsive layout utilities ── */
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 240px;
+  grid-template-areas: "sidebar hero right" "sidebar main right";
+  gap: 16px;
+  align-items: start;
+}
+
+.listing-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.listing-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grid-cols-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grid-cols-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* ── Tablet breakpoint: ≤1024px (hide right sidebar) ── */
+@media (max-width: 1024px) {
+  .sidebar-right-hide {
+    display: none !important;
+  }
+}
+
+/* ── Mobile breakpoint: ≤768px ── */
+@media (max-width: 768px) {
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "hero" "main" !important;
+    gap: 12px !important;
+  }
+
+  .sidebar-hide {
+    display: none !important;
+  }
+
+  .listing-layout {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .listing-sidebar {
+    display: none !important;
+  }
+
+  .grid-cols-4,
+  .grid-cols-auto {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .detail-sticky {
+    position: static !important;
+  }
+
+  /* Reduce outer container padding on mobile */
+  .page-container {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  /* Tighter grid gap on small screens */
+  .grid-cols-4 {
+    gap: 8px !important;
+  }
+
+  .grid-cols-auto {
+    gap: 8px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

@@ -111,16 +111,10 @@ export default async function HomePage() {
       <Navbar user={user} hideSearch />
 
       <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px" }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "220px minmax(0, 1fr) 240px",
-          gridTemplateAreas: `"sidebar hero right" "sidebar main right"`,
-          gap: "16px",
-          alignItems: "start",
-        }}>
+        <div className="home-grid">
 
           {/* ── LEFT SIDEBAR ── */}
-          <div style={{ gridArea: "sidebar" }}>
+          <div className="sidebar-hide" style={{ gridArea: "sidebar" }}>
             <CategorySidebar categories={categoriesWithCount} />
           </div>
 
@@ -180,7 +174,7 @@ export default async function HomePage() {
           </div>
 
           {/* ── RIGHT SIDEBAR ── */}
-          <div style={{ gridArea: "right" }}>
+          <div className="sidebar-hide" style={{ gridArea: "right" }}>
             <RightSidebar showPublicar={true} />
           </div>
 

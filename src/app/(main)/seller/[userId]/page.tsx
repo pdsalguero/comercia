@@ -242,10 +242,10 @@ export default async function SellerPage({
       </div>
 
       {/* ── Content ── */}
-      <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+      <div className="listing-layout">
 
       {/* ── Left sidebar ── */}
-      <aside style={{ width: "220px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "10px", position: "sticky", top: "76px" }}>
+      <aside className="listing-sidebar" style={{ position: "sticky", top: "76px" }}>
 
         {/* Categories */}
         {categories.length > 1 && (
@@ -388,7 +388,7 @@ export default async function SellerPage({
             No se encontraron publicaciones
           </div>
         ) : isGrid ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
+          <div className="grid-cols-auto">
             {listings.map((l: any) => {
               const cover = l.listing_images?.sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))[0]?.url ?? null;
               return (
@@ -461,7 +461,7 @@ export default async function SellerPage({
       </div>
 
         {/* Right sidebar */}
-        <div style={{ width: "220px", flexShrink: 0 }}>
+        <div className="sidebar-hide" style={{ width: "220px", flexShrink: 0 }}>
           <RightSidebar />
         </div>
       </div>{/* end content flex */}

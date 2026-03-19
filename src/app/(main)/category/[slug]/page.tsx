@@ -958,10 +958,10 @@ export default async function CategoryPage({
         <Link href={`/category/${slug}`} style={{ color: "#555", textDecoration: "none" }}>{meta.name}</Link>
       </div>
 
-      <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+      <div className="listing-layout">
 
         {/* ── Sidebar ── */}
-        <aside style={{ width: "230px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+        <aside className="listing-sidebar">
 
           {/* Vehicle type tabs */}
           {isVehicles && (
@@ -2923,7 +2923,7 @@ export default async function CategoryPage({
             const featured = listings.filter((l: any) => l.featured_level);
             const regular  = listings.filter((l: any) => !l.featured_level);
             const cardGrid = (items: any[]) => (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "14px" }}>
+              <div className="grid-cols-auto">
                 {items.map((listing: any) => {
                   const images = listing.listing_images as { url: string; position: number }[] | null;
                   const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null;
@@ -2957,7 +2957,9 @@ export default async function CategoryPage({
         </div>
 
         {/* ── RIGHT SIDEBAR ── */}
-        <RightSidebar />
+        <div className="sidebar-hide">
+          <RightSidebar />
+        </div>
 
       </div>
     </div>
