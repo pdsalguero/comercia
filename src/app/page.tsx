@@ -82,11 +82,10 @@ async function getHomeData() {
     viewsByCategory[row.category_id] = (viewsByCategory[row.category_id]??0) + (row.view_count??0);
   }
   const totalViews = Object.values(viewsByCategory).reduce((a,b)=>a+b,0);
-  const topSubcats = CATEGORIES
-    .map(c => ({ ...c, score: totalViews > 0 ? (viewsByCategory[c.id]??0) : (counts[c.id]??0) }))
-    .filter(c => (counts[c.id]??0) > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 6)
+  const PREFERRED_PILL_SLUGS = ["vehicles", "real-estate", "services", "electronics", "home-garden"];
+  const topSubcats = PREFERRED_PILL_SLUGS
+    .map(slug => CATEGORIES.find(c => c.slug === slug))
+    .filter((c): c is typeof CATEGORIES[0] => !!c)
     .map(c => ({ label: c.name, href: `/category/${c.slug}`, slug: c.slug }));
   const featured = shuffle(allFeatured ?? []).slice(0, 16).map((l: any) => ({
     ...l,
@@ -278,37 +277,80 @@ export default async function HomePage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
 
             {/* Card 1 — IA */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "16px", background: "#f8fafc" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1 0-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
-                  <circle cx="8.5" cy="13.5" r="1.5" fill="#fff" stroke="none"/><circle cx="15.5" cy="13.5" r="1.5" fill="#fff" stroke="none"/>
+            <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
+              {/* Illustration */}
+              <div style={{ background: "linear-gradient(135deg,#eef2ff,#ede9fe)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", position: "relative" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: "#fff", borderRadius: "8px", padding: "8px", boxShadow: "0 2px 8px rgba(99,102,241,.15)", width: "48px" }}>
+                  <div style={{ fontSize: "22px", lineHeight: 1 }}>📸</div>
+                  <div style={{ width: "28px", height: "3px", background: "#c7d2fe", borderRadius: "2px" }} />
+                  <div style={{ width: "20px", height: "2px", background: "#e0e7ff", borderRadius: "2px" }} />
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                 </svg>
+                <div style={{ display: "flex", flexDirection: "column", gap: "3px", background: "#fff", borderRadius: "8px", padding: "8px 10px", boxShadow: "0 2px 8px rgba(99,102,241,.15)" }}>
+                  <div style={{ width: "40px", height: "3px", background: "#6366f1", borderRadius: "2px" }} />
+                  <div style={{ width: "30px", height: "2px", background: "#c7d2fe", borderRadius: "2px" }} />
+                  <div style={{ width: "36px", height: "2px", background: "#c7d2fe", borderRadius: "2px" }} />
+                  <div style={{ width: "24px", height: "2px", background: "#e0e7ff", borderRadius: "2px" }} />
+                </div>
+                <div style={{ position: "absolute", top: "8px", right: "10px", fontSize: "14px" }}>✨</div>
               </div>
-              <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Publicaciones con IA</span>
-              <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Subí una foto y generamos tu publicación automáticamente.</span>
+              <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Publicaciones con IA</span>
+                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Subí una foto y generamos tu publicación automáticamente.</span>
+              </div>
             </div>
 
             {/* Card 2 — Local */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "16px", background: "#f8fafc" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#3b82f6,#06b6d4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
+              {/* Illustration */}
+              <div style={{ background: "linear-gradient(135deg,#eff6ff,#ecfeff)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+                  {/* Map background roads */}
+                  <rect x="0" y="0" width="80" height="60" rx="4" fill="#e0f2fe" />
+                  <rect x="0" y="26" width="80" height="8" fill="#bae6fd" opacity="0.7"/>
+                  <rect x="34" y="0" width="8" height="60" fill="#bae6fd" opacity="0.7"/>
+                  {/* Blocks */}
+                  <rect x="6" y="6" width="22" height="16" rx="2" fill="#fff" opacity="0.8"/>
+                  <rect x="50" y="6" width="24" height="16" rx="2" fill="#fff" opacity="0.8"/>
+                  <rect x="6" y="38" width="22" height="16" rx="2" fill="#fff" opacity="0.8"/>
+                  <rect x="50" y="38" width="24" height="16" rx="2" fill="#fff" opacity="0.8"/>
+                  {/* Main pin */}
+                  <ellipse cx="38" cy="24" rx="6" ry="3" fill="rgba(37,99,235,0.2)"/>
+                  <path d="M38 8 C34 8 31 11 31 15 C31 20 38 26 38 26 C38 26 45 20 45 15 C45 11 42 8 38 8 Z" fill="#2563eb"/>
+                  <circle cx="38" cy="15" r="3" fill="#fff"/>
+                  {/* Distance rings */}
+                  <circle cx="38" cy="24" r="14" stroke="#3b82f6" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.4"/>
                 </svg>
               </div>
-              <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Comprá cerca tuyo</span>
-              <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Vendedores locales, entrega en mano, sin intermediarios.</span>
+              <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Comprá cerca tuyo</span>
+                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Vendedores locales, entrega en mano, sin intermediarios.</span>
+              </div>
             </div>
 
             {/* Card 3 — Sin publicidad */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "16px", background: "#f8fafc" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#10b981,#059669)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
+            <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
+              {/* Illustration — clean listing cards, no ads */}
+              <div style={{ background: "linear-gradient(135deg,#f0fdf4,#ecfdf5)", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "5px" }}>
+                {[1,2,3].map(i => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fff", borderRadius: "6px", padding: "5px 8px", boxShadow: "0 1px 3px rgba(0,0,0,.06)" }}>
+                    <div style={{ width: "24px", height: "24px", borderRadius: "4px", background: i === 1 ? "#d1fae5" : i === 2 ? "#dbeafe" : "#fef3c7", flexShrink: 0 }} />
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "3px" }}>
+                      <div style={{ width: `${50 + i * 12}px`, height: "3px", background: "#e2e8f0", borderRadius: "2px" }} />
+                      <div style={{ width: "32px", height: "2px", background: "#f59e0b", borderRadius: "2px", opacity: 0.8 }} />
+                    </div>
+                    <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Sin publicidad</span>
-              <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Sin anuncios que distraen. Solo avisos reales de personas.</span>
+              <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Sin publicidad</span>
+                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Sin anuncios que distraen. Solo avisos reales de personas.</span>
+              </div>
             </div>
 
             {/* Publish CTA card */}

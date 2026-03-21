@@ -9,6 +9,7 @@ import { ShareButton } from "@/components/listings/ShareButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
+import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
 
@@ -131,7 +132,7 @@ async function getListing(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
-    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, listing_images(url, position)`)
+    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, featured_level, listing_images(url, position)`)
     .eq("id", id)
     .eq("status", "active")
     .single();
@@ -224,8 +225,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     ["Transmisión", attrs.transmission],
     ["Color",       attrs.color],
     ["Motor",       attrs.engine],
-    ["Tipo",        attrs.sub_category],
-    ["Vendedor",    attrs.seller_type],
   ].filter(([, v]) => v) as [string, string][];
 
   const boolExtras = [
@@ -364,6 +363,42 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .detail-grid { grid-template-columns: 1fr !important; }
+          .detail-sticky { position: static !important; }
+          .mobile-wa-bar { display: flex !important; }
+        }
+      `}</style>
+      {/* Mobile sticky WhatsApp */}
+      <div className="mobile-wa-bar" style={{
+        display: "none", position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 300,
+        padding: "10px 16px", paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+        background: "rgba(255,255,255,0.97)", backdropFilter: "blur(10px)",
+        borderTop: "1px solid #e2e8f0", boxShadow: "0 -4px 16px rgba(0,0,0,.1)",
+        gap: "10px", alignItems: "center",
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {listing.title}
+          </div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: listing.price ? "#1a1a1a" : "#64748b" }}>
+            {listing.price ? `${currencySymbol} ${Number(listing.price).toLocaleString("es-AR")}` : "A consultar"}
+          </div>
+        </div>
+        {whatsappUrl ? (
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{
+            display: "flex", alignItems: "center", gap: "6px", flexShrink: 0,
+            padding: "11px 20px", background: "#25d366", color: "#fff",
+            borderRadius: "8px", fontSize: "14px", fontWeight: 700,
+            textDecoration: "none", boxShadow: "0 4px 12px rgba(37,211,102,.4)",
+          }}>
+            <WhatsAppIcon /> Consultar
+          </a>
+        ) : (
+          <ContactButton listingId={listing.id} listingTitle={listing.title} sellerId={userId} sellerName={sellerName} />
+        )}
+      </div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -524,46 +559,67 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           {/* ════ RIGHT COLUMN — sticky ════ */}
           <div className="detail-sticky" style={{ position: "sticky", top: "72px", display: "flex", flexDirection: "column", gap: "12px" }}>
 
-            {/* Main card */}
-            <div style={{ background: "#fff", borderRadius: "8px", padding: "20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
+            {/* ── Main info card ── */}
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.08)" }}>
 
-              {/* Time + views */}
-              <div style={{ fontSize: "12px", color: "#999", marginBottom: "6px", display: "flex", alignItems: "center", gap: "12px" }}>
-                <span>Publicado {timeAgo(listing.created_at)}</span>
-                <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  {(listing.view_count ?? 0).toLocaleString("es-AR")} visitas
-                </span>
+              {/* Header: time + views + title + specs */}
+              <div style={{ padding: "18px 20px 0" }}>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span>Publicado {timeAgo(listing.created_at)}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    {(listing.view_count ?? 0).toLocaleString("es-AR")} visitas
+                  </span>
+                </div>
+                {(() => {
+                  const fl = (listing as any).featured_level as string | null;
+                  if (!fl) return null;
+                  const badge = fl === "gold"
+                    ? { label: "👑 Premium", bg: "linear-gradient(135deg,#f59e0b,#fbbf24)", color: "#fff", shadow: "0 2px 8px rgba(245,158,11,.4)" }
+                    : fl === "silver"
+                    ? { label: "⭐ Destacado", bg: "linear-gradient(135deg,#64748b,#94a3b8)", color: "#fff", shadow: "0 2px 8px rgba(100,116,139,.3)" }
+                    : { label: "✦ Destacado", bg: "linear-gradient(135deg,#cd7c2f,#e09b58)", color: "#fff", shadow: "0 2px 8px rgba(205,124,47,.35)" };
+                  return (
+                    <div style={{ marginBottom: "8px" }}>
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: "4px",
+                        background: badge.bg, color: badge.color,
+                        fontSize: "11px", fontWeight: 800, letterSpacing: "0.3px",
+                        padding: "4px 10px", borderRadius: "20px",
+                        boxShadow: badge.shadow,
+                      }}>
+                        {badge.label}
+                      </span>
+                    </div>
+                  );
+                })()}
+                <h1 style={{ fontSize: "18px", fontWeight: 700, color: "#1e293b", lineHeight: 1.3, margin: "0 0 12px" }}>
+                  {listing.title}
+                </h1>
+                {quickSpecs.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "0" }}>
+                    {quickSpecs.map((spec) => (
+                      <span key={spec.label} style={{ background: "#f1f5f9", borderRadius: "4px", padding: "4px 8px", fontSize: "12px", color: "#475569" }}>
+                        {spec.icon} <strong style={{ textTransform: "capitalize" }}>{spec.value}</strong>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Title */}
-              <h1 style={{ fontSize: "17px", fontWeight: 600, color: "#333", lineHeight: 1.35, margin: "0 0 14px" }}>
-                {listing.title}
-              </h1>
-
-              {/* Quick specs inline */}
-              {quickSpecs.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "14px" }}>
-                  {quickSpecs.map((spec) => (
-                    <span key={spec.label} style={{
-                      background: "#f1f5f9", borderRadius: "4px",
-                      padding: "4px 8px", fontSize: "12px", color: "#475569",
-                    }}>
-                      {spec.icon} <strong style={{ textTransform: "capitalize" }}>{spec.value}</strong>
-                    </span>
-                  ))}
+              {/* Price block — fondo gris suave, elemento dominante */}
+              <div style={{ background: "#f8fafc", borderTop: "1px solid #f1f5f9", borderBottom: "1px solid #f1f5f9", padding: "16px 20px", marginTop: "14px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.7px", textTransform: "uppercase", marginBottom: "4px" }}>
+                  Precio
                 </div>
-              )}
-
-              {/* Price */}
-              <div style={{ marginBottom: "6px" }}>
                 {listing.price ? (
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px", color: "#333" }}>
-                    <span style={{ fontSize: "18px", fontWeight: 400 }}>{currencySymbol}</span>
-                    <span style={{ fontSize: "30px", fontWeight: 600, letterSpacing: "-1px" }}>{Number(listing.price).toLocaleString("es-AR")}</span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                    <span style={{ fontSize: "20px", fontWeight: 500, color: "#475569" }}>{currencySymbol}</span>
+                    <span style={{ fontSize: "34px", fontWeight: 700, color: "#1a1a1a", letterSpacing: "-1.5px", lineHeight: 1 }}>
+                      {Number(listing.price).toLocaleString("es-AR")}
+                    </span>
                   </div>
                 ) : (
                   <ContactButton
@@ -572,168 +628,148 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     sellerId={userId}
                     sellerName={sellerName}
                     triggerStyle="link"
-                    triggerLabel="Precio a consultar"
-                    defaultMessage={`Hola ${sellerName}, me interesa tu publicación "${listing.title}". ¿Me podrías indicar el precio?`}
+                    triggerLabel="Consultar precio"
+                    defaultMessage={`Hola ${sellerName}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
                   />
                 )}
-              </div>
-
-              {/* Green labels */}
-              {(attrs.negotiable_price || attrs.financing) && (
-                <div style={{ marginBottom: "14px" }}>
-                  {attrs.negotiable_price && <div style={{ fontSize: "13px", color: "#00a650", fontWeight: 600 }}>Precio negociable</div>}
-                  {attrs.financing        && <div style={{ fontSize: "13px", color: "#00a650" }}>Financiamiento disponible</div>}
-                </div>
-              )}
-
-              {/* Location */}
-              <div style={{ fontSize: "13px", color: "#999", marginBottom: "18px", display: "flex", alignItems: "center", gap: "5px" }}>
-                <PinIcon size={12} /> {listing.neighborhood ?? "San Juan"}
-              </div>
-
-              {/* Favorito + Compartir */}
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <FavoriteButton listingId={listing.id} variant="detail" />
-                <ShareButton
-                  listingId={listing.id}
-                  title={listing.title}
-                  price={listing.price}
-                  currency={listing.currency}
-                />
-              </div>
-            </div>
-
-            {/* Seller card */}
-            <div style={{ background: "#fff", borderRadius: "8px", padding: "18px 20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.6px", margin: "0 0 12px" }}>
-                {profile?.is_store ? "Tienda" : "Vendedor"}
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <div style={{
-                  width: "42px", height: "42px", borderRadius: profile?.is_store ? "10px" : "50%", flexShrink: 0,
-                  background: "#e0e7ff", display: "flex", alignItems: "center",
-                  justifyContent: "center", fontSize: "18px", overflow: "hidden",
-                }}>
-                  {profile?.is_store && profile.store_logo_url
-                    ? <img src={profile.store_logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : profile?.avatar_url
-                    ? <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : profile?.is_store ? "🏪" : "👤"}
-                </div>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b" }}>
-                      {profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
-                    </div>
-                    {profile?.is_store && profile.store_verified && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#2563eb" title="Tienda verificada">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
+                {/* Negotiable / financing pills */}
+                {(attrs.negotiable_price || attrs.financing) && (
+                  <div style={{ display: "flex", gap: "6px", marginTop: "10px", flexWrap: "wrap" }}>
+                    {attrs.negotiable_price && (
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#15803d", background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: "20px", padding: "3px 10px" }}>
+                        Precio negociable
+                      </span>
+                    )}
+                    {attrs.financing && (
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#1d4ed8", background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: "20px", padding: "3px 10px" }}>
+                        Financiamiento
+                      </span>
                     )}
                   </div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
-                    {profile?.is_store
-                      ? (profile.store_type === "inmobiliaria" ? "Inmobiliaria"
-                        : profile.store_type === "automotora" ? "Automotora"
-                        : profile.store_type === "electronica" ? "Tienda de tecnología"
-                        : profile.store_type === "ropa" ? "Tienda de ropa"
-                        : profile.store_type === "agencia" ? "Agencia"
-                        : profile.store_type === "servicios" ? "Empresa de servicios"
-                        : "Tienda")
-                      : "Vendedor particular"}
-                    {!profile?.is_store && profile?.created_at && ` · Miembro desde ${memberSince(profile.created_at)}`}
-                  </div>
-                  {reviewCount > 0 && (
-                    <div style={{ marginTop: "4px" }}>
-                      <StarRating rating={avgRating} count={reviewCount} size={12} />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* CTAs side by side */}
-              <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
-                <ContactButton
-                  listingId={listing.id}
-                  listingTitle={listing.title}
-                  sellerId={userId}
-                  sellerName={sellerName}
-                />
-                {whatsappUrl ? (
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1, padding: "11px 8px",
-                      background: "#f0fdf4", color: "#15803d",
-                      border: "1px solid #bbf7d0", borderRadius: "8px",
-                      fontSize: "13px", fontWeight: 600, textDecoration: "none",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    <WhatsAppIcon />
-                    WhatsApp
-                  </a>
-                ) : (
-                  <button style={{
-                    flex: 1, padding: "11px 8px",
-                    background: "#f1f5f9", color: "#94a3b8",
-                    border: "1px solid #e2e8f0", borderRadius: "8px",
-                    fontSize: "13px", fontWeight: 600, cursor: "default",
-                    fontFamily: "inherit",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                  }}>
-                    <WhatsAppIcon />
-                    WhatsApp
-                  </button>
                 )}
               </div>
 
-              <Link
-                href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
-                style={{
-                  display: "block", width: "100%", padding: "10px",
-                  background: "#f8fafc", color: "#2563eb",
-                  border: "1px solid #e2e8f0", borderRadius: "8px",
-                  fontSize: "13px", fontWeight: 700, textAlign: "center",
-                  textDecoration: "none", boxSizing: "border-box",
-                }}
-              >
-                {profile?.is_store ? "Ver tienda" : "Ver más avisos del vendedor"}
-              </Link>
+              {/* Location + actions */}
+              <div style={{ padding: "14px 20px" }}>
+                <div style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "14px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <PinIcon size={12} /> {listing.neighborhood ?? "San Juan"}
+                </div>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <FavoriteButton listingId={listing.id} variant="detail" />
+                  <ShareButton listingId={listing.id} title={listing.title} price={listing.price} currency={listing.currency} />
+                </div>
+              </div>
             </div>
 
-            {/* Destacar card — only shown to the listing owner */}
-            {isOwner && (
-              <div style={{ background: "#fff", borderRadius: "8px", padding: "18px 20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
-                <div style={{ fontSize: "15px", fontWeight: 700, color: "#1e293b", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ color: "#f59e0b" }}>✦</span> Destacá tu aviso
+            {/* ── Seller + CTAs card ── */}
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.08)" }}>
+              <div style={{ padding: "16px 20px" }}>
+
+                {/* Seller info — compact */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                  <AvatarWithFallback
+                    src={profile?.is_store ? profile.store_logo_url : profile?.avatar_url}
+                    name={profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
+                    size={44}
+                    rounded={profile?.is_store ? "lg" : "full"}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
+                      </span>
+                      {profile?.is_store && profile.store_verified && (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#2563eb" style={{ flexShrink: 0 }}>
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+                      {profile?.is_store
+                        ? (profile.store_type === "inmobiliaria" ? "Inmobiliaria"
+                          : profile.store_type === "automotora" ? "Automotora"
+                          : profile.store_type === "electronica" ? "Tienda de tecnología"
+                          : profile.store_type === "ropa" ? "Tienda de ropa"
+                          : profile.store_type === "agencia" ? "Agencia"
+                          : profile.store_type === "servicios" ? "Empresa de servicios"
+                          : "Tienda")
+                        : `Vendedor particular${profile?.created_at ? ` · desde ${memberSince(profile.created_at)}` : ""}`}
+                    </div>
+                    {reviewCount > 0 && <div style={{ marginTop: "2px" }}><StarRating rating={avgRating} count={reviewCount} size={11} /></div>}
+                  </div>
+                  <Link
+                    href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
+                    style={{ fontSize: "12px", color: "#2563eb", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
+                  >
+                    Ver {profile?.is_store ? "tienda" : "perfil"} →
+                  </Link>
                 </div>
-                <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
-                  Aparecé primero y recibí hasta <strong>5×</strong> más consultas
-                </p>
-                <Link
-                  href={`/upgrade?listing_id=${listing.id}`}
-                  style={{
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                    width: "100%", padding: "12px",
-                    background: "#f59e0b", color: "#fff",
-                    borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-                    textDecoration: "none", boxSizing: "border-box",
-                  }}
-                >
-                  🏷️ Ver planes
-                </Link>
+
+                {/* CTAs — lado a lado */}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {whatsappUrl ? (
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                        padding: "11px 10px",
+                        background: "#25d366", color: "#fff",
+                        borderRadius: "8px", fontSize: "13px", fontWeight: 700,
+                        textDecoration: "none", boxSizing: "border-box",
+                        boxShadow: "0 2px 8px rgba(37,211,102,.3)",
+                      }}
+                    >
+                      <WhatsAppIcon /> WhatsApp
+                    </a>
+                  ) : (
+                    <div style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                      padding: "11px 10px", background: "#f1f5f9", color: "#94a3b8",
+                      borderRadius: "8px", fontSize: "13px", fontWeight: 700, boxSizing: "border-box",
+                    }}>
+                      <WhatsAppIcon /> WhatsApp
+                    </div>
+                  )}
+                  <ContactButton
+                    listingId={listing.id}
+                    listingTitle={listing.title}
+                    sellerId={userId}
+                    sellerName={sellerName}
+                  />
+                </div>
+
               </div>
-            )}
+
+              {/* Destacar — amber footer, solo al dueño */}
+              {isOwner && (
+                <div style={{ background: "#fffbeb", borderTop: "1px solid #fde68a", padding: "14px 20px", display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", marginBottom: "1px" }}>
+                      ✦ Destacá tu aviso
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#a16207" }}>Hasta 5× más consultas</div>
+                  </div>
+                  <Link
+                    href={`/upgrade?listing_id=${listing.id}`}
+                    style={{
+                      padding: "8px 16px", background: "#f59e0b", color: "#fff",
+                      borderRadius: "8px", fontSize: "13px", fontWeight: 700,
+                      textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0,
+                    }}
+                  >
+                    Ver planes
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
 
         {/* También te puede interesar */}
-        {related.length > 0 && (
+        {related.length >= 3 && (
           <div style={{ marginTop: "28px" }}>
             <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#333", margin: "0 0 14px" }}>
               También te puede interesar{relatedLabel ? ` · ${relatedLabel}` : ""}

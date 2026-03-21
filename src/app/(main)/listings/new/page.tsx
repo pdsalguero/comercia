@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { CATEGORY_CONFIGS, getCategoryConfig } from "@/lib/category-config";
 import { CategoryIcon, TechGroupIcon } from "@/components/ui/CategoryIcon";
 import { CAR_BRANDS, getModels, getModelPriceRef, getVersions } from "@/lib/vehicle-data";
@@ -738,18 +739,15 @@ function CheckItem({
 function StepBar({ current, formFilled }: { current: Step; formFilled?: boolean }) {
   const steps = [
     { n: "1", label: "Fotos", key: "upload" },
-    { n: "2", label: "Datos", key: "form" },
-    { n: "3", label: "Precio", key: "price" },
-    { n: "4", label: "Publicar", key: "publishing" },
+    { n: "2", label: "Detalles", key: "form" },
+    { n: "3", label: "Publicar", key: "publishing" },
   ];
   const activeIdx =
     current === "upload" || current === "analyzing"
       ? 0
       : current === "form"
-        ? formFilled ? 2 : 1
-        : current === "publishing"
-          ? 3
-          : 3;
+        ? 1
+        : 2;
 
   return (
     <div
@@ -882,6 +880,27 @@ export default function NewListingPage() {
   const [dragOver, setDragOver] = useState(false);
   const [showExtraVehicle, setShowExtraVehicle] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[] | null>(null);
+  const [userIsStore, setUserIsStore] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("profiles")
+        .select("is_store")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.is_store) {
+            setUserIsStore(true);
+            setAttrs((prev) => ({ ...prev, seller_type: "concesionaria" }));
+          }
+        });
+    });
+  }, []);
+  const [aiReveal, setAiReveal] = useState(false);
+  const [aiRevealFields, setAiRevealFields] = useState<string[]>([]);
 
   const catConfig = getCategoryConfig(categoryId);
   const isVehicle = categoryId === 2;
@@ -1029,14 +1048,61 @@ export default function NewListingPage() {
       if (data.condition) setCondition(data.condition);
       if (data.attributes) {
         const normalizedAttrs = { ...data.attributes };
+
+        // ── Normalize brand ──
         if (normalizedAttrs.brand) {
           const normalized = normalizedAttrs.brand.toLowerCase().replace(/[\s-]/g, "_");
           const found = CAR_BRANDS.find((b) => b.value === normalized);
           normalizedAttrs.brand = found ? normalized : normalizedAttrs.brand;
         }
+
+        // ── Normalize model: fuzzy-match against known models for this brand ──
+        if (normalizedAttrs.brand && normalizedAttrs.model) {
+          const knownModels = getModels(normalizedAttrs.brand);
+          if (knownModels.length > 0) {
+            const aiModel = normalizedAttrs.model.toLowerCase();
+            // Exact match first
+            const exactMatch = knownModels.find((m) => m.toLowerCase() === aiModel);
+            if (exactMatch) {
+              normalizedAttrs.model = exactMatch;
+            } else {
+              // Partial match: AI model starts with a known model name or vice versa
+              const partial = knownModels.find(
+                (m) => aiModel.startsWith(m.toLowerCase()) || m.toLowerCase().startsWith(aiModel)
+              );
+              if (partial) normalizedAttrs.model = partial;
+              // If no match, keep original (user can correct)
+            }
+          }
+        }
+
+        // ── Normalize year: ensure it's a number matching the select range ──
+        if (normalizedAttrs.year) {
+          const y = Number(normalizedAttrs.year);
+          const currentYear = new Date().getFullYear();
+          if (!isNaN(y) && y >= currentYear - 39 && y <= currentYear + 1) {
+            normalizedAttrs.year = y;
+          } else {
+            delete normalizedAttrs.year; // out of range — don't pre-fill
+          }
+        }
+
         setAttrs(normalizedAttrs);
         if (data.attributes.currency) setCurrency(data.attributes.currency);
       }
+      // ── AI WOW moment ──
+      const filledFields: string[] = [];
+      if (data.title) filledFields.push("Título");
+      if (data.description) filledFields.push("Descripción");
+      if (data.category_id) filledFields.push("Categoría");
+      if (data.condition) filledFields.push("Estado");
+      if (data.attributes?.brand) filledFields.push("Marca");
+      if (data.attributes?.model) filledFields.push("Modelo");
+      if (data.attributes?.year) filledFields.push("Año");
+      if (data.attributes?.km) filledFields.push("Kilómetros");
+      setAiRevealFields(filledFields);
+      setAiReveal(true);
+      setTimeout(() => setAiReveal(false), 3000);
     } catch (e: any) {
       setError(e.message);
     }
@@ -1152,178 +1218,88 @@ export default function NewListingPage() {
   // ═══════════════════════════════════════════════════════════
   const sidebarJSX = (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px", position: "sticky", top: "68px" }}>
-
-      {/* ── Price card ── */}
       <div style={{
         background: C.white, borderRadius: "16px",
         border: `1px solid ${C.blue200}`,
         boxShadow: "0 4px 16px rgba(37,99,235,.1)",
         overflow: "hidden",
       }}>
-        {/* Header banner */}
+        {/* Header */}
         <div style={{
           background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1d4ed8 100%)",
-          padding: "14px 18px",
-          display: "flex", alignItems: "center", gap: "10px",
+          padding: "14px 18px", display: "flex", alignItems: "center", gap: "10px",
         }}>
-          {/* Tag icon SVG */}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(99,179,237,.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2H7a2 2 0 0 0-2 2v5l9.5 9.5a2 2 0 0 0 2.83 0l3.17-3.17a2 2 0 0 0 0-2.83L12 2z"/>
-            <circle cx="7.5" cy="7.5" r="1" fill="rgba(99,179,237,.9)" stroke="none"/>
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
           <div>
-            <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff", letterSpacing: "-0.2px", lineHeight: 1.2 }}>
-              Precio
-            </div>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", letterSpacing: "-0.2px", lineHeight: 1.2 }}>Completá tu aviso</div>
             <div style={{ fontSize: "10px", color: "rgba(148,198,233,.7)", fontWeight: 500, marginTop: "1px" }}>
-              Definí cuánto vale tu producto
+              {Math.round((passed / checks.length) * 100)}% completo
             </div>
           </div>
         </div>
 
         <div style={{ padding: "16px 18px" }}>
-          {/* Currency toggle */}
-          <div style={{
-            display: "flex", gap: "4px", marginBottom: "12px",
-            background: C.slate100, borderRadius: "10px", padding: "3px",
-          }}>
-            {(["ARS", "USD"] as const).map((c) => (
-              <button key={c} type="button" onClick={() => setCurrency(c)} style={{
-                flex: 1, padding: "8px", borderRadius: "8px", border: "none",
-                fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                background: currency === c ? C.white : "transparent",
-                color: currency === c ? C.slate800 : C.slate400,
-                boxShadow: currency === c ? "0 1px 3px rgba(15,23,42,.1)" : "none",
-                transition: "all .12s",
-              }}>
-                {c === "ARS" ? "$ Pesos" : "USD Dólares"}
-              </button>
-            ))}
-          </div>
-
-          {/* Price input */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: "8px",
-            background: C.white, border: `1.5px solid ${C.slate200}`,
-            borderRadius: "10px", padding: "10px 14px", marginBottom: "14px",
-          }}>
-            <span style={{ fontSize: "20px", fontWeight: 700, color: C.slate400 }}>
-              {currency === "ARS" ? "$" : "U$S"}
-            </span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={price ? Number(price).toLocaleString("es-AR") : ""}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/\./g, "").replace(/[^0-9]/g, "");
-                setPrice(raw);
-              }}
-              placeholder="0"
-              style={{
-                flex: 1, background: "transparent", border: "none", outline: "none",
-                fontSize: "24px", fontWeight: 700, color: C.slate900,
-                fontFamily: "inherit", letterSpacing: "-0.5px",
-              }}
-            />
-          </div>
-
-          {/* Completion */}
-          <div style={{ borderTop: `1px solid ${C.slate100}`, paddingTop: "14px", marginBottom: "14px" }}>
-            <div style={{ fontSize: "13px", color: C.slate600, marginBottom: "8px" }}>
-              Tu aviso está{" "}
-              <span style={{ color: C.blue, fontWeight: 800 }}>
-                {Math.round((passed / checks.length) * 100)}% completo
-              </span>
-            </div>
-            <div style={{ height: "6px", background: C.slate100, borderRadius: "100px", overflow: "hidden" }}>
-              <div style={{
-                height: "100%", borderRadius: "100px",
-                width: `${(passed / checks.length) * 100}%`,
-                background: `linear-gradient(90deg, ${C.blue}, ${C.blue300})`,
-                transition: "width .4s ease",
-              }} />
-            </div>
-          </div>
-
-          {/* IA tips */}
-          <div style={{ borderTop: `1px solid ${C.slate100}`, paddingTop: "14px" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: C.slate400, textTransform: "uppercase" as const, letterSpacing: "0.6px", marginBottom: "10px" }}>
-              Potenciado con IA:
-            </div>
-            {[
-              {
-                title: title.length > 5 ? "¡Buen título!" : "Buen título",
-                subtitle: "Describí el artículo con detalle",
-                ok: title.length > 5,
-                loading: analyzing,
-              },
-              {
-                title: (categoryId > 0 && !!condition && !!zone) ? "¡Detalles completos!" : "Detalles completos",
-                subtitle: "Contá sobre zona, estado, categoría",
-                ok: categoryId > 0 && !!condition && !!zone,
-                loading: false,
-              },
-            ].map((item) => (
-              <div key={item.title} style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
-                <div style={{
-                  width: "20px", height: "20px", borderRadius: "50%", flexShrink: 0,
-                  marginTop: "1px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "11px",
-                  background: item.ok ? "#dcfce7" : item.loading ? "#fef9c3" : C.blue50,
-                  color: item.ok ? "#15803d" : item.loading ? "#a16207" : C.blue,
-                  border: `1.5px solid ${item.ok ? "#bbf7d0" : item.loading ? "#fde68a" : C.blue100}`,
-                }}>
-                  {item.ok ? "✓" : item.loading ? "·" : "+"}
-                </div>
-                <div>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: item.ok ? C.slate800 : C.slate500 }}>{item.title}</div>
-                  <div style={{ fontSize: "11px", color: C.slate400, lineHeight: 1.3 }}>{item.subtitle}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div style={{
-              background: C.redBg, border: `1px solid #fecaca`,
-              borderRadius: "10px", padding: "10px 12px", marginBottom: "12px",
-              fontSize: "12px", color: C.red, lineHeight: 1.4,
-            }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          {/* Publish button */}
+          {/* Publish button — dominant */}
           <button
             type="button"
             onClick={handlePublish}
             disabled={!canPublish}
             style={{
-              width: "100%", padding: "15px",
+              width: "100%", padding: "16px",
               background: canPublish
                 ? "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%)"
                 : C.slate200,
               color: canPublish ? C.white : C.slate400,
               border: "none", borderRadius: "12px",
-              fontSize: "15px", fontWeight: 800,
+              fontSize: "16px", fontWeight: 800,
               cursor: canPublish ? "pointer" : "not-allowed",
               fontFamily: "inherit",
-              boxShadow: canPublish ? "0 6px 20px rgba(37,99,235,.4)" : "none",
+              boxShadow: canPublish ? "0 8px 24px rgba(37,99,235,.45)" : "none",
               transition: "all .15s", letterSpacing: ".2px",
+              marginBottom: "14px",
             }}
           >
             ¡Publicar Aviso!
           </button>
 
-          {/* Terms */}
-          <p style={{ fontSize: "11px", color: C.slate400, textAlign: "center", lineHeight: 1.5, margin: "10px 0 0" }}>
+          {/* Error */}
+          {error && (
+            <div style={{ background: C.redBg, border: `1px solid #fecaca`, borderRadius: "10px", padding: "10px 12px", marginBottom: "12px", fontSize: "12px", color: C.red, lineHeight: 1.4 }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* Progress bar */}
+          <div style={{ marginBottom: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+              <span style={{ fontSize: "11px", color: C.slate500, fontWeight: 500 }}>Completud del aviso</span>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: passed >= 5 ? "#15803d" : C.blue }}>{Math.round((passed / checks.length) * 100)}%</span>
+            </div>
+            <div style={{ height: "5px", background: C.slate100, borderRadius: "100px", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", borderRadius: "100px",
+                width: `${(passed / checks.length) * 100}%`,
+                background: passed >= 5 ? "linear-gradient(90deg,#16a34a,#22c55e)" : `linear-gradient(90deg, ${C.blue}, ${C.blue300})`,
+                transition: "width .4s ease",
+              }} />
+            </div>
+          </div>
+
+          {/* Compact checklist */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px", marginBottom: "12px" }}>
+            {checks.map((item) => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span style={{ fontSize: "11px", color: item.ok ? "#16a34a" : C.slate300 }}>{item.ok ? "✓" : "○"}</span>
+                <span style={{ fontSize: "11px", color: item.ok ? C.slate600 : C.slate400, fontWeight: item.ok ? 600 : 400 }}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ fontSize: "11px", color: C.slate400, textAlign: "center", lineHeight: 1.5, margin: "0" }}>
             Al publicar aceptás los{" "}
-            <Link href="/terms" style={{ color: C.blue, textDecoration: "none", fontWeight: 600 }}>
-              términos y condiciones
-            </Link>
-            .
+            <Link href="/terms" style={{ color: C.blue, textDecoration: "none", fontWeight: 600 }}>términos y condiciones</Link>.
           </p>
         </div>
       </div>
@@ -1392,6 +1368,68 @@ export default function NewListingPage() {
 
 
 
+      {/* ════ AI REVEAL OVERLAY ════ */}
+      {aiReveal && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 2000,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          pointerEvents: "none",
+          animation: "aiRevealFade 3s ease forwards",
+        }}>
+          {/* Background flash */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.08) 50%, transparent 75%)",
+            animation: "aiRevealBg 3s ease forwards",
+          }} />
+          {/* Center card */}
+          <div style={{
+            position: "relative",
+            background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)",
+            borderRadius: "20px",
+            padding: "32px 40px",
+            textAlign: "center",
+            boxShadow: "0 24px 80px rgba(99,102,241,0.5), 0 0 0 1px rgba(165,180,252,0.2)",
+            animation: "aiRevealCard 3s ease forwards",
+            maxWidth: "340px",
+            width: "90%",
+          }}>
+            {/* Glow orbs */}
+            <div style={{ position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ fontSize: "52px", lineHeight: 1, marginBottom: "12px", animation: "aiRevealStar 3s ease forwards" }}>✨</div>
+            <div style={{ fontSize: "20px", fontWeight: 900, color: "#fff", marginBottom: "6px", letterSpacing: "-0.3px" }}>
+              ¡IA completó tu aviso!
+            </div>
+            <div style={{ fontSize: "13px", color: "rgba(199,210,254,0.75)", marginBottom: "20px", lineHeight: 1.5 }}>
+              Detectamos y completamos automáticamente:
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center" }}>
+              {aiRevealFields.map((f, i) => (
+                <span key={f} style={{
+                  background: "rgba(99,102,241,0.3)", border: "1px solid rgba(165,180,252,0.3)",
+                  borderRadius: "20px", padding: "4px 12px",
+                  fontSize: "12px", fontWeight: 700, color: "rgba(224,231,255,0.9)",
+                  animation: `aiRevealPill 0.4s ease ${i * 0.1}s both`,
+                }}>
+                  ✓ {f}
+                </span>
+              ))}
+            </div>
+            <div style={{ marginTop: "18px", fontSize: "11px", color: "rgba(148,163,184,0.6)", fontWeight: 500 }}>
+              Revisá y editá antes de publicar
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`
+        @keyframes aiRevealFade { 0%{opacity:0} 15%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+        @keyframes aiRevealBg { 0%{opacity:0} 15%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+        @keyframes aiRevealCard { 0%{opacity:0;transform:scale(0.85) translateY(20px)} 15%{opacity:1;transform:scale(1) translateY(0)} 70%{opacity:1;transform:scale(1) translateY(0)} 100%{opacity:0;transform:scale(0.95) translateY(-10px)} }
+        @keyframes aiRevealStar { 0%{transform:scale(0) rotate(-30deg)} 20%{transform:scale(1.2) rotate(10deg)} 35%{transform:scale(1) rotate(0)} 100%{transform:scale(1) rotate(0)} }
+        @keyframes aiRevealPill { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes aiFieldShimmer { 0%{box-shadow:none} 50%{box-shadow:0 0 0 3px rgba(99,102,241,0.35),inset 0 0 12px rgba(99,102,241,0.08)} 100%{box-shadow:none} }
+      `}</style>
+
       {/* ════ FLOATING PUBLISH BUTTON ════ */}
       {step === "form" && scrolled && (
         <button
@@ -1420,7 +1458,52 @@ export default function NewListingPage() {
           🚀 ¡Publicar Aviso!
         </button>
       )}
-      <style>{`@keyframes floatIn { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }`}</style>
+      <style>{`
+        @keyframes floatIn { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+        .mobile-publish-bar { display: none; }
+        @media (max-width: 768px) {
+          .mobile-publish-bar { display: flex; }
+          .new-listing-grid { grid-template-columns: 1fr !important; }
+          .new-listing-sidebar { display: none !important; }
+        }
+      `}</style>
+      {/* ════ MOBILE STICKY PUBLISH BAR ════ */}
+      {step === "form" && (
+        <div className="mobile-publish-bar" style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 300,
+          padding: "12px 16px", paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
+          background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)",
+          borderTop: `1px solid ${C.slate100}`,
+          boxShadow: "0 -4px 20px rgba(15,23,42,.12)",
+          alignItems: "center", gap: "12px",
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "11px", color: C.slate500, marginBottom: "3px" }}>
+              Aviso <strong style={{ color: passed >= 5 ? "#16a34a" : C.blue }}>{Math.round((passed / checks.length) * 100)}% completo</strong>
+            </div>
+            <div style={{ height: "4px", background: C.slate100, borderRadius: "100px", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: "100px", width: `${(passed / checks.length) * 100}%`, background: `linear-gradient(90deg, ${C.blue}, ${C.blue300})`, transition: "width .4s ease" }} />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handlePublish}
+            disabled={!canPublish}
+            style={{
+              padding: "13px 24px", flexShrink: 0,
+              background: canPublish ? "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%)" : C.slate200,
+              color: canPublish ? C.white : C.slate400,
+              border: "none", borderRadius: "10px",
+              fontSize: "15px", fontWeight: 800,
+              cursor: canPublish ? "pointer" : "not-allowed",
+              fontFamily: "inherit",
+              boxShadow: canPublish ? "0 4px 14px rgba(37,99,235,.4)" : "none",
+            }}
+          >
+            Publicar
+          </button>
+        </div>
+      )}
 
       {/* ════ FORM ════ */}
       {step === "form" && (
@@ -1428,7 +1511,7 @@ export default function NewListingPage() {
           style={{
             maxWidth: "920px",
             margin: "0 auto",
-            padding: "20px 20px 60px",
+            padding: "20px 20px 80px",
             display: "grid",
             gridTemplateColumns: "1fr 252px",
             gap: "14px",
@@ -1748,20 +1831,26 @@ export default function NewListingPage() {
                   label={`03 · Detalles ${catConfig?.name?.toLowerCase() ?? "del artículo"}`}
                 />
                 <Badge
-                  status={
-                    categoryId > 0 && condition && zone
-                      ? "ok"
-                      : categoryId > 0 || condition || zone
-                        ? "partial"
-                        : "pending"
-                  }
-                  label={
-                    categoryId > 0 && condition && zone
-                      ? "Completo"
-                      : categoryId > 0 || condition || zone
-                        ? "Parcial"
-                        : "Pendiente"
-                  }
+                  status={(() => {
+                    if (!categoryId) return "pending";
+                    if (isVehicle) {
+                      const ok = !!(attrs.sub_category && attrs.brand && attrs.model && attrs.year && zone);
+                      const partial = !!(attrs.sub_category || attrs.brand || attrs.model || attrs.year || zone);
+                      return ok ? "ok" : partial ? "partial" : "pending";
+                    }
+                    const ok = !!(categoryId && zone && (isServices || isPets || condition));
+                    return ok ? "ok" : "partial";
+                  })()}
+                  label={(() => {
+                    if (!categoryId) return "Pendiente";
+                    if (isVehicle) {
+                      const ok = !!(attrs.sub_category && attrs.brand && attrs.model && attrs.year && zone);
+                      const partial = !!(attrs.sub_category || attrs.brand || attrs.model || attrs.year || zone);
+                      return ok ? "Completo" : partial ? "Parcial" : "Pendiente";
+                    }
+                    const ok = !!(categoryId && zone && (isServices || isPets || condition));
+                    return ok ? "Completo" : "Parcial";
+                  })()}
                 />
               </div>
               <div style={T.cardBody}>
@@ -1850,27 +1939,6 @@ export default function NewListingPage() {
                         )}
                       </Field>
 
-                      {/* Versión */}
-                      <Field label="Versión">
-                        {vehicleVersions.length > 0 ? (
-                          <FocusSel
-                            value={attrs.version ?? ""}
-                            onChange={(e) => handleAttr("version", e.target.value)}
-                          >
-                            <option value="">Sin especificar</option>
-                            {vehicleVersions.map((v) => (
-                              <option key={v} value={v}>{v}</option>
-                            ))}
-                          </FocusSel>
-                        ) : (
-                          <FocusInp
-                            value={attrs.version ?? ""}
-                            onChange={(e) => handleAttr("version", e.target.value)}
-                            placeholder="Move, SR 4x4..."
-                          />
-                        )}
-                      </Field>
-
                       {/* Año */}
                       <Field label="Año" required>
                         <FocusSel
@@ -1891,7 +1959,6 @@ export default function NewListingPage() {
                         </FocusSel>
                       </Field>
 
-
                       {/* Km */}
                       <Field label="Kilómetros" required>
                         <div style={{ position: "relative" }}>
@@ -1902,111 +1969,13 @@ export default function NewListingPage() {
                             placeholder="0"
                             style={{ paddingRight: "36px" }}
                           />
-                          <span
-                            style={{
-                              position: "absolute",
-                              right: "11px",
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              fontSize: "10px",
-                              color: C.slate300,
-                              fontWeight: 700,
-                              fontFamily: "'DM Mono', monospace",
-                            }}
-                          >
-                            km
-                          </span>
+                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>km</span>
                         </div>
                       </Field>
 
-                      {/* Combustible */}
-                      <Field label="Combustible">
-                        <FocusSel
-                          value={attrs.fuel ?? ""}
-                          onChange={(e) => handleAttr("fuel", e.target.value)}
-                        >
-                          <option value="">Seleccionar...</option>
-                          {FUELS.map((f) => (
-                            <option key={f} value={f.toLowerCase()}>
-                              {f}
-                            </option>
-                          ))}
-                        </FocusSel>
-                      </Field>
-
-                      {/* Transmisión */}
-                      <Field label="Transmisión">
-                        <FocusSel
-                          value={attrs.transmission ?? ""}
-                          onChange={(e) =>
-                            handleAttr("transmission", e.target.value)
-                          }
-                        >
-                          <option value="">Seleccionar...</option>
-                          {TRANSMISIONS.map((t) => (
-                            <option key={t} value={t.toLowerCase()}>
-                              {t}
-                            </option>
-                          ))}
-                        </FocusSel>
-                      </Field>
-
-                      {/* Color */}
-                      <Field label="Color">
-                        <FocusInp
-                          value={attrs.color ?? ""}
-                          onChange={(e) => handleAttr("color", e.target.value)}
-                          placeholder="Gris plata..."
-                        />
-                      </Field>
-
-                      {/* Motor */}
-                      <Field label="Motor">
-                        <FocusInp
-                          value={attrs.engine ?? ""}
-                          onChange={(e) => handleAttr("engine", e.target.value)}
-                          placeholder="1.6, 2.0 TDI..."
-                        />
-                      </Field>
-
-                      {/* Patente */}
-                      <Field label="Patente">
-                        <FocusInp
-                          value={attrs.patente ?? ""}
-                          onChange={(e) =>
-                            handleAttr("patente", e.target.value.toUpperCase())
-                          }
-                          placeholder="PDL187"
-                          maxLength={8}
-                          style={{ letterSpacing: "2px", fontWeight: 700 }}
-                        />
-                        <label
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            marginTop: "8px",
-                            fontSize: "12px",
-                            color: "#94a3b8",
-                            cursor: "pointer",
-                            userSelect: "none",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={attrs.show_patente ?? false}
-                            onChange={(e) =>
-                              handleAttr("show_patente", e.target.checked)
-                            }
-                            style={{ accentColor: "#6366f1", cursor: "pointer" }}
-                          />
-                          Mostrar patente en la publicación
-                        </label>
-                      </Field>
-
-                      {/* Provincia + Localidad */}
+                      {/* Provincia + Localidad + Estado — 3 cols en 1 fila */}
                       <div style={{ gridColumn: "span 2" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
                           <Field label="Provincia" required>
                             <FocusSel value={zone} onChange={(e) => { setZone(e.target.value); setLocality(""); }}>
                               <option value="">Seleccioná...</option>
@@ -2032,55 +2001,14 @@ export default function NewListingPage() {
                               />
                             )}
                           </Field>
-                        </div>
-                      </div>
-
-                      {/* Estado */}
-                      <div style={{ gridColumn: "span 2" }}>
-                        <Field label="Estado" required>
-                          <FocusSel
-                            value={condition}
-                            onChange={(e) => setCondition(e.target.value)}
-                          >
-                            <option value="">Seleccioná...</option>
-                            {CONDITIONS.map((o) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label}
-                              </option>
-                            ))}
-                          </FocusSel>
-                        </Field>
-                      </div>
-
-                      {/* Tipo de vendedor */}
-                      <div style={{ gridColumn: "span 2" }}>
-                        <label style={T.lbl}>Tipo de vendedor</label>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          {[
-                            ["particular", "👤 Particular"],
-                            ["concesionaria", "🏢 Concesionaria"],
-                          ].map(([v, l]) => (
-                            <button
-                              key={v}
-                              type="button"
-                              onClick={() => handleAttr("seller_type", v)}
-                              style={{
-                                flex: 1,
-                                padding: "10px",
-                                borderRadius: "9px",
-                                border: `1.5px solid ${attrs.seller_type === v ? C.blue : C.slate200}`,
-                                background: attrs.seller_type === v ? C.blue50 : C.white,
-                                color: attrs.seller_type === v ? C.blue : C.slate500,
-                                fontWeight: attrs.seller_type === v ? 700 : 400,
-                                fontSize: "13px",
-                                cursor: "pointer",
-                                fontFamily: "inherit",
-                                transition: "all .1s",
-                              }}
-                            >
-                              {l}
-                            </button>
-                          ))}
+                          <Field label="Estado" required>
+                            <FocusSel value={condition} onChange={(e) => setCondition(e.target.value)}>
+                              <option value="">Seleccioná...</option>
+                              {CONDITIONS.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                              ))}
+                            </FocusSel>
+                          </Field>
                         </div>
                       </div>
 
@@ -2090,66 +2018,160 @@ export default function NewListingPage() {
                           type="button"
                           onClick={() => setShowExtraVehicle((v) => !v)}
                           style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            padding: "10px 14px",
-                            borderRadius: "10px",
-                            border: `1.5px solid ${C.slate200}`,
+                            width: "100%", display: "flex", alignItems: "center",
+                            justifyContent: "space-between", padding: "10px 14px",
+                            borderRadius: "10px", border: `1.5px solid ${C.slate200}`,
                             background: showExtraVehicle ? C.blue50 : C.white,
                             color: showExtraVehicle ? C.blue : C.slate500,
-                            fontWeight: 600,
-                            fontSize: "13px",
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            transition: "all .15s",
+                            fontWeight: 600, fontSize: "13px", cursor: "pointer",
+                            fontFamily: "inherit", transition: "all .15s",
                           }}
                         >
-                          <span>Datos adicionales</span>
-                          <span style={{ fontSize: "16px", lineHeight: 1 }}>
-                            {showExtraVehicle ? "▲" : "▼"}
+                          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>Datos adicionales</span>
+                            {(attrs.version || attrs.fuel || attrs.transmission || attrs.color || attrs.engine || attrs.patente) && (
+                              <span style={{ fontSize: "10px", background: C.blue, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontWeight: 700 }}>
+                                {[attrs.version, attrs.fuel, attrs.transmission, attrs.color, attrs.engine, attrs.patente].filter(Boolean).length} completados
+                              </span>
+                            )}
                           </span>
+                          <span style={{ fontSize: "16px", lineHeight: 1 }}>{showExtraVehicle ? "▲" : "▼"}</span>
                         </button>
 
                         {showExtraVehicle && (
-                          <div
-                            style={{
-                              marginTop: "12px",
-                              display: "grid",
-                              gridTemplateColumns: "1fr 1fr",
-                              gap: "12px",
-                              padding: "14px",
-                              borderRadius: "10px",
-                              border: `1px solid ${C.slate100}`,
-                              background: "#fafafa",
-                            }}
-                          >
-                            {/* Checkboxes */}
-                            <div
-                              style={{
-                                gridColumn: "span 2",
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr 1fr",
-                                gap: "10px",
-                              }}
-                            >
-                              {[
-                                ["financing", "Financiamiento"],
-                                ["negotiable_price", "Precio negociable"],
-                                ["first_owner", "Único dueño"],
-                                ["accepts_trade", "Acepta permuta"],
-                                ["has_gnc", "Con GNC"],
-                                ["has_alarm", "Con alarma"],
-                                ["has_service", "Con service"],
-                              ].map(([k, l]) => (
-                                <CheckItem
-                                  key={k}
-                                  label={l}
-                                  value={!!attrs[k]}
-                                  onChange={(v) => handleAttr(k, v)}
-                                />
-                              ))}
+                          <div style={{
+                            marginTop: "12px", display: "grid",
+                            gridTemplateColumns: "1fr 1fr", gap: "12px",
+                            padding: "16px", borderRadius: "10px",
+                            border: `1px solid ${C.slate100}`, background: "#fafafa",
+                          }}>
+                            {/* Versión */}
+                            <Field label="Versión">
+                              {vehicleVersions.length > 0 ? (
+                                <FocusSel value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)}>
+                                  <option value="">Sin especificar</option>
+                                  {vehicleVersions.map((v) => <option key={v} value={v}>{v}</option>)}
+                                </FocusSel>
+                              ) : (
+                                <FocusInp value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)} placeholder="Move, SR 4x4..." />
+                              )}
+                            </Field>
+
+                            {/* Combustible */}
+                            <Field label="Combustible">
+                              <FocusSel value={attrs.fuel ?? ""} onChange={(e) => handleAttr("fuel", e.target.value)}>
+                                <option value="">Seleccionar...</option>
+                                {FUELS.map((f) => <option key={f} value={f.toLowerCase()}>{f}</option>)}
+                              </FocusSel>
+                            </Field>
+
+                            {/* Transmisión */}
+                            <Field label="Transmisión">
+                              <FocusSel value={attrs.transmission ?? ""} onChange={(e) => handleAttr("transmission", e.target.value)}>
+                                <option value="">Seleccionar...</option>
+                                {TRANSMISIONS.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                              </FocusSel>
+                            </Field>
+
+                            {/* Color */}
+                            <Field label="Color">
+                              <FocusInp value={attrs.color ?? ""} onChange={(e) => handleAttr("color", e.target.value)} placeholder="Gris plata..." />
+                            </Field>
+
+                            {/* Motor */}
+                            <Field label="Motor">
+                              <FocusInp value={attrs.engine ?? ""} onChange={(e) => handleAttr("engine", e.target.value)} placeholder="1.6, 2.0 TDI..." />
+                            </Field>
+
+                            {/* Patente */}
+                            <Field label="Patente">
+                              <FocusInp
+                                value={attrs.patente ?? ""}
+                                onChange={(e) => handleAttr("patente", e.target.value.toUpperCase())}
+                                placeholder="PDL187" maxLength={8}
+                                style={{ letterSpacing: "2px", fontWeight: 700 }}
+                              />
+                              <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "12px", color: "#94a3b8", cursor: "pointer", userSelect: "none" as const }}>
+                                <input type="checkbox" checked={attrs.show_patente ?? false} onChange={(e) => handleAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1", cursor: "pointer" }} />
+                                Mostrar patente en la publicación
+                              </label>
+                            </Field>
+
+                            {/* Tipo de vendedor */}
+                            <div style={{ gridColumn: "span 2" }}>
+                              <label style={T.lbl}>Tipo de vendedor</label>
+                              <div style={{ display: "flex", gap: "8px" }}>
+                                {[["particular", "👤 Particular"], ["concesionaria", "🏢 Tienda / Concesionaria"]].map(([v, l]) => {
+                                  const isLocked = userIsStore && v === "particular";
+                                  const isActive = attrs.seller_type === v;
+                                  return (
+                                    <button
+                                      key={v}
+                                      type="button"
+                                      disabled={isLocked}
+                                      onClick={() => !isLocked && handleAttr("seller_type", v)}
+                                      title={isLocked ? "Tenés una tienda activa — no podés publicar como particular" : undefined}
+                                      style={{
+                                        flex: 1, padding: "10px", borderRadius: "9px",
+                                        border: `1.5px solid ${isActive ? C.blue : isLocked ? C.slate100 : C.slate200}`,
+                                        background: isActive ? C.blue50 : isLocked ? C.slate50 : C.white,
+                                        color: isActive ? C.blue : isLocked ? C.slate300 : C.slate500,
+                                        fontWeight: isActive ? 700 : 400,
+                                        fontSize: "13px",
+                                        cursor: isLocked ? "not-allowed" : "pointer",
+                                        fontFamily: "inherit", transition: "all .1s",
+                                        textDecoration: isLocked ? "line-through" : "none",
+                                      }}
+                                    >
+                                      {l}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {userIsStore && (
+                                <div style={{ fontSize: "11px", color: C.slate400, marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                                  <span>🏪</span> Publicás como tienda — la opción "Particular" no está disponible
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Características — pills seleccionables */}
+                            <div style={{ gridColumn: "span 2", paddingTop: "8px", borderTop: `1px solid ${C.slate100}` }}>
+                              <label style={{ ...T.lbl, display: "block", marginBottom: "10px" }}>Características</label>
+                              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "8px" }}>
+                                {[
+                                  ["negotiable_price", "Precio negociable"],
+                                  ["first_owner", "Único dueño"],
+                                  ["financing", "Financiamiento"],
+                                  ["accepts_trade", "Acepta permuta"],
+                                  ["has_gnc", "Con GNC"],
+                                  ["has_alarm", "Con alarma"],
+                                  ["has_service", "Con service"],
+                                ].map(([k, l]) => {
+                                  const active = !!attrs[k];
+                                  return (
+                                    <button
+                                      key={k}
+                                      type="button"
+                                      onClick={() => handleAttr(k, !active)}
+                                      style={{
+                                        padding: "7px 14px", borderRadius: "20px",
+                                        border: `1.5px solid ${active ? C.blue : C.slate200}`,
+                                        background: active ? C.blue : C.white,
+                                        color: active ? C.white : C.slate600,
+                                        fontSize: "13px", fontWeight: active ? 700 : 400,
+                                        cursor: "pointer", fontFamily: "inherit",
+                                        transition: "all .12s",
+                                        display: "flex", alignItems: "center", gap: "5px",
+                                      }}
+                                    >
+                                      {active && <span style={{ fontSize: "10px" }}>●</span>}
+                                      {l}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <div style={{ fontSize: "11px", color: C.slate400, marginTop: "8px" }}>Tocá para activar o desactivar</div>
                             </div>
                           </div>
                         )}
@@ -2477,11 +2499,142 @@ export default function NewListingPage() {
                 </div>
               </div>
             </div>
+            {/* ░░ 04 PRECIO ░░ */}
+            <div style={T.card}>
+              <div style={T.cardHead}>
+                <CardTitle icon="💰" label="04 · Precio" />
+                <Badge
+                  status={price === "0" ? "partial" : price ? "ok" : "pending"}
+                  label={price === "0" ? "Consultar" : price ? `${currency === "ARS" ? "$" : "U$S"} ${Number(price).toLocaleString("es-AR")}` : "Sin precio"}
+                />
+              </div>
+              <div style={T.cardBody}>
+                {/* Currency toggle */}
+                <div style={{ display: "flex", gap: "4px", marginBottom: "14px", background: C.slate100, borderRadius: "10px", padding: "3px" }}>
+                  {(["ARS", "USD"] as const).map((c) => (
+                    <button key={c} type="button" onClick={() => setCurrency(c)} style={{
+                      flex: 1, padding: "9px", borderRadius: "8px", border: "none",
+                      fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                      background: currency === c ? C.white : "transparent",
+                      color: currency === c ? C.slate800 : C.slate400,
+                      boxShadow: currency === c ? "0 1px 3px rgba(15,23,42,.1)" : "none",
+                      transition: "all .12s",
+                    }}>
+                      {c === "ARS" ? "$ Pesos argentinos" : "USD Dólares"}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Price input — same style as other inputs */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "8px",
+                  background: C.white, border: `1.5px solid ${C.slate200}`,
+                  borderRadius: "8px", padding: "10px 14px",
+                  transition: "border-color .15s",
+                }}
+                  onFocusCapture={(e) => (e.currentTarget.style.borderColor = C.blue)}
+                  onBlurCapture={(e) => (e.currentTarget.style.borderColor = C.slate200)}
+                >
+                  <span style={{ fontSize: "20px", fontWeight: 700, color: C.slate400 }}>
+                    {currency === "ARS" ? "$" : "U$S"}
+                  </span>
+                  <input
+                    type="text" inputMode="numeric"
+                    value={price ? Number(price).toLocaleString("es-AR") : ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\./g, "").replace(/[^0-9]/g, "");
+                      setPrice(raw);
+                    }}
+                    placeholder="0"
+                    style={{
+                      flex: 1, background: "transparent", border: "none", outline: "none",
+                      fontSize: "24px", fontWeight: 700, color: C.slate900,
+                      fontFamily: "inherit", letterSpacing: "-0.5px",
+                    }}
+                  />
+                </div>
+
+                {/* Vehicle price reference */}
+                {isVehicle && vehiclePriceRef && (
+                  <div style={{
+                    marginTop: "12px", padding: "12px 14px",
+                    background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+                    borderRadius: "10px", border: "1px solid #bbf7d0",
+                  }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#15803d", marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>Referencia de mercado</div>
+                    <div style={{ fontSize: "13px", color: "#166534", lineHeight: 1.5 }}>
+                      {attrs.brand && attrs.model ? `${attrs.brand} ${attrs.model}` : "Este modelo"}{attrs.year ? ` ${attrs.year}` : ""} · <strong>U$S {vehiclePriceRef.min.toLocaleString("es-AR")} – {vehiclePriceRef.max.toLocaleString("es-AR")}</strong>
+                    </div>
+                    {!price && (
+                      <button type="button" onClick={() => { setCurrency("USD"); setPrice(String(vehiclePriceRef.avg)); }} style={{
+                        marginTop: "8px", padding: "5px 12px", borderRadius: "6px",
+                        background: "#16a34a", color: "#fff", border: "none",
+                        fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                      }}>
+                        Usar precio sugerido U$S {vehiclePriceRef.avg.toLocaleString("es-AR")}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Category price reference */}
+                {!isVehicle && priceData && priceData.count >= 3 && (
+                  <div style={{ marginTop: "12px", padding: "10px 14px", background: C.blue50, borderRadius: "10px", border: `1px solid ${C.blue100}` }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue, marginBottom: "3px" }}>Referencia en esta categoría</div>
+                    <div style={{ fontSize: "12px", color: C.slate600 }}>
+                      Promedio: <strong>${priceData.avg.toLocaleString("es-AR")}</strong> · Rango: ${priceData.min.toLocaleString("es-AR")} – ${priceData.max.toLocaleString("es-AR")}
+                    </div>
+                  </div>
+                )}
+
+                {/* Precio a consultar — opción prominente */}
+                <div style={{ marginTop: "14px", borderTop: `1px solid ${C.slate100}`, paddingTop: "14px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: C.slate400, textTransform: "uppercase" as const, letterSpacing: "0.5px", marginBottom: "10px" }}>
+                    ¿No querés mostrar el precio?
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPrice(price === "0" ? "" : "0")}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: "12px",
+                      padding: "12px 16px", borderRadius: "10px", cursor: "pointer",
+                      border: `1.5px solid ${price === "0" ? C.blue : C.slate200}`,
+                      background: price === "0" ? C.blue : C.white,
+                      fontFamily: "inherit", transition: "all .15s",
+                      boxShadow: price === "0" ? "0 2px 8px rgba(37,99,235,.2)" : "none",
+                    }}
+                  >
+                    <div style={{
+                      width: "20px", height: "20px", borderRadius: "50%", flexShrink: 0,
+                      border: `2px solid ${price === "0" ? "rgba(255,255,255,.5)" : C.slate300}`,
+                      background: price === "0" ? "rgba(255,255,255,.2)" : C.white,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all .12s",
+                    }}>
+                      {price === "0" && <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900 }}>✓</span>}
+                    </div>
+                    <div style={{ textAlign: "left" as const, flex: 1 }}>
+                      <div style={{ fontSize: "14px", fontWeight: 700, color: price === "0" ? "#fff" : C.slate800 }}>
+                        Precio a consultar
+                      </div>
+                      <div style={{ fontSize: "12px", color: price === "0" ? "rgba(255,255,255,.75)" : C.slate400, marginTop: "1px" }}>
+                        El comprador te pregunta por el precio
+                      </div>
+                    </div>
+                    {price === "0" && (
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,.9)", background: "rgba(255,255,255,.15)", borderRadius: "20px", padding: "3px 10px", flexShrink: 0 }}>
+                        Activo
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           {/* end left column */}
 
           {/* ── RIGHT SIDEBAR ── */}
-          {sidebarJSX}
+          <div className="new-listing-sidebar">{sidebarJSX}</div>
         </div>
       )}
 

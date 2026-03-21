@@ -155,7 +155,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
                         {l.categories.name}
                       </div>
                     )}
-                    <div style={{ fontSize: "13px", fontWeight: 800, color: l.price === 0 ? "#6366f1" : "#f97316", marginBottom: "4px" }}>
+                    <div style={{ fontSize: "13px", fontWeight: 800, color: l.price === 0 ? "#94a3b8" : "#f97316", marginBottom: "4px" }}>
                       {l.price === 0 ? "Consultar" : `${l.currency === "USD" ? "U$S" : "$"}${l.price?.toLocaleString("es-AR")}`}
                     </div>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
@@ -239,7 +239,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
                     )}
                   </div>
                 </div>
-                <div style={{ fontSize: "14px", fontWeight: 800, color: l.price === 0 ? "#6366f1" : "#f97316", flexShrink: 0 }}>
+                <div style={{ fontSize: "14px", fontWeight: 800, color: l.price === 0 ? "#94a3b8" : "#f97316", flexShrink: 0 }}>
                   {l.price === 0 ? "Consultar" : `${l.currency === "USD" ? "U$S" : "$"}${l.price?.toLocaleString("es-AR")}`}
                 </div>
               </div>

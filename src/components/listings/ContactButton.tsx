@@ -63,13 +63,16 @@ export function ContactButton({ listingId, listingTitle, sellerId, sellerName, d
         <button
           onClick={handleOpen}
           style={{
-            background: "none", border: "1.5px dashed #c7d2fe", borderRadius: "8px",
-            padding: "8px 14px", cursor: "pointer", fontFamily: "inherit",
-            display: "inline-flex", alignItems: "center", gap: "7px",
-            color: "#6366f1", fontWeight: 700, fontSize: "15px",
+            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+            border: "none", borderRadius: "10px",
+            padding: "14px 20px", cursor: "pointer", fontFamily: "inherit",
+            display: "inline-flex", alignItems: "center", gap: "8px",
+            color: "#fff", fontWeight: 800, fontSize: "17px",
+            boxShadow: "0 4px 16px rgba(99,102,241,.4)",
+            width: "100%", justifyContent: "center",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
           {triggerLabel ?? "Consultar precio"}
