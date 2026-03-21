@@ -1,29 +1,31 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import PinIcon from "@/components/ui/PinIcon";
+import { MostVisitedCarousel } from "./MostVisitedCarousel";
 
-async function getNearbyListing() {
+async function getMostVisited() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("listings")
-    .select("id, title, price, currency, condition, neighborhood, listing_images(url, position)")
+    .select("id, title, price, currency, neighborhood, view_count, listing_images(url, position)")
     .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-  if (!data) return null;
-  const imgs = data.listing_images as { url: string; position: number }[] | null;
-  const cover = imgs?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null;
-  return { ...data, cover };
+    .gt("view_count", 0)
+    .order("view_count", { ascending: false })
+    .limit(6);
+  if (!data?.length) return [];
+  return data.map((l: any) => {
+    const imgs = l.listing_images as { url: string; position: number }[] | null;
+    const cover = imgs?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null;
+    return { ...l, cover };
+  });
 }
 
 export async function RightSidebar({ showPublicar = true }: { showPublicar?: boolean }) {
-  const nearby = await getNearbyListing();
+  const mostVisited = await getMostVisited();
 
   return (
     <aside style={{ display: "flex", flexDirection: "column", gap: "14px", width: "240px", flexShrink: 0 }}>
 
-      {/* Publicar con IA — solo en páginas sin hero */}
+      {/* Publicar con IA */}
       {showPublicar && (
         <div style={{
           background: "linear-gradient(160deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%)",
@@ -59,10 +61,7 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
       )}
 
       {/* Destacá tu aviso */}
-      <div style={{
-        background: "#fff", borderRadius: "14px", border: "1px solid #e2e8f0",
-        padding: "18px 16px",
-      }}>
+      <div style={{ background: "#fff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "18px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
           <span style={{ fontSize: "22px", lineHeight: 1 }}>✦</span>
           <span style={{ fontSize: "15px", fontWeight: 900, color: "#1e293b" }}>Destacá tu aviso</span>
@@ -83,40 +82,9 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
         </Link>
       </div>
 
-      {/* Cerca de vos */}
-      {nearby && (
-        <div style={{
-          background: "#fff", borderRadius: "14px", border: "1px solid #e2e8f0",
-          overflow: "hidden",
-        }}>
-          <div style={{ padding: "12px 14px 10px", display: "flex", alignItems: "center", gap: "6px", borderBottom: "1px solid #f1f5f9" }}>
-            <PinIcon size={14} />
-            <span style={{ fontSize: "13px", fontWeight: 800, color: "#1e293b" }}>Cerca de vos</span>
-          </div>
-          <Link href={`/listings/${nearby.id}`} style={{ textDecoration: "none" }}>
-            <div>
-              {nearby.cover && (
-                <img src={nearby.cover} alt="" style={{ width: "100%", height: "130px", objectFit: "cover", display: "block" }} />
-              )}
-              <div style={{ padding: "10px 14px 14px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", marginBottom: "4px", lineHeight: 1.3,
-                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                  {nearby.title}
-                </div>
-                <div style={{ fontSize: "13px", fontWeight: 800, color: "#f97316", marginBottom: "2px" }}>
-                  {nearby.currency === "USD" ? "U$S" : "$"}{nearby.price?.toLocaleString("es-AR")}
-                </div>
-                {nearby.condition && (
-                  <div style={{ fontSize: "11px", color: "#94a3b8" }}>{nearby.condition}</div>
-                )}
-                {nearby.neighborhood && (
-                  <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px", display: "flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {nearby.neighborhood}</div>
-                )}
-              </div>
-            </div>
-          </Link>
-        </div>
-      )}
+      {/* Más visitados */}
+      <MostVisitedCarousel items={mostVisited} />
+
     </aside>
   );
 }

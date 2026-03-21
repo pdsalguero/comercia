@@ -112,7 +112,7 @@ export function ListingCard({
         className="hover:-translate-y-1 hover:shadow-md"
       >
         {/* Image */}
-        <div style={{ height: "155px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
+        <div className="lc-img" style={{ height: "155px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
           {cover_image ? (
             <img src={cover_image} alt={title} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           ) : (
@@ -181,8 +181,8 @@ export function ListingCard({
         </div>
 
         {/* Content */}
-        <div style={{ padding: "12px 14px" }}>
-          <h3 style={{
+        <div className="lc-content" style={{ padding: "12px 14px" }}>
+          <h3 className="lc-title" style={{
             fontSize: "14px", fontWeight: 600, color: "#111",
             marginBottom: "6px", lineHeight: 1.35,
             overflow: "hidden", textOverflow: "ellipsis",
@@ -191,24 +191,24 @@ export function ListingCard({
             {title}
           </h3>
 
-          <div style={{ fontSize: "20px", fontWeight: 800, color: price === 0 ? "#6366f1" : "#111", marginBottom: "4px" }}>
+          <div className="lc-price" style={{ fontSize: "16px", fontWeight: 800, color: price === 0 ? "#6366f1" : "#111", marginBottom: "4px" }}>
             {price === 0 ? "Consultar" : formatPrice(price, currency)}
           </div>
 
           {hasVehicleMeta && (
-            <div style={{ fontSize: "13px", color: "#555", marginBottom: "4px" }}>
+            <div className="lc-meta" style={{ fontSize: "13px", color: "#555", marginBottom: "4px" }}>
               {[year, km ? `${Number(km).toLocaleString("es-AR")} Km` : null]
                 .filter(Boolean).join(" | ")}
             </div>
           )}
 
           {brandModelLine && (
-            <div style={{ fontSize: "12px", fontWeight: 600, color: "#3b82f6", marginBottom: "2px", textTransform: "capitalize" }}>
+            <div className="lc-meta" style={{ fontSize: "12px", fontWeight: 600, color: "#3b82f6", marginBottom: "2px", textTransform: "capitalize" }}>
               {brandModelLine}
             </div>
           )}
           {subSpec && (
-            <div style={{ fontSize: "11px", color: "#888", marginBottom: "2px" }}>
+            <div className="lc-meta" style={{ fontSize: "11px", color: "#888", marginBottom: "2px" }}>
               {String(subSpec)}
             </div>
           )}
@@ -240,7 +240,12 @@ export function ListingCard({
                     Publicado hoy
                   </span>
                 ) : (
-                  <span style={{ color: "#bbb", fontSize: "11px", lineHeight: "20px" }}>{dateLabel}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#bbb" }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span style={{ fontSize: "11px", lineHeight: "20px" }}>{dateLabel}</span>
+                  </div>
                 )
               )}
             </div>

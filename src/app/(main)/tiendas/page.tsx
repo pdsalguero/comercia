@@ -232,7 +232,7 @@ export default async function TiendasPage() {
               {/* Store cards */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                 gap: "16px",
               }}>
                 {catStores.map((store) => {

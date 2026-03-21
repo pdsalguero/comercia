@@ -470,7 +470,7 @@ function FocusSel({
   );
 }
 
-const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 9, 10];
+const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 25, 9, 26, 10];
 const SORTED_CATS = [...CATEGORY_CONFIGS].sort(
   (a, b) => {
     const ai = CAT_ORDER.indexOf(a.id);
@@ -483,6 +483,7 @@ const SLUG_BY_ID: Record<number, string> = {
   4: "clothing", 5: "home-garden", 6: "sports",
   7: "tools", 8: "books", 9: "pets", 10: "other",
   21: "phones", 22: "appliances", 23: "babies", 24: "beauty-health",
+  25: "toys", 26: "services",
 };
 
 function CategoryPicker({ value, onChange }: { value: number; onChange: (id: number) => void }) {
@@ -817,6 +818,34 @@ function StepBar({ current, formFilled }: { current: Step; formFilled?: boolean 
 }
 
 // ════════════════════════════════════════════════════════════════
+// IMAGE RESIZE UTILITY
+// ════════════════════════════════════════════════════════════════
+function resizeImage(file: File, maxDim: number, quality: number): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { width, height } = img;
+      // Skip if already small enough
+      if (width <= maxDim && height <= maxDim) { resolve(file); return; }
+      const ratio = Math.min(maxDim / width, maxDim / height);
+      const canvas = document.createElement("canvas");
+      canvas.width  = Math.round(width  * ratio);
+      canvas.height = Math.round(height * ratio);
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) { resolve(file); return; }
+        resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+      }, "image/jpeg", quality);
+    };
+    img.onerror = () => resolve(file);
+    img.src = url;
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
 // MAIN
 // ════════════════════════════════════════════════════════════════
 export default function NewListingPage() {
@@ -890,13 +919,15 @@ export default function NewListingPage() {
 
   // ── Photos ──────────────────────────────────────────────────
   const addPhotos = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       const valid = files.filter((f) => f.type.startsWith("image/"));
       const toAdd = valid.slice(0, 8 - photos.length);
       if (!toAdd.length) return;
-      const allPhotos = [...photos, ...toAdd];
+      // Resize to 1600px / 85% for storage — runs in parallel
+      const resized = await Promise.all(toAdd.map((f) => resizeImage(f, 1600, 0.85)));
+      const allPhotos = [...photos, ...resized];
       setPhotos(allPhotos);
-      toAdd.forEach((f) => setPreviews((p) => [...p, URL.createObjectURL(f)]));
+      resized.forEach((f) => setPreviews((p) => [...p, URL.createObjectURL(f)]));
       analyzePhotos(allPhotos);
     },
     [photos],
@@ -978,8 +1009,10 @@ export default function NewListingPage() {
     setAnalyzing(true);
     setError(null);
     try {
+      // Resize to 1024px / 80% for AI — faster and cheaper API calls
+      const aiFiles = await Promise.all(files.map((f) => resizeImage(f, 1024, 0.8)));
       const fd = new FormData();
-      files.forEach((f) => fd.append("photos", f));
+      aiFiles.forEach((f) => fd.append("photos", f));
       const res = await fetch("/api/ai/analyze-photo", {
         method: "POST",
         body: fd,
@@ -2519,103 +2552,99 @@ export default function NewListingPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "16px" }}>
-            {/* Básico */}
-            <div style={{
-              background: C.white, border: `1.5px solid ${C.slate200}`,
-              borderRadius: "14px", padding: "24px 16px", textAlign: "center",
-              boxShadow: "0 2px 10px rgba(15,23,42,.06)",
-            }}>
-              <div style={{ fontSize: "28px", marginBottom: "8px" }}>⭐</div>
-              <div style={{ fontWeight: 800, fontSize: "15px", color: C.slate900, marginBottom: "4px" }}>Básico</div>
-              <div style={{ fontWeight: 900, fontSize: "22px", color: C.blue, marginBottom: "12px" }}>$1.500</div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", fontSize: "12px", color: C.slate600, lineHeight: 1.8 }}>
-                <li>✓ Destacado 7 días</li>
-                <li>✓ Aparece primero en búsquedas</li>
-                <li>✓ Badge "Destacado"</li>
-              </ul>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (doneId) await fetch(`/api/listings/${doneId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ featured_level: "bronze" }) });
-                  setStep("done");
-                }}
+            {/* Estándar (bronze) */}
+            {[
+              {
+                key: "bronze", badge: "⭐ ESTÁNDAR", name: "Estándar", price: "1.500",
+                color: "#f97316", colorLight: "#fff7ed", colorBorder: "#fed7aa",
+                gradient: "linear-gradient(135deg,#f97316,#fb923c)",
+                shadow: "0 4px 24px rgba(249,115,22,0.18)",
+                features: ["Aparece antes que los gratuitos","Badge ⭐ Estándar en tu publicación","Borde naranja destacado","Vigencia 7 días"],
+                cta: "Activar Estándar",
+              },
+              {
+                key: "silver", badge: "🚀 DESTACADO", name: "Destacado", price: "3.500",
+                color: "#6366f1", colorLight: "#eef2ff", colorBorder: "#c7d2fe",
+                gradient: "linear-gradient(135deg,#6366f1,#818cf8)",
+                shadow: "0 4px 24px rgba(99,102,241,0.22)",
+                features: ["Todo lo de Estándar","Badge 🚀 Destacado en tu publicación","Borde violeta llamativo","Posición preferencial en la categoría","Vigencia 15 días"],
+                cta: "Activar Destacado",
+                popular: true,
+              },
+              {
+                key: "gold", badge: "👑 PREMIUM", name: "Premium", price: "6.000",
+                color: "#d97706", colorLight: "#fffbeb", colorBorder: "#fde68a",
+                gradient: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+                shadow: "0 4px 24px rgba(251,191,36,0.28)",
+                features: ["Todo lo de Destacado","Badge 👑 Premium en tu publicación","Borde dorado exclusivo","Aparece en la sección Premium de la home","Primero en cualquier categoría","Vigencia 30 días"],
+                cta: "Activar Premium",
+              },
+            ].map((plan) => (
+              <div
+                key={plan.key}
                 style={{
-                  width: "100%", background: C.blue, color: C.white,
-                  border: "none", borderRadius: "8px", padding: "10px",
-                  fontWeight: 700, fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
+                  background: "#fff", borderRadius: "16px",
+                  border: `2px solid ${plan.colorBorder}`,
+                  boxShadow: plan.shadow,
+                  overflow: "hidden", position: "relative",
                 }}
               >
-                Probar Básico [TEST]
-              </button>
-            </div>
-
-            {/* Destacado */}
-            <div style={{
-              background: C.blue, border: `1.5px solid ${C.blue}`,
-              borderRadius: "14px", padding: "24px 16px", textAlign: "center",
-              boxShadow: "0 4px 20px rgba(37,99,235,.3)",
-              position: "relative",
-            }}>
-              <div style={{
-                position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)",
-                background: "#f59e0b", color: "#fff", fontSize: "11px", fontWeight: 800,
-                padding: "3px 12px", borderRadius: "20px", whiteSpace: "nowrap" as const,
-              }}>
-                MÁS POPULAR
+                {plan.popular && (
+                  <div style={{
+                    position: "absolute", top: "-1px", left: "50%", transform: "translateX(-50%)",
+                    background: plan.gradient, color: "#fff", fontSize: "10px", fontWeight: 800,
+                    padding: "3px 12px", borderRadius: "0 0 8px 8px", whiteSpace: "nowrap" as const,
+                  }}>
+                    MÁS ELEGIDO
+                  </div>
+                )}
+                {/* Header */}
+                <div style={{ background: plan.colorLight, padding: "16px 16px 12px", borderBottom: `1px solid ${plan.colorBorder}` }}>
+                  <div style={{
+                    display: "inline-block", background: plan.gradient, color: "#fff",
+                    borderRadius: "6px", padding: "3px 9px", fontSize: "11px", fontWeight: 800, marginBottom: "10px",
+                  }}>
+                    {plan.badge}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <div style={{ fontSize: "15px", fontWeight: 800, color: "#111" }}>{plan.name}</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
+                      <span style={{ fontSize: "11px", color: "#888" }}>$</span>
+                      <span style={{ fontSize: "22px", fontWeight: 900, color: plan.color, lineHeight: 1 }}>{plan.price}</span>
+                      <span style={{ fontSize: "10px", color: "#aaa" }}>ARS</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Features */}
+                <div style={{ padding: "12px 16px" }}>
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {plan.features.map(f => (
+                      <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "6px", fontSize: "11px", color: "#444" }}>
+                        <span style={{ color: plan.color, fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {/* CTA */}
+                <div style={{ padding: "0 16px 16px" }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (doneId) await fetch(`/api/listings/${doneId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ featured_level: plan.key }) });
+                      setStep("done");
+                    }}
+                    style={{
+                      width: "100%", background: plan.gradient, color: "#fff",
+                      border: "none", borderRadius: "10px", padding: "12px",
+                      fontWeight: 700, fontSize: "13px", cursor: "pointer",
+                      fontFamily: "inherit", boxShadow: plan.shadow,
+                    }}
+                  >
+                    {plan.cta}
+                  </button>
+                </div>
               </div>
-              <div style={{ fontSize: "28px", marginBottom: "8px" }}>🚀</div>
-              <div style={{ fontWeight: 800, fontSize: "15px", color: "#fff", marginBottom: "4px" }}>Destacado</div>
-              <div style={{ fontWeight: 900, fontSize: "22px", color: "#fff", marginBottom: "12px" }}>$3.500</div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", fontSize: "12px", color: "rgba(255,255,255,.85)", lineHeight: 1.8 }}>
-                <li>✓ Destacado 15 días</li>
-                <li>✓ Posición premium en búsquedas</li>
-                <li>✓ Badge "Super Destacado"</li>
-              </ul>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (doneId) await fetch(`/api/listings/${doneId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ featured_level: "gold" }) });
-                  setStep("done");
-                }}
-                style={{
-                  width: "100%", background: "#fff", color: C.blue,
-                  border: "none", borderRadius: "8px", padding: "10px",
-                  fontWeight: 700, fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                Probar Destacado [TEST]
-              </button>
-            </div>
-
-            {/* Premium */}
-            <div style={{
-              background: C.white, border: `1.5px solid ${C.slate200}`,
-              borderRadius: "14px", padding: "24px 16px", textAlign: "center",
-              boxShadow: "0 2px 10px rgba(15,23,42,.06)",
-            }}>
-              <div style={{ fontSize: "28px", marginBottom: "8px" }}>👑</div>
-              <div style={{ fontWeight: 800, fontSize: "15px", color: C.slate900, marginBottom: "4px" }}>Premium</div>
-              <div style={{ fontWeight: 900, fontSize: "22px", color: C.blue, marginBottom: "12px" }}>$6.000</div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", fontSize: "12px", color: C.slate600, lineHeight: 1.8 }}>
-                <li>✓ Destacado 30 días</li>
-                <li>✓ Primer resultado garantizado</li>
-                <li>✓ Badge "Premium" + foto grande</li>
-              </ul>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (doneId) await fetch(`/api/listings/${doneId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ featured_level: "gold" }) });
-                  setStep("done");
-                }}
-                style={{
-                  width: "100%", background: C.blue, color: C.white,
-                  border: "none", borderRadius: "8px", padding: "10px",
-                  fontWeight: 700, fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                Probar Premium [TEST]
-              </button>
-            </div>
+            ))}
           </div>
 
           <div style={{ textAlign: "center" }}>

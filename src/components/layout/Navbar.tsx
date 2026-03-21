@@ -100,6 +100,7 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
     <header style={{ position: "sticky", top: 0, zIndex: 50 }}>
       {/* Main bar — white */}
       <div
+        className="navbar-bar"
         style={{
           background: "#fff",
           borderBottom: "1px solid #e2e8f0",
@@ -189,15 +190,12 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
               className="hover:text-indigo-600 transition-colors">
               Tiendas
             </Link>
-            <Link href="/listings?view=sellers" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
-              className="hover:text-indigo-600 transition-colors">
-              Vendedores
-            </Link>
           </div>
 
           {/* Search bar — center */}
           <div
             ref={searchRef}
+            className="navbar-search"
             style={{
               flex: 1,
               maxWidth: "480px",
@@ -468,7 +466,6 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
           <div style={{ display: "flex", gap: "16px" }}>
             <Link href="/listings" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Avisos</Link>
             <Link href="/tiendas" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Tiendas</Link>
-            <Link href="/listings?view=sellers" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Vendedores</Link>
           </div>
           <Link href="/listings/new" onClick={() => setMenuOpen(false)}>
             <button

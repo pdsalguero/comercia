@@ -5,10 +5,12 @@ import { GallerySection } from "./GallerySection";
 import { DetailTabs } from "./DetailTabs";
 import { getCategoryConfig } from "@/lib/category-config";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
+import { ShareButton } from "@/components/listings/ShareButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
 import { ViewTracker } from "@/components/listings/ViewTracker";
+import { StarRating } from "@/components/ui/StarRating";
 
 const CONDITION_LABELS: Record<string, string> = {
   new: "Nuevo / A estrenar",
@@ -142,7 +144,17 @@ async function getListing(id: string) {
     .eq("id", data.user_id)
     .single();
 
-  return { ...data, profile: profile ?? null };
+  const { data: reviewStats } = await supabase
+    .from("reviews")
+    .select("rating")
+    .eq("seller_id", data.user_id);
+
+  const reviewCount = reviewStats?.length ?? 0;
+  const avgRating = reviewCount > 0
+    ? Math.round((reviewStats!.reduce((s, r) => s + r.rating, 0) / reviewCount) * 10) / 10
+    : 0;
+
+  return { ...data, profile: profile ?? null, reviewCount, avgRating };
 }
 
 export async function generateMetadata(
@@ -181,6 +193,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const listing = await getListing(id);
   if (!listing) notFound();
 
+  const supabase = await createClient();
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const isOwner = currentUser?.id === (listing as any).user_id;
+
   const attrs0 = (listing.attributes as Record<string, any>) ?? {};
   const { items: related, label: relatedLabel } = await getRelated(
     id, listing.category_id, attrs0.brand, attrs0.model
@@ -194,6 +210,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const currency = (listing as any).currency ?? "ARS";
   const profile = (listing as any).profile as { full_name: string | null; avatar_url: string | null; created_at: string | null; is_store?: boolean; store_name?: string | null; store_slug?: string | null; store_type?: string | null; store_logo_url?: string | null; store_verified?: boolean } | null;
   const userId = (listing as any).user_id as string;
+  const reviewCount = (listing as any).reviewCount as number;
+  const avgRating = (listing as any).avgRating as number;
   const currencySymbol = currency === "USD" ? "U$D" : "$";
 
   const vehicleSpecs = [
@@ -400,6 +418,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </>
               )}
 
+              {isRealEstate && attrs.sub_category && (
+                <>
+                  {sep}
+                  <Link href={`/category/${catSlug}?type=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
+                    {RE_SUBCAT[attrs.sub_category] ?? String(attrs.sub_category)}
+                  </Link>
+                </>
+              )}
+
               {!isVehicle && !isRealEstate && catConfig && attrs.sub_category && (() => {
                 const TYPE_PARAM: Record<number, string> = {
                   4: "clothing_type", 5: "hg_type", 6: "sport_type", 7: "tool_type",
@@ -564,8 +591,16 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 <PinIcon size={12} /> {listing.neighborhood ?? "San Juan"}
               </div>
 
-              {/* Guardar favorito */}
-              <FavoriteButton listingId={listing.id} variant="detail" />
+              {/* Favorito + Compartir */}
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <FavoriteButton listingId={listing.id} variant="detail" />
+                <ShareButton
+                  listingId={listing.id}
+                  title={listing.title}
+                  price={listing.price}
+                  currency={listing.currency}
+                />
+              </div>
             </div>
 
             {/* Seller card */}
@@ -608,6 +643,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       : "Vendedor particular"}
                     {!profile?.is_store && profile?.created_at && ` · Miembro desde ${memberSince(profile.created_at)}`}
                   </div>
+                  {reviewCount > 0 && (
+                    <div style={{ marginTop: "4px" }}>
+                      <StarRating rating={avgRating} count={reviewCount} size={12} />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -665,27 +705,29 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </Link>
             </div>
 
-            {/* Destacar card */}
-            <div style={{ background: "#fff", borderRadius: "8px", padding: "18px 20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "#1e293b", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ color: "#f59e0b" }}>✦</span> Destacá tu aviso
+            {/* Destacar card — only shown to the listing owner */}
+            {isOwner && (
+              <div style={{ background: "#fff", borderRadius: "8px", padding: "18px 20px", boxShadow: "0 1px 2px rgba(0,0,0,.08)" }}>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#1e293b", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ color: "#f59e0b" }}>✦</span> Destacá tu aviso
+                </div>
+                <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
+                  Aparecé primero y recibí hasta <strong>5×</strong> más consultas
+                </p>
+                <Link
+                  href={`/upgrade?listing_id=${listing.id}`}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                    width: "100%", padding: "12px",
+                    background: "#f59e0b", color: "#fff",
+                    borderRadius: "8px", fontSize: "14px", fontWeight: 700,
+                    textDecoration: "none", boxSizing: "border-box",
+                  }}
+                >
+                  🏷️ Ver planes
+                </Link>
               </div>
-              <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
-                Aparecé primero y recibí hasta <strong>5×</strong> más consultas
-              </p>
-              <Link
-                href="/planes"
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                  width: "100%", padding: "12px",
-                  background: "#f59e0b", color: "#fff",
-                  borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-                  textDecoration: "none", boxSizing: "border-box",
-                }}
-              >
-                🏷️ Ver planes
-              </Link>
-            </div>
+            )}
           </div>
 
         </div>
@@ -714,6 +756,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   <Link
                     key={r.id}
                     href={`/listings/${r.id}`}
+                    className="related-card"
                     style={{ textDecoration: "none", flexShrink: 0, width: "220px" }}
                   >
                     <div style={{

@@ -100,8 +100,26 @@ export default async function EditListingPage({ params, searchParams }: { params
 
       {/* Plan aplicado */}
       {upgraded && listing.featured_level && (
-        <div style={{ background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "12px 18px", fontSize: "13px", color: "#16a34a", fontWeight: 600 }}>
-          ✅ Plan activado correctamente. Tu aviso ya está destacado.
+        <div style={{
+          background: "linear-gradient(135deg,#f0fdf4,#dcfce7)",
+          border: "2px solid #86efac", borderRadius: "14px",
+          padding: "20px 24px",
+          display: "flex", alignItems: "center", gap: "16px",
+        }}>
+          <div style={{
+            width: "48px", height: "48px", borderRadius: "50%", flexShrink: 0,
+            background: "linear-gradient(135deg,#22c55e,#16a34a)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "22px",
+          }}>✅</div>
+          <div>
+            <div style={{ fontSize: "16px", fontWeight: 800, color: "#15803d", marginBottom: "2px" }}>
+              ¡Plan activado correctamente!
+            </div>
+            <div style={{ fontSize: "13px", color: "#16a34a", fontWeight: 500 }}>
+              Tu aviso ya está destacado y recibirá mayor visibilidad.
+            </div>
+          </div>
         </div>
       )}
 

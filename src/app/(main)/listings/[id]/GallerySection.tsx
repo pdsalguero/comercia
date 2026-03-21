@@ -12,7 +12,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
 
   if (images.length === 0) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "420px", background: "#f5f5f5", borderRadius: "8px" }}>
+      <div className="gallery-main" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "420px", background: "#f5f5f5", borderRadius: "8px" }}>
         <span style={{ fontSize: "72px" }}>📦</span>
       </div>
     );
@@ -25,7 +25,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
 
         {/* Vertical thumbnail strip */}
         {images.length > 1 && (
-          <div style={{
+          <div className="gallery-thumbs" style={{
             display: "flex", flexDirection: "column", gap: "6px",
             width: "68px", flexShrink: 0,
             maxHeight: "420px", overflowY: "auto",
@@ -51,6 +51,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
 
         {/* Main image */}
         <div
+          className="gallery-main"
           style={{
             flex: 1, height: "420px", background: "#f8f9fa",
             borderRadius: "8px", position: "relative",

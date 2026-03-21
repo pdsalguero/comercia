@@ -6,6 +6,7 @@ import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { RE_LOCATIONS, ALL_RE_ZONES } from "@/lib/re-locations";
 import { OrderSelect } from "@/components/ui/OrderSelect";
+import { SearchWithSuggestions } from "@/components/ui/SearchWithSuggestions";
 import type { Metadata } from "next";
 
 const VEHICLE_BRANDS = [
@@ -189,6 +190,22 @@ const PETS_TYPES = [
   { value: "otro",          label: "Otro" },
 ];
 
+const OTHER_TYPES = [
+  { value: "arte-antiguedades",  label: "Arte y Antigüedades" },
+  { value: "coleccionables",     label: "Coleccionables" },
+  { value: "instrumentos",       label: "Instrumentos Musicales" },
+  { value: "joyeria-relojes",    label: "Joyería y Relojes" },
+  { value: "videojuegos",        label: "Videojuegos y Consolas" },
+  { value: "industria-comercio", label: "Industria y Comercio" },
+  { value: "oficina-libreria",   label: "Oficina y Librería" },
+  { value: "alimentos-bebidas",  label: "Alimentos y Bebidas" },
+  { value: "construccion",       label: "Materiales de Construcción" },
+  { value: "campo-agro",         label: "Campo y Agro" },
+  { value: "souvenirs-fiestas",  label: "Souvenirs y Fiestas" },
+  { value: "viajes-turismo",     label: "Viajes y Turismo" },
+  { value: "otro",               label: "Otro" },
+];
+
 const SERVICES_TYPES = [
   { value: "asesoramiento",  label: "Asesoramiento Legal y Contable" },
   { value: "belleza-serv",   label: "Belleza y Estética" },
@@ -329,6 +346,8 @@ type SP = {
   pet_type?: string; pet_province?: string;
   // services
   serv_type?: string; serv_province?: string;
+  // other
+  other_type?: string; other_condition?: string;
   // price
   price_min?: string; price_max?: string;
   // view
@@ -381,6 +400,7 @@ export default async function CategoryPage({
   const isBooks = slug === "books";
   const isPets = slug === "pets";
   const isServices = slug === "services";
+  const isOther = slug === "other";
 
   const supabase = await createClient();
 
@@ -538,6 +558,12 @@ export default async function CategoryPage({
     if (sp.serv_province) query = query.ilike("neighborhood", `%${sp.serv_province}%`);
   }
 
+  // Other-specific filters
+  if (isOther) {
+    if (sp.other_type) query = query.eq("attributes->>sub_category" as any, sp.other_type);
+    if (sp.other_condition) query = query.eq("condition", sp.other_condition);
+  }
+
   // Real-estate-specific JSON filters
   if (isRealEstate) {
     if (sp.re_type) query = query.eq("attributes->>sub_category" as any, sp.re_type);
@@ -669,9 +695,11 @@ export default async function CategoryPage({
   let petProvinceCounts: Record<string, number> = {};
   let servTypeCounts: Record<string, number> = {};
   let servProvinceCounts: Record<string, number> = {};
+  let otherTypeCounts: Record<string, number> = {};
+  let otherConditionCounts: Record<string, number> = {};
   let vProvinceCounts: Record<string, number> = {};
   let vZoneCounts: Record<string, number> = {};
-  if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices) {
+  if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices || isOther) {
     const { data: all } = await supabase
       .from("listings")
       .select("attributes, condition, neighborhood")
@@ -881,6 +909,11 @@ export default async function CategoryPage({
           if (prov) servProvinceCounts[prov] = (servProvinceCounts[prov] ?? 0) + 1;
         }
       }
+      if (isOther) {
+        if (t) otherTypeCounts[t] = (otherTypeCounts[t] ?? 0) + 1;
+        const cond = (row as any).condition;
+        if (cond) otherConditionCounts[cond] = (otherConditionCounts[cond] ?? 0) + 1;
+      }
     }
   }
 
@@ -928,6 +961,8 @@ export default async function CategoryPage({
       pet_type: sp.pet_type, pet_province: sp.pet_province,
       // services
       serv_type: sp.serv_type, serv_province: sp.serv_province,
+      // other
+      other_type: sp.other_type, other_condition: sp.other_condition,
       // price
       price_min: sp.price_min, price_max: sp.price_max,
       // view
@@ -948,15 +983,9 @@ export default async function CategoryPage({
   }
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
+    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px 0" }}>
     <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
 
-      {/* Breadcrumb — fuera del flex principal */}
-      <div style={{ fontSize: "12px", color: "#aaa", padding: "8px 4px 10px" }}>
-        <Link href="/" style={{ color: "#aaa", textDecoration: "none" }}>Inicio</Link>
-        {" › "}
-        <Link href={`/category/${slug}`} style={{ color: "#555", textDecoration: "none" }}>{meta.name}</Link>
-      </div>
 
       <div className="listing-layout">
 
@@ -2426,23 +2455,27 @@ export default async function CategoryPage({
                     ))}
                   </select>
                 </div>
-                {sp.re_province && RE_LOCATIONS[sp.re_province] && (
-                  <div>
-                    <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.4px" }}>
-                      Localidad
+                {(() => {
+                  const provKey = sp.re_province ?? "san-juan";
+                  const zones = RE_LOCATIONS[provKey]?.zones ?? RE_LOCATIONS["san-juan"].zones;
+                  return (
+                    <div>
+                      <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.4px" }}>
+                        Localidad
+                      </div>
+                      <select
+                        name="re_zone"
+                        defaultValue={sp.re_zone ?? ""}
+                        style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", background: "#fff" }}
+                      >
+                        <option value="">Todas las localidades</option>
+                        {zones.map(z => (
+                          <option key={z.value} value={z.value}>{z.label}</option>
+                        ))}
+                      </select>
                     </div>
-                    <select
-                      name="re_zone"
-                      defaultValue={sp.re_zone ?? ""}
-                      style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", background: "#fff" }}
-                    >
-                      <option value="">Todas las localidades</option>
-                      {RE_LOCATIONS[sp.re_province].zones.map(z => (
-                        <option key={z.value} value={z.value}>{z.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                  );
+                })()}
                 <button type="submit" style={{ width: "100%", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
                   Aplicar
                 </button>
@@ -2652,6 +2685,72 @@ export default async function CategoryPage({
             </div>
           )}
 
+          {/* Subcategoría (other) */}
+          {isOther && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Subcategoría
+              </div>
+              {OTHER_TYPES.filter(t => (otherTypeCounts[t.value] ?? 0) > 0 || sp.other_type === t.value).map((t) => {
+                const active = sp.other_type === t.value;
+                return (
+                  <Link key={t.value} href={buildUrl({ other_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{t.label}</span>
+                      {(otherTypeCounts[t.value] ?? 0) > 0 && (
+                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                          {otherTypeCounts[t.value]}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Condición (other) */}
+          {isOther && Object.keys(otherConditionCounts).length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Condición
+              </div>
+              {[
+                { value: "new", label: "Nuevo" },
+                { value: "like_new", label: "Como nuevo" },
+                { value: "very_good", label: "Muy bueno" },
+                { value: "good", label: "Bueno" },
+                { value: "fair", label: "Regular" },
+              ].filter(c => otherConditionCounts[c.value] > 0).map(c => {
+                const active = sp.other_condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ other_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{c.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        {otherConditionCounts[c.value]}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
           {/* Price */}
           <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
             {Object.entries(sp).map(([k, v]) =>
@@ -2712,20 +2811,13 @@ export default async function CategoryPage({
 
             {/* Controls */}
             <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
-              <form method="GET" action={`/category/${slug}`} style={{ display: "flex", gap: "6px", flex: 1, minWidth: 0 }}>
-                {Object.entries(sp).map(([k, v]) =>
-                  v && k !== "q" && k !== "order" ? <input key={k} type="hidden" name={k} value={v} /> : null
-                )}
-                <input name="q" defaultValue={sp.q} placeholder="Buscar en esta categoría..."
-                  style={{
-                    border: "1.5px solid #e2e8f0", borderRadius: "8px",
-                    padding: "9px 14px", fontSize: "14px", outline: "none", flex: 1, minWidth: 0,
-                  }} />
-                <button type="submit" style={{
-                  background: "#2563eb", color: "#fff", border: "none", borderRadius: "8px",
-                  padding: "9px 18px", fontSize: "14px", fontWeight: 700, cursor: "pointer", flexShrink: 0,
-                }}>Buscar</button>
-              </form>
+              <SearchWithSuggestions
+                placeholder="Buscar en esta categoría..."
+                initialValue={sp.q}
+                action={`/category/${slug}`}
+                extraParams={Object.fromEntries(Object.entries(sp).filter(([k, v]) => v !== undefined && k !== "q" && k !== "order") as [string, string][])}
+                style={{ flex: 1, minWidth: 0 }}
+              />
 
               <OrderSelect
                 value={sp.order ?? ""}
@@ -2812,6 +2904,8 @@ export default async function CategoryPage({
               {isPets && sp.pet_province && <Chip label={sp.pet_province} href={buildUrl({ pet_province: undefined })} />}
               {isServices && sp.serv_type && <Chip label={`Rubro: ${SERVICES_TYPES.find(t => t.value === sp.serv_type)?.label ?? sp.serv_type}`} href={buildUrl({ serv_type: undefined })} />}
               {isServices && sp.serv_province && <Chip label={sp.serv_province} href={buildUrl({ serv_province: undefined })} />}
+              {isOther && sp.other_type && <Chip label={OTHER_TYPES.find(t => t.value === sp.other_type)?.label ?? sp.other_type} href={buildUrl({ other_type: undefined })} />}
+              {isOther && sp.other_condition && <Chip label={[{value:"new",label:"Nuevo"},{value:"like_new",label:"Como nuevo"},{value:"very_good",label:"Muy bueno"},{value:"good",label:"Bueno"},{value:"fair",label:"Regular"}].find(c=>c.value===sp.other_condition)?.label ?? sp.other_condition} href={buildUrl({ other_condition: undefined })} />}
               {isPhones && sp.phone_type && <Chip label={`Tipo: ${PHONE_TYPES.find(t => t.value === sp.phone_type)?.label ?? sp.phone_type}`} href={buildUrl({ phone_type: undefined })} />}
               {isPhones && sp.phone_brand && <Chip label={`Marca: ${sp.phone_brand.charAt(0).toUpperCase() + sp.phone_brand.slice(1)}`} href={buildUrl({ phone_brand: undefined })} />}
               {isPhones && sp.phone_storage && <Chip label={sp.phone_storage === "1tb" ? "1 TB" : sp.phone_storage.replace("gb", " GB").replace("tb", " TB")} href={buildUrl({ phone_storage: undefined })} />}

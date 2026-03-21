@@ -145,7 +145,7 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
   ) : null;
 
   return (
-    <div style={{
+    <div className="hero-search-card" style={{
       flex: 1, margin: "auto 28px",
       background: "rgba(255,255,255,0.97)",
       borderRadius: "14px", padding: "20px 24px",
@@ -154,8 +154,8 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
       alignSelf: "center",
       zIndex: 1,
     }}>
-      <div style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", marginBottom: "12px", lineHeight: 1.2, display: "flex", alignItems: "center", gap: "8px" }}>
-        <span style={{
+      <div className="hero-title" style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", marginBottom: "12px", lineHeight: 1.2, display: "flex", alignItems: "center", gap: "8px" }}>
+        <span className="hero-title-icon" style={{
           display: "inline-flex", alignItems: "center", justifyContent: "center",
           width: "28px", height: "28px", borderRadius: "8px", flexShrink: 0,
           background: "linear-gradient(135deg, #6366f1, #3b82f6)",
@@ -209,7 +209,7 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
         </div>
 
         {/* Province select */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
+        <div className="hero-province-select" style={{ position: "relative", flexShrink: 0 }}>
           <select value={province} onChange={(e) => setProvince(e.target.value)} style={{
             appearance: "none", WebkitAppearance: "none",
             border: "1.5px solid #e2e8f0", borderRadius: "10px",
@@ -234,24 +234,26 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
 
         <button
           onClick={handleSearch}
+          className="hero-search-btn"
           style={{
             background: "#f97316", color: "#fff", border: "none",
             borderRadius: "10px", padding: "0 20px", height: "44px",
             fontWeight: 700, fontSize: "14px", cursor: "pointer",
             display: "flex", alignItems: "center", gap: "6px",
             boxShadow: "0 4px 14px rgba(249,115,22,0.35)", whiteSpace: "nowrap",
+            flexShrink: 0,
           }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          Buscar
+          <span className="hero-search-btn-text">Buscar</span>
         </button>
       </div>
 
       {/* Top categories pills */}
       {topSubcats.length > 0 && (
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        <div className="hero-pills" style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           {topSubcats.map((cat) => (
             <Link
               key={cat.slug}

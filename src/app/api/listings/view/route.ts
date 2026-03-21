@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  await admin
-    .from("listings")
-    .update({ view_count: (listing.view_count ?? 0) + 1 })
-    .eq("id", listing_id);
+  await Promise.all([
+    admin.from("listings").update({ view_count: (listing.view_count ?? 0) + 1 }).eq("id", listing_id),
+    admin.from("listing_views_log").insert({ listing_id }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

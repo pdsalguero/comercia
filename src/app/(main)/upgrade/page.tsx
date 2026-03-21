@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import MercadoPagoConfig, { Preference } from "mercadopago";
 
 const PLANS = [
   {
@@ -67,29 +67,53 @@ const PLANS = [
   },
 ];
 
-async function applyPlan(listingId: string, planKey: string) {
+async function createCheckout(listingId: string, planKey: string) {
   "use server";
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase
-    .from("listings")
-    .update({ featured_level: planKey })
-    .eq("id", listingId)
-    .eq("user_id", user.id);
+  const plan = PLANS.find((p) => p.key === planKey);
+  if (!plan) redirect(`/upgrade?listing_id=${listingId}`);
 
-  revalidatePath(`/listings/${listingId}`);
-  revalidatePath("/my-listings");
-  redirect(`/dashboard/my-listings/${listingId}/edit?upgraded=1`);
+  const BASE = process.env.NEXT_PUBLIC_APP_URL!;
+  const client = new MercadoPagoConfig({
+    accessToken: process.env.MP_ACCESS_TOKEN!,
+  });
+  const prefClient = new Preference(client);
+
+  const pref = await prefClient.create({
+    body: {
+      items: [
+        {
+          id: planKey,
+          title: `Plan ${plan.name} — ComerxIA`,
+          quantity: 1,
+          unit_price: plan.price,
+          currency_id: "ARS",
+          description: plan.description,
+        },
+      ],
+      back_urls: {
+        success: `${BASE}/api/mp/callback`,
+        failure: `${BASE}/upgrade?listing_id=${listingId}&error=1`,
+        pending: `${BASE}/upgrade?listing_id=${listingId}&pending=1`,
+      },
+      auto_return: "approved",
+      external_reference: `${listingId}|${planKey}|${user.id}`,
+      notification_url: `${BASE}/api/mp/webhook`,
+    },
+  });
+
+  redirect(pref.init_point!);
 }
 
 export default async function UpgradePage({
   searchParams,
 }: {
-  searchParams: Promise<{ listing_id?: string }>;
+  searchParams: Promise<{ listing_id?: string; error?: string; pending?: string }>;
 }) {
-  const { listing_id } = await searchParams;
+  const { listing_id, error, pending } = await searchParams;
 
   // Fetch listing title if id provided
   let listingTitle: string | null = null;
@@ -122,6 +146,28 @@ export default async function UpgradePage({
         )}
       </div>
 
+      {/* Payment status banners */}
+      {error && (
+        <div style={{
+          background: "#fef2f2", border: "1.5px solid #fca5a5", borderRadius: "12px",
+          padding: "14px 20px", marginBottom: "16px",
+          display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "#b91c1c",
+        }}>
+          <span style={{ fontSize: "18px" }}>❌</span>
+          <span>El pago no fue procesado. Podés intentarlo nuevamente eligiendo un plan.</span>
+        </div>
+      )}
+      {pending && (
+        <div style={{
+          background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: "12px",
+          padding: "14px 20px", marginBottom: "16px",
+          display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "#92400e",
+        }}>
+          <span style={{ fontSize: "18px" }}>⏳</span>
+          <span>Tu pago está siendo procesado. Te avisaremos cuando se acredite y el plan se active automáticamente.</span>
+        </div>
+      )}
+
       {/* Plans grid */}
       <div style={{
         display: "grid",
@@ -131,7 +177,7 @@ export default async function UpgradePage({
       }}>
         {PLANS.map((plan) => {
           const action = listing_id
-            ? applyPlan.bind(null, listing_id, plan.key)
+            ? createCheckout.bind(null, listing_id, plan.key)
             : null;
 
           return (

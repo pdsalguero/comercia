@@ -24,7 +24,13 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 3px; }
 
-/* ── Responsive layout utilities ── */
+/* ── Layout utilities ── */
+
+.home-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px;
+}
 
 .home-grid {
   display: grid;
@@ -67,21 +73,79 @@ a { color: inherit; text-decoration: none; }
   align-items: start;
 }
 
-/* ── Tablet breakpoint: ≤1024px (hide right sidebar) ── */
+/* Mobile-only category icon bar — hidden on desktop */
+.mobile-cat-bar {
+  display: none;
+}
+
+/* ── Footer grid ── */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+/* ── Contact page grid ── */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Tablet breakpoint: ≤1024px ── */
 @media (max-width: 1024px) {
   .sidebar-right-hide {
     display: none !important;
   }
 }
 
+/* ── Extra-small: ≤480px — footer 1-col ── */
+@media (max-width: 480px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
 /* ── Mobile breakpoint: ≤768px ── */
 @media (max-width: 768px) {
+  /* Homepage layout */
+  .home-wrapper {
+    padding: 0 !important;
+  }
+
   .home-grid {
     grid-template-columns: 1fr !important;
-    grid-template-areas: "hero" "main" !important;
+    grid-template-areas: "hero" "main" "right" !important;
+    gap: 0 !important;
+  }
+
+  /* Right sidebar: full-width row on mobile */
+  .home-right-col {
+    display: block !important;
+    grid-area: right;
+    padding: 0 10px 12px;
+  }
+  .home-right-col aside {
+    width: 100% !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  .home-right-col aside > * {
+    flex: 1 1 calc(50% - 5px) !important;
+    min-width: 140px !important;
+    width: auto !important;
+  }
+
+  .home-main-content {
+    padding: 10px !important;
     gap: 12px !important;
   }
 
+  /* Sidebars & panels */
   .sidebar-hide {
     display: none !important;
   }
@@ -95,11 +159,14 @@ a { color: inherit; text-decoration: none; }
     display: none !important;
   }
 
+  /* Grids: 4-col and auto → 2-col */
   .grid-cols-4,
   .grid-cols-auto {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
 
+  /* Listing detail: stack vertically */
   .detail-grid {
     grid-template-columns: 1fr !important;
   }
@@ -108,19 +175,152 @@ a { color: inherit; text-decoration: none; }
     position: static !important;
   }
 
-  /* Reduce outer container padding on mobile */
-  .page-container {
+  /* Hero section: white, no bg image, flush edges, no clipping */
+  .hero-bg {
+    background-image: none !important;
+    min-height: auto !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    overflow: visible !important;
+  }
+
+  /* Hero search card: full width, flat, clips internal overflow */
+  .hero-search-card {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 14px 16px 16px !important;
+    background: #fff !important;
+    border-bottom: 1px solid #e8e8e8 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    flex: none !important;
+  }
+
+  /* Title: block layout so text wraps naturally, hide icon */
+  .hero-title {
+    display: block !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    margin-bottom: 10px !important;
+    color: #0f172a !important;
+    line-height: 1.3 !important;
+  }
+  .hero-title-icon { display: none !important; }
+
+  /* Hide province select on mobile — search is simpler */
+  .hero-province-select {
+    display: none !important;
+  }
+
+  /* Category pills: scroll horizontally */
+  .hero-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hero-pills::-webkit-scrollbar { display: none; }
+
+  /* Mobile category icon bar — stretches edge-to-edge */
+  .mobile-cat-bar {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 0;
+    padding: 10px 4px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+    margin-left: -10px !important;
+    margin-right: -10px !important;
+  }
+  .mobile-cat-bar::-webkit-scrollbar { display: none; }
+
+  /* Extra bottom padding so mobile FAB doesn't overlap content */
+  body { padding-bottom: 72px !important; }
+
+  /* Footer: stack to 2-col then 1-col */
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 28px !important;
+  }
+
+  /* Contact page: stack vertically */
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Search button: icon-only on mobile to save space */
+  .hero-search-btn { padding: 0 13px !important; }
+  .hero-search-btn-text { display: none !important; }
+
+  /* Featured carousel: horizontal scroll on mobile */
+  .featured-cards {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 8px !important;
+    padding-bottom: 4px;
+    margin: 0 -10px !important;
     padding-left: 10px !important;
     padding-right: 10px !important;
   }
-
-  /* Tighter grid gap on small screens */
-  .grid-cols-4 {
-    gap: 8px !important;
+  .featured-cards::-webkit-scrollbar { display: none; }
+  .featured-cards > * {
+    min-width: 160px !important;
+    max-width: 160px !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: start;
   }
 
-  .grid-cols-auto {
+  /* Compact listing cards on mobile */
+  .lc-img { height: 95px !important; }
+  .lc-content { padding: 8px 10px !important; }
+  .lc-meta { display: none !important; }
+  .lc-price { font-size: 16px !important; }
+  .lc-title { font-size: 13px !important; }
+
+  /* Navbar: reduce outer padding, hide top-bar search (it's in burger menu) */
+  .navbar-bar { padding: 0 12px !important; }
+  .navbar-search { display: none !important; }
+
+  /* Gallery: shorter main image, hide vertical thumb strip */
+  .gallery-main { height: 260px !important; }
+  .gallery-thumbs { display: none !important; }
+
+  /* Store header info row: stack on mobile */
+  .store-header-row { flex-direction: column !important; align-items: flex-start !important; }
+  .store-header-actions { width: 100% !important; }
+
+  /* Related items carousel: 160px cards */
+  .related-card { width: 160px !important; }
+
+  /* Store card banner: shorter on mobile */
+  .store-card-banner { height: 70px !important; }
+  /* Hide store carousel nav controls on mobile (cards scroll natively) */
+  .store-nav { display: none !important; }
+
+  /* Store cards: horizontal scroll on mobile */
+  .store-cards {
+    display: flex !important;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     gap: 8px !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    padding-bottom: 4px;
+    margin: 0 -10px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .store-cards::-webkit-scrollbar { display: none; }
+  .store-cards > * {
+    min-width: 148px !important;
+    max-width: 148px !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: start;
   }
 }

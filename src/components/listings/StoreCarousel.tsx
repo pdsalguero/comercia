@@ -66,30 +66,31 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
           <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>🏪 Tiendas Virtuales</span>
           <span style={{ background: "#dbeafe", color: "#1d4ed8", borderRadius: "5px", padding: "1px 7px", fontSize: "9px", fontWeight: 800 }}>NUEVO</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {/* Dot indicators */}
-          <div style={{ display: "flex", gap: "4px" }}>
-            {stores.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setCurrent(i); resetTimer(); }}
-                style={{
-                  width: i === current ? "16px" : "6px", height: "6px", borderRadius: "3px",
-                  background: i === current ? "#3b82f6" : "#cbd5e1",
-                  border: "none", cursor: "pointer", padding: 0,
-                  transition: "width 0.25s, background 0.25s",
-                }}
-              />
-            ))}
-          </div>
-          {/* Arrows */}
-          <div style={{ display: "flex", gap: "4px" }}>
-            <button onClick={prev} style={{ width: "26px", height: "26px", borderRadius: "50%", border: "1.5px solid #e2e8f0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <button onClick={next} style={{ width: "26px", height: "26px", borderRadius: "50%", border: "1.5px solid #e2e8f0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Dots + arrows — desktop only */}
+          <div className="store-nav" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex", gap: "4px" }}>
+              {stores.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setCurrent(i); resetTimer(); }}
+                  style={{
+                    width: i === current ? "16px" : "6px", height: "6px", borderRadius: "3px",
+                    background: i === current ? "#3b82f6" : "#cbd5e1",
+                    border: "none", cursor: "pointer", padding: 0,
+                    transition: "width 0.25s, background 0.25s",
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "4px" }}>
+              <button onClick={prev} style={{ width: "26px", height: "26px", borderRadius: "50%", border: "1.5px solid #e2e8f0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button onClick={next} style={{ width: "26px", height: "26px", borderRadius: "50%", border: "1.5px solid #e2e8f0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
           </div>
           <Link href="/tiendas" style={{ fontSize: "12px", color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
             Ver todas →
@@ -98,7 +99,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
       </div>
 
       {/* Cards */}
-      <div className="grid-cols-4" style={{ gap: "10px" }}>
+      <div className="grid-cols-4 store-cards" style={{ gap: "10px" }}>
         {visible.map((store, idx) => {
           const bg = store.store_banner_url
             ? undefined
@@ -112,10 +113,9 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                 cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s",
               }}>
                 {/* Image area */}
-                <div style={{
+                <div className="store-card-banner" style={{
                   height: "90px", position: "relative", overflow: "hidden",
                   background: bg,
-                  ...(store.store_banner_url ? {} : {}),
                 }}>
                   {store.store_banner_url && (
                     <img src={store.store_banner_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />

@@ -14,6 +14,8 @@ type Listing = {
   view_count?: number | null;
   listing_images?: { url: string; position: number }[];
   categories?: { name: string; slug: string } | null;
+  is_store?: boolean | null;
+  store_name?: string | null;
 };
 
 function timeAgo(dateStr: string) {
@@ -119,6 +121,29 @@ export function RecentListings({ items }: { items: Listing[] }) {
                       ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                       : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>📦</div>
                     }
+                    {l.is_store && (
+                      <div style={{
+                        position: "absolute", bottom: "6px", left: "6px",
+                        background: "rgba(255,255,255,0.92)",
+                        backdropFilter: "blur(6px)",
+                        color: "#0f172a", borderRadius: "20px", padding: "2px 7px 2px 5px",
+                        fontSize: "10px", fontWeight: 700,
+                        display: "flex", alignItems: "center", gap: "4px",
+                        boxShadow: "0 1px 6px rgba(0,0,0,0.18)",
+                      }}>
+                        <span style={{
+                          width: "15px", height: "15px", borderRadius: "50%",
+                          background: "linear-gradient(135deg,#3b82f6,#6366f1)",
+                          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                        }}>
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"/>
+                            <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
+                          </svg>
+                        </span>
+                        {l.store_name ?? "Tienda oficial"}
+                      </div>
+                    )}
                   </div>
                   {/* Info */}
                   <div style={{ padding: "8px 10px" }}>
@@ -172,7 +197,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
               }}
               className="hover:bg-slate-50"
               >
-                <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff" }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                   {img
                     ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>📦</div>
@@ -182,6 +207,15 @@ export function RecentListings({ items }: { items: Listing[] }) {
                   <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", marginBottom: "1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {l.title}
                   </div>
+                  {l.is_store && (
+                    <div style={{ fontSize: "10px", color: "#3b82f6", fontWeight: 700, marginBottom: "1px", display: "flex", alignItems: "center", gap: "3px" }}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"/>
+                        <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
+                      </svg>
+                      {l.store_name ?? "Tienda oficial"}
+                    </div>
+                  )}
                   {l.categories?.name && (
                     <div style={{ fontSize: "11px", color: "#6366f1", fontWeight: 600, marginBottom: "2px" }}>
                       {l.categories.name}

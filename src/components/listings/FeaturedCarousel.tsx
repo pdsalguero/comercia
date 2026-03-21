@@ -95,7 +95,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
       </div>
 
       {/* Cards */}
-      <div className="grid-cols-4">
+      <div className="grid-cols-4 featured-cards">
         {visible.map((l) => (
           <ListingCard
             key={l.id}
