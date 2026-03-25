@@ -124,11 +124,11 @@ export function FeaturedCarousel({ title, items, href }: Props) {
               key={i}
               onClick={() => setIndex(i)}
               style={{
-                width: i === index ? "18px" : "6px",
+                width: i === index ? "20px" : "6px",
                 height: "6px",
-                borderRadius: "3px",
+                borderRadius: i === index ? "3px" : "50%",
                 border: "none",
-                background: i === index ? "#6366f1" : "#cbd5e1",
+                background: i === index ? "#f97316" : "#cbd5e1",
                 cursor: "pointer",
                 padding: 0,
                 transition: "all 0.2s",

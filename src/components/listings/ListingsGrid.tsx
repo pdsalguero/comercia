@@ -1,0 +1,76 @@
+"use client";
+
+import { useListingsView } from "./ListingsViewContext";
+import { ListingCard } from "./ListingCard";
+import { ListingListCard } from "./ListingListCard";
+
+interface Listing {
+  id: string;
+  title: string;
+  price: number | null;
+  currency: string | null;
+  cover_image: string | null;
+  neighborhood: string | null;
+  featured_level: string | null;
+  attributes?: Record<string, string | number | boolean | null>;
+  view_count: number | null;
+  created_at: string | null;
+  is_store: boolean | null;
+  store_name: string | null;
+}
+
+interface Props {
+  featured: Listing[];
+  regular: Listing[];
+}
+
+export function ListingsGrid({ featured, regular }: Props) {
+  const { view } = useListingsView();
+
+  const renderItems = (items: Listing[], isLast = false) =>
+    view === "grid" ? (
+      <div className="grid-cols-auto">
+        {items.map((l) => (
+          <ListingCard
+            key={l.id}
+            id={l.id}
+            title={l.title}
+            price={l.price ?? 0}
+            currency={l.currency ?? "ARS"}
+            cover_image={l.cover_image}
+            neighborhood={l.neighborhood ?? undefined}
+            featured_level={(l.featured_level as any) ?? null}
+            attributes={l.attributes}
+            view_count={l.view_count}
+            created_at={l.created_at}
+            is_store={l.is_store}
+            store_name={l.store_name}
+          />
+        ))}
+      </div>
+    ) : (
+      <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+        {items.map((l, i) => (
+          <ListingListCard
+            key={l.id}
+            id={l.id}
+            title={l.title}
+            price={l.price}
+            currency={l.currency}
+            featured_level={l.featured_level}
+            cover_image={l.cover_image}
+            condition={(l.attributes?.condition as string | null) ?? null}
+            neighborhood={l.neighborhood}
+            showDivider={i < items.length - 1}
+          />
+        ))}
+      </div>
+    );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {featured.length > 0 && renderItems(featured)}
+      {regular.length > 0 && renderItems(regular)}
+    </div>
+  );
+}

@@ -65,8 +65,8 @@ CATEGORÍA 2 — VEHÍCULOS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {
   "sub_category": "auto|camioneta|moto|camion|nautica|otro",
-  "brand": "toyota|volkswagen|ford|chevrolet|renault|peugeot|fiat|honda|hyundai|kia|nissan|citroen|bmw|mercedes-benz|audi|suzuki|jeep|dodge|chery|geely|byd|otra",
-  "model": "nombre del modelo (ej: Up!, Gol, Hilux, Corolla)",
+  "brand": "toyota|volkswagen|ford|chevrolet|renault|peugeot|fiat|honda|hyundai|kia|nissan|citroen|bmw|mercedes-benz|audi|suzuki|jeep|dodge|chery|geely|byd|yamaha|kawasaki|ducati|ktm|bajaj|beta|harley_davidson|triumph|royal_enfield|kawasaki|husqvarna|benelli|cf_moto|aprilia|corven|motomel|zanella|gilera|guerrero|tvs|otra",
+  "model": "nombre exacto del modelo (autos ej: Hilux, Gol, Corolla; motos ej: FZ 25, MT-03, XTZ 125, Pulsar 200, Ninja 400)",
   "version": "versión si es legible (ej: Move Up, Comfortline, SR 4x4)",
   "patente": "SOLO si la patente es completamente legible letra por letra: transcribila EXACTAMENTE (ej: PDL187, AB123CD). Si hay CUALQUIER duda o no se ve con claridad, NO incluyas este campo.",
   "year": 0,
@@ -85,8 +85,9 @@ SOBRE EL AÑO: Siempre poné year: 0. El año real lo calcula el sistema leyendo
 No pongas el año de lanzamiento del modelo. No pongas el año que creés por el diseño.
 
 CÓMO IDENTIFICAR EL VEHÍCULO:
-- Logo en capó/parrilla/portón: VW=Volkswagen, estrella=Mercedes, hélice=BMW
-- Texto en carrocería: nombre del modelo, versión
+- Logo en capó/parrilla/portón/tanque: VW=Volkswagen, estrella=Mercedes, hélice=BMW, diapasón=Yamaha, K=Kawasaki, águila=Harley-Davidson, naranja=KTM
+- Texto en carrocería/tanque/carenado: nombre del modelo y versión (ej: "HILUX", "FZ 25", "Ninja 400", "Duke 390")
+- Para motos: sub_category siempre "moto"; identificá marca y modelo por logos y texto en el carenado
 - Patente: leé cada letra y número con cuidado, es el dato más importante
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

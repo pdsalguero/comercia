@@ -362,49 +362,60 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   };
 
   return (
-    <div style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
-      <style>{`
-        @media (max-width: 768px) {
-          .detail-grid { grid-template-columns: 1fr !important; }
-          .detail-sticky { position: static !important; }
-          .mobile-wa-bar { display: flex !important; }
-        }
-      `}</style>
+    <div className="listing-detail" style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
       {/* Mobile sticky WhatsApp */}
       <div className="mobile-wa-bar" style={{
         display: "none", position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 300,
-        padding: "10px 16px", paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+        padding: "8px 16px", paddingBottom: "calc(8px + env(safe-area-inset-bottom))",
         background: "rgba(255,255,255,0.97)", backdropFilter: "blur(10px)",
         borderTop: "1px solid #e2e8f0", boxShadow: "0 -4px 16px rgba(0,0,0,.1)",
-        gap: "10px", alignItems: "center",
+        flexDirection: "column", gap: "8px",
       }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {listing.title}
-          </div>
-          <div style={{ fontSize: "14px", fontWeight: 700, color: listing.price ? "#1a1a1a" : "#64748b" }}>
+        {/* Precio */}
+        <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+          <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Precio</span>
+          <span style={{ fontSize: "16px", fontWeight: 700, color: listing.price ? "#1a1a1a" : "#64748b", marginLeft: "6px" }}>
             {listing.price ? `${currencySymbol} ${Number(listing.price).toLocaleString("es-AR")}` : "A consultar"}
-          </div>
+          </span>
         </div>
-        {whatsappUrl ? (
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{
-            display: "flex", alignItems: "center", gap: "6px", flexShrink: 0,
-            padding: "11px 20px", background: "#25d366", color: "#fff",
-            borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-            textDecoration: "none", boxShadow: "0 4px 12px rgba(37,211,102,.4)",
-          }}>
-            <WhatsAppIcon /> Consultar
-          </a>
-        ) : (
-          <ContactButton listingId={listing.id} listingTitle={listing.title} sellerId={userId} sellerName={sellerName} />
-        )}
+        {/* Botones */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          {whatsappUrl && (
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{
+              flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+              padding: "10px 16px", background: "#25d366", color: "#fff",
+              borderRadius: "8px", fontSize: "14px", fontWeight: 700,
+              textDecoration: "none", boxShadow: "0 4px 12px rgba(37,211,102,.4)",
+            }}>
+              <WhatsAppIcon /> WhatsApp
+            </a>
+          )}
+          {listing.price ? (
+            <ContactButton
+              listingId={listing.id}
+              listingTitle={listing.title}
+              sellerId={userId}
+              sellerName={sellerName}
+            />
+          ) : (
+            <ContactButton
+              listingId={listing.id}
+              listingTitle={listing.title}
+              sellerId={userId}
+              sellerName={sellerName}
+              triggerStyle="link"
+              triggerLabel="Consultar precio"
+              defaultMessage={`Hola ${sellerName}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
+            />
+          )}
+        </div>
       </div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ViewTracker listingId={listing.id} />
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 8px", boxSizing: "border-box", width: "100%", maxWidth: "100%" }}>
 
         {/* Breadcrumb */}
         {(() => {
@@ -515,13 +526,13 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         {/* ── 2-column layout ── */}
         <div className="detail-grid">
 
-          {/* ════ LEFT COLUMN ════ */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {/* ════ GALLERY — direct child for mobile reordering ════ */}
+          <div className="detail-gallery" style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.07)" }}>
+            <GallerySection images={images} title={listing.title} />
+          </div>
 
-            {/* Gallery */}
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.07)" }}>
-              <GallerySection images={images} title={listing.title} />
-            </div>
+          {/* ════ LEFT COLUMN — description + specs + map ════ */}
+          <div className="detail-left-col">
 
             {/* Description + Specs tabs */}
             {(listing.description || specRows.length > 0 || boolTags.length > 0) && (
@@ -557,7 +568,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </div>
 
           {/* ════ RIGHT COLUMN — sticky ════ */}
-          <div className="detail-sticky" style={{ position: "sticky", top: "72px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div className="detail-sticky detail-right-col" style={{ position: "sticky", top: "72px", display: "flex", flexDirection: "column", gap: "12px" }}>
 
             {/* ── Main info card ── */}
             <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.08)" }}>
@@ -739,6 +750,24 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     sellerName={sellerName}
                   />
                 </div>
+
+                {/* Ver más productos del vendedor */}
+                <Link
+                  href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                    marginTop: "8px", padding: "9px", width: "100%", boxSizing: "border-box",
+                    border: "1.5px solid #e2e8f0", borderRadius: "8px",
+                    fontSize: "13px", fontWeight: 600, color: "#475569",
+                    textDecoration: "none", background: "#f8fafc",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                  Ver más publicaciones de {profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
+                </Link>
 
               </div>
 

@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { RightSidebar } from "@/components/layout/RightSidebar";
+import { ListingListCard } from "@/components/listings/ListingListCard";
+import { SubcategoryPills } from "@/components/ui/SubcategoryPills";
+import type { SubcatPill } from "@/components/ui/SubcategoryPills";
+import { FilterPanel } from "@/components/listings/FilterPanel";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
@@ -307,7 +310,7 @@ type Params = { slug: string };
 type SP = {
   q?: string; order?: string;
   // vehicle
-  type?: string; brand?: string; model?: string;
+  type?: string; sub_category?: string; brand?: string; model?: string;
   year_from?: string; year_to?: string;
   km_max?: string; fuel?: string; transmission?: string;
   seller_type?: string; v_province?: string; v_zone?: string;
@@ -352,6 +355,12 @@ type SP = {
   price_min?: string; price_max?: string;
   // view
   view?: string;
+  // general FilterPanel params (aliases for category-specific ones)
+  condition?: string;
+  re_sub?: string;
+  operation?: string;
+  bedrooms?: string;
+  size?: string;
 };
 
 export async function generateMetadata(
@@ -437,10 +446,13 @@ export default async function CategoryPage({
   }
   if (sp.price_min) query = query.gte("price", Number(sp.price_min));
   if (sp.price_max) query = query.lte("price", Number(sp.price_max));
+  // General condition filter (from FilterPanel)
+  if (sp.condition) query = query.eq("condition", sp.condition);
 
   // Vehicle-specific JSON filters
   if (isVehicles) {
-    if (sp.type) query = query.eq("attributes->>sub_category" as any, sp.type);
+    const vehicleType = sp.sub_category || sp.type;
+    if (vehicleType) query = query.eq("attributes->>sub_category" as any, vehicleType);
     if (sp.brand) query = query.eq("attributes->>brand" as any, sp.brand);
     if (sp.fuel) query = query.eq("attributes->>fuel" as any, sp.fuel);
     if (sp.transmission) query = query.eq("attributes->>transmission" as any, sp.transmission);
@@ -566,15 +578,18 @@ export default async function CategoryPage({
 
   // Real-estate-specific JSON filters
   if (isRealEstate) {
-    if (sp.re_type) query = query.eq("attributes->>sub_category" as any, sp.re_type);
-    if (sp.re_operation) query = query.eq("attributes->>operation" as any, sp.re_operation);
+    const reSub = sp.re_sub || sp.re_type;
+    const reOp  = sp.operation || sp.re_operation;
+    const reBed = sp.bedrooms || sp.re_bedrooms;
+    if (reSub) query = query.eq("attributes->>sub_category" as any, reSub);
+    if (reOp)  query = query.eq("attributes->>operation" as any, reOp);
     if (sp.re_zone) {
       query = query.eq("attributes->>zone" as any, sp.re_zone);
     } else if (sp.re_province && RE_LOCATIONS[sp.re_province]) {
       const provinceZones = RE_LOCATIONS[sp.re_province].zones.map(z => z.value);
       query = query.in("attributes->>zone" as any, provinceZones);
     }
-    if (sp.re_bedrooms) query = query.eq("attributes->>bedrooms" as any, sp.re_bedrooms);
+    if (reBed) query = query.eq("attributes->>bedrooms" as any, reBed);
     if (sp.re_bathrooms) query = query.eq("attributes->>bathrooms" as any, sp.re_bathrooms);
     if (sp.re_seller) query = query.eq("attributes->>seller_type" as any, sp.re_seller);
   }
@@ -626,6 +641,8 @@ export default async function CategoryPage({
       if (sp.phone_unlocked === "1" && !a.unlocked) return false;
       if (sp.phone_trade === "1" && !a.accepts_trade) return false;
     }
+    // General FilterPanel filters
+    if (sp.size && a.size !== sp.size) return false;
     return true;
   });
   const listings = filtered?.slice().sort((a: any, b: any) => {
@@ -712,7 +729,8 @@ export default async function CategoryPage({
         const zone = (row.attributes as any)?.zone as string | undefined;
         if (t) typeCounts[t] = (typeCounts[t] ?? 0) + 1;
         // Filter brands by selected type
-        if (b && (!sp.type || t === sp.type)) brandCounts[b] = (brandCounts[b] ?? 0) + 1;
+        const activeVType = sp.sub_category || sp.type;
+        if (b && (!activeVType || t === activeVType)) brandCounts[b] = (brandCounts[b] ?? 0) + 1;
         // Province/zone counts
         if (zone) {
           const provKey = Object.entries(RE_LOCATIONS).find(([, p]) => p.zones.some(z => z.value === zone))?.[0];
@@ -921,7 +939,7 @@ export default async function CategoryPage({
     const merged: Record<string, string | undefined> = {
       q: sp.q, order: sp.order,
       // vehicle
-      type: sp.type, brand: sp.brand, model: sp.model,
+      type: sp.type, sub_category: sp.sub_category, brand: sp.brand, model: sp.model,
       year_from: sp.year_from, year_to: sp.year_to,
       km_max: sp.km_max, fuel: sp.fuel, transmission: sp.transmission,
       seller_type: sp.seller_type, v_province: sp.v_province, v_zone: sp.v_zone,
@@ -967,6 +985,8 @@ export default async function CategoryPage({
       price_min: sp.price_min, price_max: sp.price_max,
       // view
       view: sp.view,
+      // FilterPanel general params
+      condition: sp.condition, re_sub: sp.re_sub, operation: sp.operation, bedrooms: sp.bedrooms, size: sp.size,
       ...overrides as Record<string, string | undefined>,
     };
     const p = new URLSearchParams();
@@ -977,13 +997,57 @@ export default async function CategoryPage({
 
   const hasFilters = Object.values(sp).some(Boolean);
 
+  // ── Subcategory pills (mobile only) — maps each category to its type param + label list
+  const CLOTHING_TYPES_INLINE = [
+    { value: "ropa", label: "Ropa" }, { value: "calzado", label: "Calzado" },
+    { value: "accesorio", label: "Accesorios" }, { value: "bolso", label: "Bolso / Cartera" },
+  ];
+  const subcatPillsConfig: { typeParam: string | undefined; clearOverride: Record<string, undefined>; types: { value: string; label: string }[]; counts: Record<string, number> } | null = (() => {
+    if (isVehicles)    return { typeParam: sp.type,           clearOverride: { type: undefined },                         types: VEHICLE_TYPES,           counts: typeCounts };
+    if (isRealEstate)  return { typeParam: sp.re_type,        clearOverride: { re_type: undefined },                      types: RE_PROPERTY_TYPES,       counts: reTypeCounts };
+    if (isPhones)      return { typeParam: sp.phone_type,     clearOverride: { phone_type: undefined },                   types: PHONE_TYPES,             counts: phoneTypeCounts };
+    if (isElectronics) return { typeParam: sp.tech_group,     clearOverride: { tech_group: undefined, tech_type: undefined }, types: Object.entries(TECH_GROUPS).map(([v, g]) => ({ value: v, label: g.label })), counts: techGroupCounts };
+    if (isAppliances)  return { typeParam: sp.appliance_type, clearOverride: { appliance_type: undefined },               types: APPLIANCE_TYPES,         counts: applianceTypeCounts };
+    if (isClothing)    return { typeParam: sp.clothing_type,  clearOverride: { clothing_type: undefined },                types: CLOTHING_TYPES_INLINE,   counts: clothingTypeCounts };
+    if (isBabies)      return { typeParam: sp.baby_type,      clearOverride: { baby_type: undefined },                   types: BABY_TYPES,              counts: babyTypeCounts };
+    if (isBeauty)      return { typeParam: sp.beauty_type,    clearOverride: { beauty_type: undefined },                  types: BEAUTY_TYPES,            counts: beautyTypeCounts };
+    if (isHomeGarden)  return { typeParam: sp.hg_type,        clearOverride: { hg_type: undefined },                     types: HG_TYPES,                counts: hgTypeCounts };
+    if (isSports)      return { typeParam: sp.sport_type,     clearOverride: { sport_type: undefined },                  types: SPORTS_TYPES,            counts: sportTypeCounts };
+    if (isTools)       return { typeParam: sp.tool_type,      clearOverride: { tool_type: undefined },                   types: TOOLS_TYPES,             counts: toolTypeCounts };
+    if (isToys)        return { typeParam: sp.toy_type,       clearOverride: { toy_type: undefined },                    types: TOYS_TYPES,              counts: toyTypeCounts };
+    if (isBooks)       return { typeParam: sp.book_type,      clearOverride: { book_type: undefined },                   types: BOOKS_TYPES,             counts: bookTypeCounts };
+    if (isPets)        return { typeParam: sp.pet_type,       clearOverride: { pet_type: undefined },                    types: PETS_TYPES,              counts: petTypeCounts };
+    if (isServices)    return { typeParam: sp.serv_type,      clearOverride: { serv_type: undefined },                   types: SERVICES_TYPES,          counts: servTypeCounts };
+    if (isOther)       return { typeParam: sp.other_type,     clearOverride: { other_type: undefined },                  types: OTHER_TYPES,             counts: otherTypeCounts };
+    return null;
+  })();
+
+  // For the "select" href we set the first key from clearOverride to t.value (reset others)
+  const subcatPills: SubcatPill[] = subcatPillsConfig
+    ? subcatPillsConfig.types
+        .filter(t => (subcatPillsConfig.counts[t.value] ?? 0) > 0)
+        .map(t => {
+          const selectOverride: Record<string, string | undefined> = { ...subcatPillsConfig.clearOverride };
+          // Set first key to the selected value
+          selectOverride[Object.keys(selectOverride)[0]] = t.value;
+          return {
+            name: t.label,
+            href: buildUrl(selectOverride as any),
+            count: subcatPillsConfig.counts[t.value] ?? 0,
+            active: subcatPillsConfig.typeParam === t.value,
+          };
+        })
+    : [];
+  const subcatAllHref = subcatPillsConfig ? buildUrl(subcatPillsConfig.clearOverride as any) : `/category/${slug}`;
+  const subcatIsAllActive = !subcatPillsConfig?.typeParam;
+
   // ── Filter chip helper
   function FilterSection({ title }: { title: string; children: React.ReactNode }) {
     return null; // just for type reference
   }
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px 0" }}>
+    <div className="category-page-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px 0" }}>
     <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
 
 
@@ -2785,6 +2849,48 @@ export default async function CategoryPage({
               </div>
             </Link>
           )}
+
+          {/* FilterPanel — desktop */}
+          <FilterPanel
+            mode="desktop"
+            category={slug}
+            categoryId={cat.id}
+            currentFilters={{
+              q: sp.q, order: sp.order,
+              price_min: sp.price_min, price_max: sp.price_max,
+              condition: sp.condition,
+              sub_category: sp.sub_category || sp.type,
+              brand: sp.brand,
+              fuel: sp.fuel, transmission: sp.transmission,
+              year_from: sp.year_from, year_to: sp.year_to, km_max: sp.km_max,
+              re_sub: sp.re_sub || sp.re_type,
+              operation: sp.operation || sp.re_operation,
+              bedrooms: sp.bedrooms || sp.re_bedrooms,
+              size: sp.size,
+            }}
+            totalCount={listings?.length ?? 0}
+            basePath={`/category/${slug}`}
+          />
+
+          {/* Publicar con IA widget */}
+          <div style={{
+            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            borderRadius: "10px", padding: "16px", color: "#fff",
+          }}>
+            <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "4px" }}>✨ Publicar con IA</div>
+            <div style={{ fontSize: "12px", opacity: 0.85, marginBottom: "12px", lineHeight: 1.4 }}>
+              Describí tu artículo y la IA completa título, precio y categoría.
+            </div>
+            <a href="/publish" style={{ textDecoration: "none" }}>
+              <div style={{
+                background: "#fff", color: "#6366f1", borderRadius: "6px",
+                padding: "8px 12px", fontSize: "12px", fontWeight: 700,
+                textAlign: "center", cursor: "pointer",
+              }}>
+                Publicar ahora →
+              </div>
+            </a>
+          </div>
         </aside>
 
         {/* ── Main ── */}
@@ -2810,7 +2916,7 @@ export default async function CategoryPage({
             </div>
 
             {/* Controls */}
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
+            <div className="category-search-bar" style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
               <SearchWithSuggestions
                 placeholder="Buscar en esta categoría..."
                 initialValue={sp.q}
@@ -2823,6 +2929,7 @@ export default async function CategoryPage({
                 value={sp.order ?? ""}
                 action={`/category/${slug}`}
                 hiddenFields={Object.fromEntries(Object.entries(sp).filter(([k, v]) => v && k !== "order") as [string, string][])}
+                className="sort-select"
               />
 
               {/* Grid / List toggle */}
@@ -2851,6 +2958,28 @@ export default async function CategoryPage({
                   </div>
                 </Link>
               </div>
+
+              {/* FilterPanel — mobile button */}
+              <FilterPanel
+                mode="mobile"
+                category={slug}
+                categoryId={cat.id}
+                currentFilters={{
+                  q: sp.q, order: sp.order,
+                  price_min: sp.price_min, price_max: sp.price_max,
+                  condition: sp.condition,
+                  sub_category: sp.sub_category || sp.type,
+                  brand: sp.brand,
+                  fuel: sp.fuel, transmission: sp.transmission,
+                  year_from: sp.year_from, year_to: sp.year_to, km_max: sp.km_max,
+                  re_sub: sp.re_sub || sp.re_type,
+                  operation: sp.operation || sp.re_operation,
+                  bedrooms: sp.bedrooms || sp.re_bedrooms,
+                  size: sp.size,
+                }}
+                totalCount={listings?.length ?? 0}
+                basePath={`/category/${slug}`}
+              />
             </div>
           </div>
 
@@ -2942,6 +3071,14 @@ export default async function CategoryPage({
             </div>
           )}
 
+          {/* Subcategory pills — mobile only */}
+          <SubcategoryPills
+            pills={subcatPills}
+            allHref={subcatAllHref}
+            allCount={listings?.length ?? 0}
+            isAllActive={subcatIsAllActive}
+          />
+
           {/* Grid / List */}
           {!listings || listings.length === 0 ? (
             <div style={{
@@ -2959,57 +3096,31 @@ export default async function CategoryPage({
               {listings.map((listing: any, i: number) => {
                 const images = listing.listing_images as { url: string; position: number }[] | null;
                 const cover = images?.slice().sort((a: any, b: any) => a.position - b.position)[0]?.url ?? null;
-                const isFeatured = !!listing.featured_level;
+                const breadcrumbs = [
+                  listing.attributes?.sub_category
+                    ? { label: VEHICLE_TYPES.find((t: any) => t.value === listing.attributes.sub_category)?.label ?? listing.attributes.sub_category, variant: "primary" as const }
+                    : null,
+                  listing.attributes?.brand
+                    ? { label: VEHICLE_BRANDS.find((b: any) => b.value === listing.attributes.brand)?.label ?? listing.attributes.brand, variant: "secondary" as const }
+                    : null,
+                  listing.attributes?.model
+                    ? { label: listing.attributes.model, variant: "secondary" as const }
+                    : null,
+                ].filter(Boolean) as { label: string; variant: "primary" | "secondary" }[];
                 return (
-                  <Link key={listing.id} href={`/listings/${listing.id}`} style={{ textDecoration: "none" }}>
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: "14px",
-                      padding: "12px 16px",
-                      borderBottom: i < listings.length - 1 ? "1px solid #f1f5f9" : "none",
-                      background: isFeatured ? "#fffbeb" : "transparent",
-                    }}
-                    className="hover:bg-slate-50"
-                    >
-                      <div style={{ width: "72px", height: "72px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff" }}>
-                        {cover
-                          ? <img src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
-                        }
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "14px", fontWeight: 600, color: "#1e293b", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {isFeatured && <span style={{ fontSize: "10px", background: "#f59e0b", color: "#fff", borderRadius: "4px", padding: "1px 5px", fontWeight: 700, marginRight: "6px" }}>PREMIUM</span>}
-                          {listing.title}
-                        </div>
-                        <div style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap", marginBottom: "4px" }}>
-                          {listing.attributes?.sub_category && (
-                            <span style={{ fontSize: "11px", color: "#6366f1", fontWeight: 600, background: "#eef2ff", borderRadius: "4px", padding: "1px 6px" }}>
-                              {VEHICLE_TYPES.find(t => t.value === listing.attributes.sub_category)?.label ?? listing.attributes.sub_category}
-                            </span>
-                          )}
-                          {listing.attributes?.brand && (
-                            <span style={{ fontSize: "11px", color: "#475569", fontWeight: 600, background: "#f1f5f9", borderRadius: "4px", padding: "1px 6px", textTransform: "capitalize" }}>
-                              {VEHICLE_BRANDS.find(b => b.value === listing.attributes.brand)?.label ?? listing.attributes.brand}
-                            </span>
-                          )}
-                          {listing.attributes?.model && (
-                            <span style={{ fontSize: "11px", color: "#475569", background: "#f1f5f9", borderRadius: "4px", padding: "1px 6px" }}>{listing.attributes.model}</span>
-                          )}
-                        </div>
-                        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                          {listing.condition && (
-                            <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: 600 }}>
-                              {listing.condition === "new" ? "Nuevo" : listing.condition === "like_new" ? "Como nuevo" : "Usado"}
-                            </span>
-                          )}
-                          {listing.neighborhood && <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {listing.neighborhood}</span>}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: "16px", fontWeight: 800, color: "#f97316", flexShrink: 0 }}>
-                        {listing.currency === "USD" ? "U$S" : "$"}{listing.price?.toLocaleString("es-AR")}
-                      </div>
-                    </div>
-                  </Link>
+                  <ListingListCard
+                    key={listing.id}
+                    id={listing.id}
+                    title={listing.title}
+                    price={listing.price}
+                    currency={listing.currency}
+                    featured_level={listing.featured_level}
+                    cover_image={cover}
+                    condition={listing.condition ?? listing.attributes?.condition ?? null}
+                    neighborhood={listing.neighborhood}
+                    breadcrumbs={breadcrumbs.length > 0 ? breadcrumbs : undefined}
+                    showDivider={i < listings.length - 1}
+                  />
                 );
               })}
             </div>
@@ -3050,10 +3161,6 @@ export default async function CategoryPage({
           })()}
         </div>
 
-        {/* ── RIGHT SIDEBAR ── */}
-        <div className="sidebar-hide">
-          <RightSidebar />
-        </div>
 
       </div>
     </div>

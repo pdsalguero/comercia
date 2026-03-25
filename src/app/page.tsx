@@ -2,11 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { ListingCard } from "@/components/listings/ListingCard";
 import { FeaturedCarousel } from "@/components/listings/FeaturedCarousel";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
-import { RightSidebar } from "@/components/layout/RightSidebar";
-import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { RecentListings } from "@/components/listings/RecentListings";
 import { HeroSearch } from "@/components/listings/HeroSearch";
 import { StoreCards } from "@/components/listings/StoreCards";
@@ -64,7 +61,7 @@ async function getHomeData() {
     supabase.from("profiles").select("*",{count:"exact",head:true}),
     supabase.from("profiles").select("*",{count:"exact",head:true}).eq("is_store",true),
     supabase.from("listing_views_log").select("*",{count:"exact",head:true}).gte("created_at", todayStart.toISOString()),
-    supabase.from("listings").select("category_id, view_count").eq("status","active"),
+    supabase.from("listings").select("category_id").eq("status","active"),
   ]);
 
   // Fetch store info separately to avoid FK join dependency
@@ -76,17 +73,9 @@ async function getHomeData() {
   for (const p of storeProfiles ?? []) storeMap[p.id] = p;
 
   const counts: Record<number,number> = {};
-  const viewsByCategory: Record<number, number> = {};
   for (const row of catCounts ?? []) {
     counts[row.category_id] = (counts[row.category_id]??0)+1;
-    viewsByCategory[row.category_id] = (viewsByCategory[row.category_id]??0) + (row.view_count??0);
   }
-  const totalViews = Object.values(viewsByCategory).reduce((a,b)=>a+b,0);
-  const PREFERRED_PILL_SLUGS = ["vehicles", "real-estate", "services", "electronics", "home-garden"];
-  const topSubcats = PREFERRED_PILL_SLUGS
-    .map(slug => CATEGORIES.find(c => c.slug === slug))
-    .filter((c): c is typeof CATEGORIES[0] => !!c)
-    .map(c => ({ label: c.name, href: `/category/${c.slug}`, slug: c.slug }));
   const featured = shuffle(allFeatured ?? []).slice(0, 16).map((l: any) => ({
     ...l,
     is_store: storeMap[l.user_id]?.is_store ?? null,
@@ -106,7 +95,7 @@ async function getHomeData() {
     store_name: recentStoreMap[l.user_id]?.store_name ?? null,
   }));
 
-  return { featured, recent:recentMapped, totalListings:totalListings??0, totalSellers:totalSellers??0, totalStores:totalStores??0, viewsToday:viewsToday??0, categoryCounts:counts, topSubcats };
+  return { featured, recent:recentMapped, totalListings:totalListings??0, totalSellers:totalSellers??0, totalStores:totalStores??0, viewsToday:viewsToday??0, categoryCounts:counts };
 }
 
 function cover(listing: any): string | null {
@@ -118,12 +107,20 @@ function cover(listing: any): string | null {
 export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { featured, recent, totalListings, totalSellers, totalStores, viewsToday, categoryCounts, topSubcats } = await getHomeData();
+  const { featured, recent, totalListings, totalSellers, totalStores, viewsToday, categoryCounts } = await getHomeData();
   const mapped = CATEGORIES.map((c)=>({...c, count: categoryCounts[c.id]??0}));
   const pinned = mapped.slice(0, 3);
   const rest = mapped.slice(3).filter(c => c.slug !== "other").sort((a,b)=>b.count-a.count);
   const other = mapped.find(c => c.slug === "other");
   const categoriesWithCount = [...pinned, ...rest, ...(other ? [other] : [])];
+
+  const CAT_COLORS: Record<string, string> = {
+    vehicles: "#3b82f6", "real-estate": "#10b981", services: "#8b5cf6",
+    electronics: "#6366f1", "home-garden": "#f97316", phones: "#22c55e",
+    appliances: "#06b6d4", clothing: "#ec4899", sports: "#f59e0b",
+    tools: "#64748b", babies: "#a855f7", "beauty-health": "#f43f5e",
+    toys: "#facc15", pets: "#84cc16", books: "#94a3b8", other: "#cbd5e1",
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
@@ -138,25 +135,65 @@ export default async function HomePage() {
           </div>
 
           {/* ── HERO ── */}
-          <div className="hero-bg" style={{
-            gridArea: "hero",
-            borderRadius: "16px",
-            backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80')",
-            backgroundSize: "cover", backgroundPosition: "center 60%",
-            display: "flex", gap: "0",
-            minHeight: "200px", position: "relative",
-            overflow: "hidden",
-          }}>
-            {/* gradient overlay — hidden on mobile (hero-bg removes bg image) */}
-            <div className="sidebar-hide" style={{ position:"absolute", inset:0, background:"linear-gradient(160deg, rgba(10,20,60,0.45) 0%, rgba(10,30,80,0.60) 100%)", pointerEvents:"none" }} />
-
-            {/* White search card */}
-            <HeroSearch topSubcats={topSubcats} />
-
+          <div
+            className="hero-bg"
+            style={{
+              gridArea: "hero",
+              borderRadius: "16px",
+              backgroundColor: "#0f1b2d",
+              backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80')",
+              backgroundSize: "cover",
+              backgroundPosition: "center 60%",
+              position: "relative",
+              overflow: "hidden",
+              height: "260px",
+              display: "flex",
+              alignItems: "stretch",
+            }}
+          >
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(160deg, rgba(10,20,60,0.55) 0%, rgba(10,30,80,0.70) 100%)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }} />
+            <div style={{
+              position: "relative",
+              zIndex: 1,
+              width: "100%",
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <HeroSearch topSubcats={[]} />
+            </div>
           </div>
 
           {/* ── MAIN CONTENT ── */}
           <div className="home-main-content" style={{ gridArea: "main", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+            {/* ── Category pills bar — Wallapop style ── */}
+            <div className="cat-pills-wrapper">
+            <div className="cat-pills-bar" style={{ display: "none" }}>
+              <a href="/listings" className="cat-pill cat-pill-all">
+                <span className="cat-pill-dot" style={{ background: "#fff", opacity: 0.5 }} />
+                Todos
+                <span className="cat-pill-count">{totalListings}</span>
+              </a>
+              {categoriesWithCount
+                .filter(c => c.count > 0)
+                .sort((a, b) => b.count - a.count)
+                .map(cat => (
+                  <a key={cat.slug} href={`/category/${cat.slug}`} className="cat-pill">
+                    <span className="cat-pill-dot" style={{ background: CAT_COLORS[cat.slug] ?? "#94a3b8" }} />
+                    {cat.name}
+                    <span className="cat-pill-count">{cat.count}</span>
+                  </a>
+                ))}
+            </div>
+            </div>
 
             {/* ── Stats bar ── */}
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", scrollbarWidth: "none" }}>
@@ -186,34 +223,13 @@ export default async function HomePage() {
                   label: "visitas hoy",
                 },
               ].map((s, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#fff", borderRadius: "8px", padding: "5px 10px 5px 6px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", flexShrink: 0 }}>
+                <div key={i} className={i >= 2 ? "stat-hide-mobile" : ""} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#fff", borderRadius: "8px", padding: "5px 10px 5px 6px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", flexShrink: 0 }}>
                   <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {s.icon}
                   </div>
                   <span style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap" }}>{s.value}</span>
                   <span style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap" }}>{s.label}</span>
                 </div>
-              ))}
-            </div>
-
-            {/* Mobile-only: category icon bar */}
-            <div className="mobile-cat-bar">
-              {categoriesWithCount.slice(0, 12).map((cat) => (
-                <Link key={cat.slug} href={`/category/${cat.slug}`} style={{ textDecoration: "none", flexShrink: 0 }}>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "0 10px", minWidth: "60px" }}>
-                    <div style={{
-                      width: "46px", height: "46px", borderRadius: "50%",
-                      background: "linear-gradient(135deg, #6366f1, #3b82f6)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "20px",
-                    }}>
-                      {cat.icon}
-                    </div>
-                    <span style={{ fontSize: "10px", fontWeight: 600, color: "#334155", textAlign: "center", lineHeight: 1.2, maxWidth: "60px" }}>
-                      {cat.name.split(" ")[0].replace(",", "")}
-                    </span>
-                  </div>
-                </Link>
               ))}
             </div>
 
@@ -251,10 +267,6 @@ export default async function HomePage() {
             }))} />
           </div>
 
-          {/* ── RIGHT SIDEBAR ── */}
-          <div className="sidebar-right-hide home-right-col" style={{ gridArea: "right" }}>
-            <RightSidebar showPublicar={true} />
-          </div>
 
         </div>
       </div>
@@ -273,12 +285,11 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* 3 feature cards + CTA en una sola fila */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
+          {/* 3 feature cards */}
+          <div className="feature-cards-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
 
             {/* Card 1 — IA */}
             <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
-              {/* Illustration */}
               <div style={{ background: "linear-gradient(135deg,#eef2ff,#ede9fe)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", position: "relative" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: "#fff", borderRadius: "8px", padding: "8px", boxShadow: "0 2px 8px rgba(99,102,241,.15)", width: "48px" }}>
                   <div style={{ fontSize: "22px", lineHeight: 1 }}>📸</div>
@@ -304,23 +315,18 @@ export default async function HomePage() {
 
             {/* Card 2 — Local */}
             <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
-              {/* Illustration */}
               <div style={{ background: "linear-gradient(135deg,#eff6ff,#ecfeff)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                 <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
-                  {/* Map background roads */}
                   <rect x="0" y="0" width="80" height="60" rx="4" fill="#e0f2fe" />
                   <rect x="0" y="26" width="80" height="8" fill="#bae6fd" opacity="0.7"/>
                   <rect x="34" y="0" width="8" height="60" fill="#bae6fd" opacity="0.7"/>
-                  {/* Blocks */}
                   <rect x="6" y="6" width="22" height="16" rx="2" fill="#fff" opacity="0.8"/>
                   <rect x="50" y="6" width="24" height="16" rx="2" fill="#fff" opacity="0.8"/>
                   <rect x="6" y="38" width="22" height="16" rx="2" fill="#fff" opacity="0.8"/>
                   <rect x="50" y="38" width="24" height="16" rx="2" fill="#fff" opacity="0.8"/>
-                  {/* Main pin */}
                   <ellipse cx="38" cy="24" rx="6" ry="3" fill="rgba(37,99,235,0.2)"/>
                   <path d="M38 8 C34 8 31 11 31 15 C31 20 38 26 38 26 C38 26 45 20 45 15 C45 11 42 8 38 8 Z" fill="#2563eb"/>
                   <circle cx="38" cy="15" r="3" fill="#fff"/>
-                  {/* Distance rings */}
                   <circle cx="38" cy="24" r="14" stroke="#3b82f6" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.4"/>
                 </svg>
               </div>
@@ -332,7 +338,6 @@ export default async function HomePage() {
 
             {/* Card 3 — Sin publicidad */}
             <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
-              {/* Illustration — clean listing cards, no ads */}
               <div style={{ background: "linear-gradient(135deg,#f0fdf4,#ecfdf5)", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "5px" }}>
                 {[1,2,3].map(i => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fff", borderRadius: "6px", padding: "5px 8px", boxShadow: "0 1px 3px rgba(0,0,0,.06)" }}>
@@ -353,16 +358,8 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Publish CTA card */}
-            <Link href="/listings/new" style={{ textDecoration: "none", display: "flex", flexDirection: "column", justifyContent: "center", gap: "10px", borderRadius: "12px", padding: "16px", background: "linear-gradient(135deg,#1e293b,#0f172a)" }}>
-              <span style={{ fontSize: "13px", fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>¿Tenés algo para vender?</span>
-              <span style={{ fontSize: "11px", color: "#94a3b8" }}>En menos de 30 segundos con IA.</span>
-              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#f59e0b", color: "#fff", borderRadius: "8px", padding: "9px 14px", fontWeight: 900, fontSize: "13px" }}>
-                PUBLICAR GRATIS
-              </span>
-            </Link>
-
           </div>
+
 
         </div>
       </section>

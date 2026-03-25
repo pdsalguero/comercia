@@ -4,11 +4,12 @@ interface Props {
   value: string;
   action: string;
   hiddenFields: Record<string, string>;
+  className?: string;
 }
 
-export function OrderSelect({ value, action, hiddenFields }: Props) {
+export function OrderSelect({ value, action, hiddenFields, className }: Props) {
   return (
-    <form method="GET" action={action} style={{ flexShrink: 0 }}>
+    <form method="GET" action={action} className={className} style={{ flexShrink: 0 }}>
       {Object.entries(hiddenFields).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}

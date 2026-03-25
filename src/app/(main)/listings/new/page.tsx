@@ -6,7 +6,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORY_CONFIGS, getCategoryConfig } from "@/lib/category-config";
 import { CategoryIcon, TechGroupIcon } from "@/components/ui/CategoryIcon";
-import { CAR_BRANDS, getModels, getModelPriceRef, getVersions } from "@/lib/vehicle-data";
+import { CAR_BRANDS, getModels, getModelPriceRef } from "@/lib/vehicle-data";
+import { TIPOS_VEHICULO, MARCAS_POR_TIPO } from "@/data/vehiculos";
 import { PropertyLocation } from "@/components/listings/PropertyLocation";
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -881,6 +882,8 @@ export default function NewListingPage() {
   const [showExtraVehicle, setShowExtraVehicle] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[] | null>(null);
   const [userIsStore, setUserIsStore] = useState(false);
+  const [modelosML, setModelosML] = useState<string[]>([]);
+  const [loadingModelos, setLoadingModelos] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -899,6 +902,23 @@ export default function NewListingPage() {
         });
     });
   }, []);
+  // Fetch models when brand or tipo changes
+  useEffect(() => {
+    const brand = attrs.brand;
+    const tipo = attrs.sub_category;
+    if (!brand || !tipo || !["auto", "camioneta"].includes(tipo)) {
+      setModelosML([]);
+      return;
+    }
+    setLoadingModelos(true);
+    setModelosML([]);
+    fetch(`/api/vehiculos/modelos?brand=${brand}&tipo=${tipo}`)
+      .then((r) => r.json())
+      .then((data: string[]) => { setModelosML(data); setLoadingModelos(false); })
+      .catch(() => setLoadingModelos(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attrs.brand, attrs.sub_category]);
+
   const [aiReveal, setAiReveal] = useState(false);
   const [aiRevealFields, setAiRevealFields] = useState<string[]>([]);
 
@@ -914,10 +934,13 @@ export default function NewListingPage() {
   const isPetProduct = isPets && !!attrs.sub_category && !isPetAnimal;
 
   const vehicleModels = useMemo(() => getModels(attrs.brand ?? ""), [attrs.brand]);
-  const vehicleVersions = useMemo(
-    () => getVersions(attrs.brand ?? "", attrs.model ?? ""),
-    [attrs.brand, attrs.model],
-  );
+  const marcasFiltradas = useMemo(() => {
+    const tipo = attrs.sub_category as "auto" | "camioneta" | undefined;
+    if (tipo === "auto" || tipo === "camioneta") {
+      return CAR_BRANDS.filter((b) => MARCAS_POR_TIPO[tipo].has(b.value));
+    }
+    return CAR_BRANDS;
+  }, [attrs.sub_category]);
   const vehiclePriceRef = useMemo(() => {
     if (!isVehicle || !attrs.brand || !attrs.year) return null;
     return getModelPriceRef(attrs.brand, attrs.model ?? "", Number(attrs.year));
@@ -1018,6 +1041,7 @@ export default function NewListingPage() {
   const handleCategory = (id: number) => {
     setCategoryId(id);
     setAttrs({});
+    setModelosML([]);
     fetchPrice(id);
   };
   const handleAttr = (k: string, v: any) => setAttrs((p) => ({ ...p, [k]: v }));
@@ -1089,6 +1113,7 @@ export default function NewListingPage() {
 
         setAttrs(normalizedAttrs);
         if (data.attributes.currency) setCurrency(data.attributes.currency);
+        // attrs.brand change will trigger model fetch via useEffect
       }
       // ── AI WOW moment ──
       const filledFields: string[] = [];
@@ -1881,22 +1906,36 @@ export default function NewListingPage() {
                   {isVehicle && (
                     <>
 
-                      {/* Tipo */}
+                      {/* Tipo — pills */}
                       <Field label="Tipo" required>
-                        <FocusSel
-                          value={attrs.sub_category ?? ""}
-                          onChange={(e) =>
-                            handleAttr("sub_category", e.target.value)
-                          }
-                        >
-                          <option value="">Seleccionar...</option>
-                          <option value="auto">Auto</option>
-                          <option value="camioneta">Camioneta / SUV</option>
-                          <option value="moto">Moto</option>
-                          <option value="camion">Camión</option>
-                          <option value="nautica">Náutica</option>
-                          <option value="otro">Otro</option>
-                        </FocusSel>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                          {TIPOS_VEHICULO.map((tipo) => {
+                            const active = attrs.sub_category === tipo.value;
+                            return (
+                              <button
+                                key={tipo.value}
+                                type="button"
+                                onClick={() => {
+                                  if (attrs.sub_category !== tipo.value) {
+                                    handleAttr("sub_category", tipo.value);
+                                    handleAttr("brand", "");
+                                    handleAttr("model", "");
+                                    setModelosML([]);
+                                  }
+                                }}
+                                style={{
+                                  padding: "7px 14px", borderRadius: "8px", fontSize: "13px",
+                                  border: active ? "2px solid #534AB7" : "1.5px solid #e2e8f0",
+                                  background: active ? "#EEEDFE" : "#fff",
+                                  color: active ? "#3C3489" : "#475569",
+                                  fontWeight: active ? 600 : 400, cursor: "pointer",
+                                }}
+                              >
+                                {tipo.label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </Field>
 
                       {/* Marca */}
@@ -1906,10 +1945,11 @@ export default function NewListingPage() {
                           onChange={(e) => {
                             handleAttr("brand", e.target.value);
                             handleAttr("model", "");
+                            setModelosML([]);
                           }}
                         >
                           <option value="">Seleccionar...</option>
-                          {CAR_BRANDS.map((b) => (
+                          {marcasFiltradas.map((b) => (
                             <option key={b.value} value={b.value}>
                               {b.label}
                             </option>
@@ -1917,9 +1957,27 @@ export default function NewListingPage() {
                         </FocusSel>
                       </Field>
 
-                      {/* Modelo */}
+                      {/* Modelo — ML models → static fallback → free text */}
                       <Field label="Modelo" required>
-                        {vehicleModels.length > 0 ? (
+                        {loadingModelos ? (
+                          <div style={{
+                            padding: "8px 12px", fontSize: "13px", color: "#94a3b8",
+                            border: "1.5px solid #e2e8f0", borderRadius: "6px",
+                          }}>
+                            Cargando modelos...
+                          </div>
+                        ) : modelosML.length > 0 ? (
+                          <FocusSel
+                            value={attrs.model ?? ""}
+                            onChange={(e) => handleAttr("model", e.target.value)}
+                          >
+                            <option value="">Seleccionar...</option>
+                            {modelosML.map((m) => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                            <option value="Otro">Otro</option>
+                          </FocusSel>
+                        ) : vehicleModels.length > 0 ? (
                           <FocusSel
                             value={attrs.model ?? ""}
                             onChange={(e) => handleAttr("model", e.target.value)}
@@ -2047,14 +2105,7 @@ export default function NewListingPage() {
                           }}>
                             {/* Versión */}
                             <Field label="Versión">
-                              {vehicleVersions.length > 0 ? (
-                                <FocusSel value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)}>
-                                  <option value="">Sin especificar</option>
-                                  {vehicleVersions.map((v) => <option key={v} value={v}>{v}</option>)}
-                                </FocusSel>
-                              ) : (
-                                <FocusInp value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)} placeholder="Move, SR 4x4..." />
-                              )}
+                              <FocusInp value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)} placeholder="Move, SR 4x4, Sport..." />
                             </Field>
 
                             {/* Combustible */}

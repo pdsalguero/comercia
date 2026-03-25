@@ -21,7 +21,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
   return (
     <>
       {/* MercadoLibre-style: vertical thumbs on left + main image on right */}
-      <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+      <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
 
         {/* Vertical thumbnail strip */}
         {images.length > 1 && (
@@ -53,7 +53,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
         <div
           className="gallery-main"
           style={{
-            flex: 1, height: "420px", background: "#f8f9fa",
+            width: "100%", minWidth: 0, height: "420px", background: "#f8f9fa",
             borderRadius: "8px", position: "relative",
             cursor: "zoom-in", overflow: "hidden",
           }}

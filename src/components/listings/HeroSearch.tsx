@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
 const PROVINCES = [
   "Todo el país",
@@ -22,13 +20,7 @@ interface Suggestion {
   currency: string;
 }
 
-interface TopSubcat {
-  label: string;
-  href: string;
-  slug: string;
-}
-
-export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
+export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
   const [query, setQuery] = useState("");
   const [province, setProvince] = useState("San Juan");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -39,7 +31,6 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Update rect whenever dropdown should be shown
   useEffect(() => {
     if (showSuggestions && inputWrapRef.current) {
       setRect(inputWrapRef.current.getBoundingClientRect());
@@ -138,144 +129,183 @@ export function HeroSearch({ topSubcats }: { topSubcats: TopSubcat[] }) {
         }}
         className="hover:bg-indigo-50"
       >
-        Ver todos los resultados para "{query}"
+        Ver todos los resultados para &ldquo;{query}&rdquo;
       </div>
     </div>,
     document.body
   ) : null;
 
   return (
-    <div className="hero-search-card" style={{
-      flex: 1, margin: "auto 28px",
-      background: "rgba(255,255,255,0.97)",
-      borderRadius: "14px", padding: "20px 24px",
-      backdropFilter: "blur(10px)",
-      boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
-      alignSelf: "center",
-      zIndex: 1,
-    }}>
-      <div className="hero-title" style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", marginBottom: "12px", lineHeight: 1.2, display: "flex", alignItems: "center", gap: "8px" }}>
-        <span className="hero-title-icon" style={{
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          width: "28px", height: "28px", borderRadius: "8px", flexShrink: 0,
-          background: "linear-gradient(135deg, #6366f1, #3b82f6)",
-        }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1 0-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
-            <circle cx="8.5" cy="13.5" r="1.5" fill="#fff" stroke="none"/>
-            <circle cx="15.5" cy="13.5" r="1.5" fill="#fff" stroke="none"/>
-          </svg>
-        </span>
-        Publicá en 30 segundos con IA y vendé más rápido
-      </div>
-
-      {/* Search row */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: topSubcats.length > 0 ? "12px" : "0" }}>
-        {/* Text input with suggestions */}
-        <div ref={searchRef} style={{ flex: 1, minWidth: 0, position: "relative" }}>
-          <div ref={inputWrapRef} style={{
-            display: "flex", alignItems: "center", gap: "8px",
-            border: "1.5px solid #e2e8f0",
-            borderRadius: "10px",
-            padding: "0 14px", background: "#fff",
-          }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch();
-                if (e.key === "Escape") setShowSuggestions(false);
-              }}
-              onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-              placeholder="¿Qué estás buscando hoy?"
-              style={{
-                flex: 1, border: "none", outline: "none", fontSize: "14px",
-                background: "transparent", padding: "11px 0", color: "#333",
-              }}
-            />
-            {query && (
-              <button
-                onClick={() => { setQuery(""); setSuggestions([]); setShowSuggestions(false); }}
-                style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "14px", padding: 0 }}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          {dropdown}
-        </div>
-
-        {/* Province select */}
-        <div className="hero-province-select" style={{ position: "relative", flexShrink: 0 }}>
-          <select value={province} onChange={(e) => setProvince(e.target.value)} style={{
-            appearance: "none", WebkitAppearance: "none",
-            border: "1.5px solid #e2e8f0", borderRadius: "10px",
-            padding: "0 26px 0 30px", height: "44px", width: "140px",
-            fontSize: "13px", fontWeight: 600, color: "#475569",
-            background: "#fff", cursor: "pointer", outline: "none",
-            fontFamily: "inherit",
-          }}>
-            {PROVINCES.map(p => <option key={p} value={p === "Todo el país" ? "" : p}>{p}</option>)}
-          </select>
-          <span style={{ position: "absolute", left: "9px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", display: "flex", alignItems: "center" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-          </span>
-          <span style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", display: "flex", alignItems: "center" }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </span>
-        </div>
-
-        <button
-          onClick={handleSearch}
-          className="hero-search-btn"
+    <>
+      <div
+        className="hero-search-card"
+        style={{
+          width: "100%",
+          minHeight: "220px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
+          padding: "32px 20px",
+          position: "relative",
+          zIndex: 2,
+          boxSizing: "border-box",
+        }}
+      >
+        <h1
+          className="hero-main-title"
           style={{
-            background: "#f97316", color: "#fff", border: "none",
-            borderRadius: "10px", padding: "0 20px", height: "44px",
-            fontWeight: 700, fontSize: "14px", cursor: "pointer",
-            display: "flex", alignItems: "center", gap: "6px",
-            boxShadow: "0 4px 14px rgba(249,115,22,0.35)", whiteSpace: "nowrap",
-            flexShrink: 0,
+            fontSize: "clamp(20px, 4vw, 36px)",
+            fontWeight: 900,
+            textAlign: "center",
+            lineHeight: 1.15,
+            margin: 0,
+            color: "#ffffff",
+            textShadow: "0 2px 8px rgba(0,0,0,0.5)",
           }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <span className="hero-search-btn-text">Buscar</span>
-        </button>
-      </div>
+          El primer clasificado con{" "}
+          <span style={{ color: "#fbbf24" }}>IA</span>
+          {" "}de Argentina.
+        </h1>
 
-      {/* Top categories pills */}
-      {topSubcats.length > 0 && (
-        <div className="hero-pills" style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {topSubcats.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={cat.href}
+        <p
+          className="hero-main-subtitle"
+          style={{
+            fontSize: "15px",
+            textAlign: "center",
+            color: "rgba(255,255,255,0.85)",
+            margin: 0,
+            lineHeight: 1.5,
+            textShadow: "0 1px 4px rgba(0,0,0,0.4)",
+          }}
+        >
+          Subí una foto y publicamos tu aviso solo. Gratis. En 30 segundos.
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            width: "100%",
+            maxWidth: "680px",
+          }}
+        >
+          <div
+            ref={searchRef}
+            style={{ flex: 1, minWidth: 0, position: "relative" }}
+          >
+            <div
+              ref={inputWrapRef}
               style={{
-                display: "flex", alignItems: "center", gap: "5px",
-                background: "#f1f5f9", borderRadius: "20px",
-                padding: "5px 10px 5px 8px",
-                fontSize: "12px", fontWeight: 600, color: "#334155",
-                textDecoration: "none", whiteSpace: "nowrap",
-                border: "1px solid #e2e8f0",
-                transition: "background 0.15s",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                border: "1.5px solid #e2e8f0",
+                borderRadius: "10px",
+                padding: "0 14px",
+                background: "#fff",
               }}
-              className="hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200"
             >
-              <CategoryIcon slug={cat.slug} size={14} />
-              {cat.label}
-            </Link>
-          ))}
-        </div>
-      )}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearch();
+                  if (e.key === "Escape") setShowSuggestions(false);
+                }}
+                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                placeholder="¿Qué estás buscando hoy?"
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  fontSize: "14px",
+                  background: "transparent",
+                  padding: "11px 0",
+                  color: "#333",
+                }}
+              />
+              {query && (
+                <button
+                  onClick={() => { setQuery(""); setSuggestions([]); setShowSuggestions(false); }}
+                  style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "14px", padding: 0 }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
 
-    </div>
+          <div className="hero-province-select" style={{ position: "relative", flexShrink: 0 }}>
+            <select
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              style={{
+                appearance: "none",
+                WebkitAppearance: "none",
+                border: "1.5px solid #e2e8f0",
+                borderRadius: "10px",
+                padding: "0 26px 0 30px",
+                height: "44px",
+                width: "140px",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#475569",
+                background: "#fff",
+                cursor: "pointer",
+                outline: "none",
+                fontFamily: "inherit",
+              }}
+            >
+              {PROVINCES.map(p => (
+                <option key={p} value={p === "Todo el país" ? "" : p}>{p}</option>
+              ))}
+            </select>
+            <span style={{ position: "absolute", left: "9px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", display: "flex", alignItems: "center" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+            </span>
+            <span style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", display: "flex", alignItems: "center" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </span>
+          </div>
+
+          <button
+            onClick={handleSearch}
+            className="hero-search-btn"
+            style={{
+              background: "#f97316",
+              color: "#fff",
+              border: "none",
+              borderRadius: "10px",
+              padding: "0 20px",
+              height: "44px",
+              fontWeight: 700,
+              fontSize: "14px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <span className="hero-search-btn-text">Buscar</span>
+          </button>
+        </div>
+      </div>
+      {dropdown}
+    </>
   );
 }

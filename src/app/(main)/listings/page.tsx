@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { ListingCard } from "@/components/listings/ListingCard";
-import { RightSidebar } from "@/components/layout/RightSidebar";
+import { ListingsGrid } from "@/components/listings/ListingsGrid";
+import { ListingsViewProvider } from "@/components/listings/ListingsViewContext";
+import { ViewToggle } from "@/components/listings/ViewToggle";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import Link from "next/link";
 import { OrderSelect } from "@/components/ui/OrderSelect";
+import { FilterPanel, type FilterValues } from "@/components/listings/FilterPanel";
 
 const CATEGORIES = [
   { name: "Vehículos",         slug: "vehicles",      icon: "🚗" },
@@ -23,13 +26,6 @@ const CATEGORIES = [
   { name: "Otros",             slug: "other",         icon: "📦" },
 ];
 
-const CONDITIONS = [
-  { value: "new",       label: "Nuevo" },
-  { value: "like_new",  label: "Como nuevo" },
-  { value: "very_good", label: "Muy bueno" },
-  { value: "good",      label: "Bueno" },
-  { value: "fair",      label: "Regular" },
-];
 
 export default async function ListingsPage({
   searchParams,
@@ -37,10 +33,15 @@ export default async function ListingsPage({
   searchParams: Promise<{
     q?: string; category?: string; condition?: string;
     price_min?: string; price_max?: string; order?: string; location?: string;
+    brand?: string; fuel?: string; transmission?: string;
+    year_from?: string; year_to?: string; km_max?: string;
+    re_sub?: string; operation?: string; bedrooms?: string; size?: string;
   }>;
 }) {
   const params = await searchParams;
-  const { q, category, condition, price_min, price_max, order, location } = params;
+  const { q, category, condition, price_min, price_max, order, location,
+    brand, fuel, transmission, year_from, year_to, km_max,
+    re_sub, operation, bedrooms, size } = params;
 
   const supabase = await createClient();
 
@@ -89,6 +90,12 @@ export default async function ListingsPage({
   if (price_min) query = query.gte("price", Number(price_min));
   if (price_max) query = query.lte("price", Number(price_max));
 
+  // JSONB attribute filters (string equality — works reliably in PostgREST)
+  if (fuel) query = (query as any).eq("attributes->>fuel", fuel);
+  if (transmission) query = (query as any).eq("attributes->>transmission", transmission);
+  if (operation) query = (query as any).eq("attributes->>operation", operation);
+  if (re_sub) query = (query as any).eq("attributes->>sub_category", re_sub);
+
   // featured_level sorted in JS after fetch (gold > silver > bronze > null)
   if (order === "price_asc") query = query.order("price", { ascending: true });
   else if (order === "price_desc") query = query.order("price", { ascending: false });
@@ -106,22 +113,38 @@ export default async function ListingsPage({
     return fa - fb;
   }) ?? [];
 
+  // Numeric JSONB filters (done in JS — PostgREST can't reliably cast JSONB text to numeric)
+  const filteredData = sorted.filter((l: any) => {
+    const a = (l.attributes as any) ?? {};
+    if (year_from && Number(a.year) < Number(year_from)) return false;
+    if (year_to   && Number(a.year) > Number(year_to))   return false;
+    if (km_max    && Number(a.km)   > Number(km_max))    return false;
+    if (bedrooms  && a.bedrooms !== bedrooms)             return false;
+    if (size      && a.size !== size)                     return false;
+    return true;
+  });
+
   // Fetch store profiles separately
-  const userIds = [...new Set(sorted.map((l: any) => l.user_id).filter(Boolean))];
+  const userIds = [...new Set(filteredData.map((l: any) => l.user_id).filter(Boolean))];
   const { data: storeProfiles } = userIds.length > 0
     ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
     : { data: [] };
   const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
   for (const p of storeProfiles ?? []) storeMap[p.id] = p;
 
-  const listings = sorted.map((l: any) => ({
+  const listings = filteredData.map((l: any) => ({
     ...l,
     profiles: storeMap[l.user_id] ?? null,
   }));
 
   // Build URL helper preserving all params except the one changed
   function buildUrl(overrides: Record<string, string | undefined>) {
-    const merged = { q, category, condition, price_min, price_max, order, location, ...overrides };
+    const merged = {
+      q, category, condition, price_min, price_max, order, location,
+      fuel, transmission, year_from, year_to, km_max,
+      re_sub, operation, bedrooms, size,
+      ...overrides
+    };
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) {
       if (v) sp.set(k, v);
@@ -131,7 +154,8 @@ export default async function ListingsPage({
   }
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 16px" }}>
+    <ListingsViewProvider>
+    <div className="listings-page-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px", boxSizing: "border-box", width: "100%" }}>
     <div className="listing-layout">
 
       {/* ── Sidebar ── */}
@@ -171,7 +195,10 @@ export default async function ListingsPage({
                     fontWeight: active ? 700 : 400,
                     borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                   }}>
-                    <span>{cat.icon} {cat.name}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <CategoryIcon slug={cat.slug} size={18} />
+                      {cat.name}
+                    </span>
                     {count > 0 && (
                       <span style={{
                         background: active ? "#dbeafe" : "#f1f5f9",
@@ -187,101 +214,51 @@ export default async function ListingsPage({
           </div>
         </div>
 
-        {/* Condition */}
-        <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "13px", fontWeight: 700, color: "#333" }}>
-            Condición
+        {/* Filters panel */}
+        <FilterPanel
+          mode="desktop"
+          category={category}
+          categoryId={categoryId}
+          currentFilters={{ q, category, condition, price_min, price_max, order, location, fuel, transmission, year_from, year_to, km_max, re_sub, operation, bedrooms, size }}
+          totalCount={filteredData?.length ?? 0}
+        />
+
+        {/* Publicar con IA */}
+        <div style={{
+          background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+          borderRadius: "12px", padding: "16px", marginTop: "4px",
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: "10px", position: "relative", overflow: "hidden", width: "100%",
+        }}>
+          <div style={{ position: "absolute", width: "80px", height: "80px", background: "rgba(249,115,22,0.2)", borderRadius: "50%", top: "-20px", right: "-16px", filter: "blur(28px)" }} />
+          <div style={{ fontSize: "30px", lineHeight: 1 }}>📸</div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "14px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>Publicá con IA</div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+              Sacá una foto y generamos<br />el aviso automáticamente
+            </div>
           </div>
-          <div>
-            <Link href={buildUrl({ condition: undefined })} style={{ textDecoration: "none" }}>
-              <div style={{
-                padding: "9px 16px", fontSize: "13px", cursor: "pointer",
-                color: !condition ? "#2563eb" : "#444",
-                fontWeight: !condition ? 700 : 400,
-                borderLeft: !condition ? "3px solid #2563eb" : "3px solid transparent",
-              }}>
-                Todas
-              </div>
-            </Link>
-            {CONDITIONS.map((c) => {
-              const active = condition === c.value;
-              return (
-                <Link key={c.value} href={buildUrl({ condition: c.value })} style={{ textDecoration: "none" }}>
-                  <div style={{
-                    padding: "9px 16px", fontSize: "13px", cursor: "pointer",
-                    background: active ? "#eff6ff" : "transparent",
-                    color: active ? "#2563eb" : "#444",
-                    fontWeight: active ? 700 : 400,
-                    borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
-                  }}>
-                    {c.label}
-                  </div>
-                </Link>
-              );
-            })}
+          <Link href="/listings/new" style={{ width: "100%" }}>
+            <button style={{
+              width: "100%", background: "linear-gradient(135deg,#f97316,#fb923c)",
+              color: "#fff", border: "none", borderRadius: "8px",
+              padding: "10px 0", fontWeight: 800, fontSize: "13px",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+            }}>
+              📸 Subir foto
+            </button>
+          </Link>
+          <div style={{ display: "flex", gap: "10px" }}>
+            {["✓ Gratis", "✓ 30 seg."].map(t => (
+              <span key={t} style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{t}</span>
+            ))}
           </div>
         </div>
 
-        {/* Price range */}
-        <form method="GET" action="/listings" style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-          {/* preserve other params */}
-          {q && <input type="hidden" name="q" value={q} />}
-          {category && <input type="hidden" name="category" value={category} />}
-          {condition && <input type="hidden" name="condition" value={condition} />}
-          {order && <input type="hidden" name="order" value={order} />}
-
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "13px", fontWeight: 700, color: "#333" }}>
-            Precio
-          </div>
-          <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <input
-              name="price_min"
-              type="number"
-              defaultValue={price_min}
-              placeholder="Mínimo"
-              style={{
-                border: "1.5px solid #e2e8f0", borderRadius: "6px",
-                padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%",
-                boxSizing: "border-box",
-              }}
-            />
-            <input
-              name="price_max"
-              type="number"
-              defaultValue={price_max}
-              placeholder="Máximo"
-              style={{
-                border: "1.5px solid #e2e8f0", borderRadius: "6px",
-                padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%",
-                boxSizing: "border-box",
-              }}
-            />
-            <button type="submit" style={{
-              background: "#2563eb", color: "#fff", border: "none",
-              borderRadius: "6px", padding: "8px", fontSize: "13px",
-              fontWeight: 700, cursor: "pointer", width: "100%",
-            }}>
-              Aplicar
-            </button>
-          </div>
-        </form>
-
-        {/* Clear filters */}
-        {(q || category || condition || price_min || price_max) && (
-          <Link href="/listings" style={{ textDecoration: "none" }}>
-            <div style={{
-              background: "#fff", borderRadius: "10px", padding: "10px 16px",
-              fontSize: "13px", color: "#dc2626", fontWeight: 600, cursor: "pointer",
-              textAlign: "center", border: "1px solid #fee2e2",
-            }}>
-              ✕ Limpiar filtros
-            </div>
-          </Link>
-        )}
       </aside>
 
       {/* ── Main content ── */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, width: "100%", boxSizing: "border-box", overflowX: "hidden", padding: "0 8px" }}>
 
         {/* Top bar */}
         <div style={{
@@ -294,8 +271,8 @@ export default async function ListingsPage({
             {category && ` en ${CATEGORIES.find(c => c.slug === category)?.name ?? category}`}
           </div>
 
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <form method="GET" action="/listings" style={{ display: "flex", gap: "6px", flex: 1 }}>
+          <div className="listings-search-bar" style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%", flexWrap: "wrap" }}>
+            <form method="GET" action="/listings" style={{ display: "flex", gap: "6px", flex: 1, minWidth: 0 }}>
               {category && <input type="hidden" name="category" value={category} />}
               {condition && <input type="hidden" name="condition" value={condition} />}
               {price_min && <input type="hidden" name="price_min" value={price_min} />}
@@ -306,7 +283,7 @@ export default async function ListingsPage({
                 placeholder="Buscar en todos los avisos..."
                 style={{
                   border: "1.5px solid #e2e8f0", borderRadius: "8px",
-                  padding: "9px 14px", fontSize: "14px", outline: "none", flex: 1,
+                  padding: "9px 14px", fontSize: "14px", outline: "none", flex: 1, minWidth: 0,
                 }}
               />
               <button type="submit" style={{
@@ -318,16 +295,26 @@ export default async function ListingsPage({
               </button>
             </form>
 
-            <OrderSelect
-              value={order ?? ""}
-              action="/listings"
-              hiddenFields={Object.fromEntries([
-                ...(q ? [["q", q]] : []),
-                ...(category ? [["category", category]] : []),
-                ...(condition ? [["condition", condition]] : []),
-                ...(price_min ? [["price_min", price_min]] : []),
-                ...(price_max ? [["price_max", price_max]] : []),
-              ])}
+            <div className="listings-sort-select">
+              <OrderSelect
+                value={order ?? ""}
+                action="/listings"
+                hiddenFields={Object.fromEntries([
+                  ...(q ? [["q", q]] : []),
+                  ...(category ? [["category", category]] : []),
+                  ...(condition ? [["condition", condition]] : []),
+                  ...(price_min ? [["price_min", price_min]] : []),
+                  ...(price_max ? [["price_max", price_max]] : []),
+                ])}
+              />
+            </div>
+            <ViewToggle />
+            <FilterPanel
+              mode="mobile"
+              category={category}
+              categoryId={categoryId}
+              currentFilters={{ q, category, condition, price_min, price_max, order, location, fuel, transmission, year_from, year_to, km_max, re_sub, operation, bedrooms, size }}
+              totalCount={filteredData?.length ?? 0}
             />
           </div>
         </div>
@@ -347,46 +334,35 @@ export default async function ListingsPage({
         ) : (() => {
           const featured = listings.filter((l) => (l as any).featured_level);
           const regular  = listings.filter((l) => !(l as any).featured_level);
-          const cardGrid = (items: typeof listings) => (
-            <div className="grid-cols-auto">
-              {items.map((listing) => {
-                const images = listing.listing_images as { url: string; position: number }[] | null;
-                const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null;
-                return (
-                  <ListingCard
-                    key={listing.id}
-                    id={listing.id}
-                    title={listing.title}
-                    price={listing.price}
-                    currency={listing.currency ?? "ARS"}
-                    cover_image={cover}
-                    neighborhood={listing.neighborhood}
-                    featured_level={(listing as any).featured_level ?? null}
-                    attributes={listing.attributes as Record<string, string | number | boolean | null> | undefined}
-                    view_count={(listing as any).view_count ?? null}
-                    created_at={(listing as any).created_at ?? null}
-                    is_store={(listing as any).profiles?.is_store ?? null}
-                    store_name={(listing as any).profiles?.store_name ?? null}
-                  />
-                );
-              })}
-            </div>
-          );
+          const toItem = (listing: typeof listings[0]) => {
+            const images = listing.listing_images as { url: string; position: number }[] | null;
+            const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null;
+            return {
+              id: listing.id,
+              title: listing.title,
+              price: listing.price,
+              currency: listing.currency ?? "ARS",
+              cover_image: cover,
+              neighborhood: listing.neighborhood ?? null,
+              featured_level: (listing as any).featured_level ?? null,
+              attributes: listing.attributes as Record<string, string | number | boolean | null> | undefined,
+              view_count: (listing as any).view_count ?? null,
+              created_at: (listing as any).created_at ?? null,
+              is_store: (listing as any).profiles?.is_store ?? null,
+              store_name: (listing as any).profiles?.store_name ?? null,
+            };
+          };
           return (
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              {featured.length > 0 && cardGrid(featured)}
-              {regular.length > 0 && cardGrid(regular)}
-            </div>
+            <ListingsGrid
+              featured={featured.map(toItem)}
+              regular={regular.map(toItem)}
+            />
           );
         })()}
       </div>
 
-      {/* ── RIGHT SIDEBAR ── */}
-      <div className="sidebar-hide">
-        <RightSidebar />
-      </div>
-
     </div>
     </div>
+    </ListingsViewProvider>
   );
 }

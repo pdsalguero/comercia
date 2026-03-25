@@ -15,6 +15,7 @@ export const CAR_BRANDS: { value: string; label: string }[] = [
   { value: "chery", label: "Chery" },
   { value: "chevrolet", label: "Chevrolet" },
   { value: "citroen", label: "Citroën" },
+  { value: "cupra", label: "Cupra" },
   { value: "dodge", label: "Dodge" },
   { value: "fiat", label: "Fiat" },
   { value: "ford", label: "Ford" },
@@ -23,12 +24,16 @@ export const CAR_BRANDS: { value: string; label: string }[] = [
   { value: "haval", label: "Haval" },
   { value: "honda", label: "Honda" },
   { value: "hyundai", label: "Hyundai" },
+  { value: "jac", label: "JAC" },
   { value: "jeep", label: "Jeep" },
   { value: "kia", label: "Kia" },
   { value: "mercedes_benz", label: "Mercedes Benz" },
+  { value: "mg", label: "MG" },
   { value: "nissan", label: "Nissan" },
   { value: "peugeot", label: "Peugeot" },
   { value: "renault", label: "Renault" },
+  { value: "seat", label: "SEAT" },
+  { value: "skoda", label: "Skoda" },
   { value: "suzuki", label: "Suzuki" },
   { value: "toyota", label: "Toyota" },
   { value: "volkswagen", label: "Volkswagen" },
@@ -90,7 +95,13 @@ export const CAR_MODELS: Record<string, string[]> = {
   geely: ["Azkarra", "Coolray", "Emgrand", "GC2", "GX3 Pro", "Monjaro", "Tugella"],
   great_wall: ["Wingle 5", "Wingle 7"],
   haval: ["F5", "F7", "H1", "H2", "H4", "H6", "H9", "Jolion"],
-  honda: ["Accord", "CR-V", "City", "Civic", "Fit", "HR-V", "Jazz", "Odyssey", "Pilot", "WR-V"],
+  honda: [
+    // Autos
+    "Accord", "CR-V", "City", "Civic", "Fit", "HR-V", "Jazz", "Odyssey", "Pilot", "WR-V",
+    // Motos
+    "CB 190R", "CB 300R", "CB 500F", "CBR 500R", "CG 150", "CG 160", "NXR 160 Bros",
+    "PCX 150", "Twister 250", "Wave 110", "XRE 190", "XRE 300", "Africa Twin",
+  ],
   hyundai: [
     "Accent", "Creta", "Elantra", "HB20", "i10", "i30", "Ioniq", "Ioniq 5", "Ioniq 6",
     "ix35", "Kona", "Kona Eléctrico", "Santa Fe", "Sonata", "Staria", "Tucson", "Venue",
@@ -140,6 +151,79 @@ export const CAR_MODELS: Record<string, string[]> = {
     "T-Cross", "Taos", "Tiguan", "Up!", "Vento", "Virtus",
   ],
   volvo: ["S60", "S90", "V60", "XC40", "XC60", "XC90"],
+  // ── Motos ────────────────────────────────────────────────────────────────
+  aprilia: ["RS 125", "RS 660", "Shiver 900", "Tuono 660", "Tuono V4"],
+  bajaj: [
+    "Boxer 150", "CT 100", "Discover 125", "Dominar 250", "Dominar 400",
+    "Pulsar 125", "Pulsar 150", "Pulsar 160 NS", "Pulsar 180", "Pulsar 200 NS",
+    "Pulsar 220 F", "Pulsar 250 F", "Pulsar RS 200", "Rouser NS 200",
+  ],
+  benelli: [
+    "502 C", "752 S", "Leoncino 250", "Leoncino 500", "TRK 250", "TRK 502",
+    "TRK 502 X", "TRK 702", "TNT 150", "TNT 300", "TNT 600",
+  ],
+  beta: [
+    "BS 110", "BS 150", "BS 200", "BS 250", "RR 125", "RR 200", "RR 250",
+    "RR 300", "RR 390", "RR 430", "RR 480", "Xtrainer 300",
+  ],
+  cf_moto: ["150 NK", "250 NK", "300 NK", "400 NK", "650 NK", "650 MT", "800 MT"],
+  corven: [
+    "CX 150", "Energy 110", "Energy 125", "Energy 150", "Mirage 150",
+    "Terrain 250", "Triax 150", "TXR 250",
+  ],
+  ducati: [
+    "Diavel", "Hypermotard 950", "Monster 797", "Monster 821", "Monster SP",
+    "Multistrada V2", "Multistrada V4", "Panigale V4", "Scrambler Icon",
+    "Scrambler Nightshift", "SuperSport 950",
+  ],
+  gilera: ["GX 250", "VC 150", "VC 200", "SMX 200", "Trial 200"],
+  guerrero: [
+    "GR 110", "GR 150", "GR200 Ronin", "GXT 200", "Trip 110", "Trip 150",
+  ],
+  harley_davidson: [
+    "Fat Bob", "Fat Boy", "Heritage Classic", "Iron 883", "Low Rider",
+    "Road Glide", "Softail Standard", "Sportster S", "Street 750",
+    "Street Glide", "Touring Road King",
+  ],
+  husqvarna: [
+    "Norden 901", "Svartpilen 200", "Svartpilen 401", "Svartpilen 701",
+    "Vitpilen 401", "Vitpilen 701",
+  ],
+  kawasaki: [
+    "KLR 650", "KX 250", "Ninja 250", "Ninja 300", "Ninja 400",
+    "Ninja 650", "Ninja ZX-6R", "Ninja ZX-10R", "Versys 650",
+    "Versys-X 300", "Z400", "Z650", "Z900",
+  ],
+  ktm: [
+    "200 Duke", "250 Duke", "390 Duke", "690 Duke", "890 Duke",
+    "390 Adventure", "890 Adventure", "1290 Super Adventure",
+    "RC 390", "1290 Super Duke R",
+  ],
+  motomel: [
+    "Blitz 110", "CG 150 S2", "Sirius 150 S2", "Sirius 250", "Skua 150",
+    "Skua 250", "Strato Euro 150", "Swing 110",
+  ],
+  royal_enfield: [
+    "Classic 350", "Continental GT 650", "Himalayan 450", "Hunter 350",
+    "Interceptor 650", "Meteor 350", "Scram 411",
+  ],
+  triumph: [
+    "Bonneville T100", "Bonneville T120", "Speed Triple 1200",
+    "Street Scrambler", "Street Triple", "Tiger 900", "Tiger 1200",
+    "Trident 660",
+  ],
+  tvs: ["Apache RR 310", "Apache RTR 160", "Apache RTR 200", "Ntorq 125"],
+  yamaha: [
+    "Crypton 110", "Fazer FZ 150i", "FZ 16", "FZ 25", "FZS 250",
+    "MT-03", "MT-07", "MT-09", "R3", "R15", "R1",
+    "Tenere 700", "XTZ 125", "XTZ 150", "XTZ 250", "YBR 125",
+    "YZF-R6", "NMAX 155",
+  ],
+  zanella: [
+    "Due 150", "Due 200", "GTS 150", "Patagonian Eagle 150",
+    "Patagonian Eagle 250", "RX 150 G3", "ZB 110", "ZB 150",
+    "ZT 250", "ZTT 200",
+  ],
 };
 
 // Precios de referencia por marca y año (USD)
