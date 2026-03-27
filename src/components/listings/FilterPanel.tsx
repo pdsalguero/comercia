@@ -192,8 +192,10 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                 options={[
                   { value: "" as any, label: "Todos" },
                   { value: "auto" as any, label: "Autos" },
-                  { value: "camioneta" as any, label: "Camionetas / SUV" },
+                  { value: "camioneta" as any, label: "Pickups / SUV / Utilitarios" },
                   { value: "moto" as any, label: "Motos" },
+                  { value: "cuatriciclo" as any, label: "Cuatriciclos" },
+                  { value: "utv" as any, label: "Areneros" },
                 ]}
               />
             </div>

@@ -1564,30 +1564,7 @@ export function getBrands(): { value: string; label: string }[] {
 }
 
 // Compatibilidad con VehicleFields.tsx
-export const MOTO_BRANDS: { value: string; label: string }[] = [
-  { value: "honda", label: "Honda" },
-  { value: "yamaha", label: "Yamaha" },
-  { value: "kawasaki", label: "Kawasaki" },
-  { value: "suzuki", label: "Suzuki" },
-  { value: "beta", label: "Beta" },
-  { value: "zanella", label: "Zanella" },
-  { value: "corven", label: "Corven" },
-  { value: "motomel", label: "Motomel" },
-  { value: "guerrero", label: "Guerrero" },
-  { value: "gilera", label: "Gilera" },
-  { value: "bajaj", label: "Bajaj" },
-  { value: "tvs", label: "TVS" },
-  { value: "ducati", label: "Ducati" },
-  { value: "bmw", label: "BMW" },
-  { value: "ktm", label: "KTM" },
-  { value: "husqvarna", label: "Husqvarna" },
-  { value: "royal_enfield", label: "Royal Enfield" },
-  { value: "harley_davidson", label: "Harley-Davidson" },
-  { value: "triumph", label: "Triumph" },
-  { value: "benelli", label: "Benelli" },
-  { value: "cf_moto", label: "CF Moto" },
-  { value: "aprilia", label: "Aprilia" },
-];
+export { MOTO_BRANDS_LIST as MOTO_BRANDS } from "@/data/modelos-motos";
 
 export function getModelsForBrand(brand: string): string[] {
   return getModels(brand);

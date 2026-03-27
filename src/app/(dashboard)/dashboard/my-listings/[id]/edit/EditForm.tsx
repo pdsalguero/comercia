@@ -204,8 +204,10 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
               <select value={attrs.sub_category ?? ""} onChange={e => setAttr("sub_category", e.target.value)} style={sel}>
                 <option value="">Seleccionar...</option>
                 <option value="auto">Auto</option>
-                <option value="camioneta">Camioneta / SUV</option>
+                <option value="camioneta">Pickup / SUV / Utilitario</option>
                 <option value="moto">Moto</option>
+                <option value="cuatriciclo">Cuatriciclo</option>
+                <option value="utv">Areneros</option>
                 <option value="camion">Camión</option>
                 <option value="nautica">Náutica</option>
                 <option value="otro">Otro</option>

@@ -4,8 +4,9 @@ import { useMemo } from "react";
 import {
   CAR_BRANDS,
   MOTO_BRANDS,
-  getModelsForBrand,
 } from "@/lib/vehicle-data";
+import { CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, getModelosMotoByTipo } from "@/data/modelos-motos";
+import { getModelosPorMarca } from "@/data/modelos-vehiculos";
 
 // ─── Shared styles (mirror page.tsx) ─────────────────────────
 const inp: React.CSSProperties = {
@@ -175,8 +176,10 @@ const YEARS = Array.from({ length: CURRENT_YEAR - 1949 }, (_, i) =>
 // ─── Sub-category options ─────────────────────────────────────
 const SUB_CATS = [
   { value: "auto", label: "Auto" },
-  { value: "camioneta", label: "Camioneta / SUV" },
-  { value: "moto", label: "Moto / Cuatriciclo" },
+  { value: "camioneta", label: "Pickup / SUV / Utilitario" },
+  { value: "moto",        label: "Moto" },
+  { value: "cuatriciclo", label: "Cuatriciclo" },
+  { value: "utv",         label: "Areneros" },
   { value: "camion", label: "Camión" },
   { value: "nautica", label: "Náutica" },
   { value: "plan-ahorro", label: "Plan de Ahorro" },
@@ -214,18 +217,21 @@ interface VehicleFieldsProps {
 
 export function VehicleFields({ subCategory, attributes, onChange }: VehicleFieldsProps) {
   const isMoto = subCategory === "moto";
+  const isCuatri = subCategory === "cuatriciclo";
+  const isUTV = subCategory === "utv";
+  const isMotoType = isMoto || isCuatri || isUTV;
 
-  const brandList = isMoto ? MOTO_BRANDS : CAR_BRANDS;
+  const brandList = isMoto ? MOTO_BRANDS : isCuatri ? CUATRI_BRANDS_LIST : isUTV ? UTV_BRANDS_LIST : CAR_BRANDS;
 
   const models = useMemo(() => {
     const brand = attributes.brand as string | undefined;
-    if (!brand || isMoto) return [];
-    // Match by value (slug) → find label → get models
-    const found = CAR_BRANDS.find((b) => b.value === brand);
-    return found ? getModelsForBrand(found.label) : [];
-  }, [attributes.brand, isMoto]);
+    if (!brand) return [];
+    if (isMotoType) return getModelosMotoByTipo(brand, subCategory as "moto" | "cuatriciclo" | "utv");
+    const tipo = subCategory === "camioneta" ? "camioneta" : "auto";
+    return getModelosPorMarca(brand, tipo);
+  }, [attributes.brand, isMotoType, subCategory]);
 
-  const showDoors = !isMoto && subCategory !== "camion" && subCategory !== "nautica";
+  const showDoors = !isMotoType && subCategory !== "camion" && subCategory !== "nautica";
   const showFuel = subCategory !== "nautica" && subCategory !== "plan-ahorro";
   const showKm = subCategory !== "plan-ahorro";
 
@@ -366,7 +372,7 @@ export function VehicleFields({ subCategory, attributes, onChange }: VehicleFiel
       )}
 
       {/* Transmisión */}
-      {!isMoto && (
+      {!isMotoType && (
         <F label="Transmisión">
           <Sel>
             <select

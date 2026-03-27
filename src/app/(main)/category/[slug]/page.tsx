@@ -36,8 +36,10 @@ const VEHICLE_BRANDS = [
 
 const VEHICLE_TYPES = [
   { value: "auto", label: "Autos" },
-  { value: "camioneta", label: "Camionetas / SUV" },
+  { value: "camioneta", label: "Pickups / SUV / Utilitarios" },
   { value: "moto", label: "Motos" },
+  { value: "cuatriciclo", label: "Cuatriciclos" },
+  { value: "utv", label: "Areneros" },
   { value: "camion", label: "Camiones" },
   { value: "nautica", label: "Náutica" },
 ];
