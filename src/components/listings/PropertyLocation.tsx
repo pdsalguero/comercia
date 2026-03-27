@@ -36,7 +36,7 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
   const [loading, setLoading] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function handleInput(value: string) {
     setQuery(value);
