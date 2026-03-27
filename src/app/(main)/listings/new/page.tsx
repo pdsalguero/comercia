@@ -7,7 +7,9 @@ import { createClient } from "@/lib/supabase/client";
 import { CATEGORY_CONFIGS, getCategoryConfig } from "@/lib/category-config";
 import { CategoryIcon, TechGroupIcon } from "@/components/ui/CategoryIcon";
 import { CAR_BRANDS, getModels, getModelPriceRef } from "@/lib/vehicle-data";
-import { TIPOS_VEHICULO, MARCAS_POR_TIPO } from "@/data/vehiculos";
+import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
+import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CATEGORIAS } from "@/data/vehiculos";
+import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
 import { PropertyLocation } from "@/components/listings/PropertyLocation";
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -906,7 +908,7 @@ export default function NewListingPage() {
   useEffect(() => {
     const brand = attrs.brand;
     const tipo = attrs.sub_category;
-    if (!brand || !tipo || !["auto", "camioneta"].includes(tipo)) {
+    if (!brand || !tipo || !["auto", "camioneta", "moto", "cuatriciclo", "utv", "camion"].includes(tipo)) {
       setModelosML([]);
       return;
     }
@@ -914,7 +916,42 @@ export default function NewListingPage() {
     setModelosML([]);
     fetch(`/api/vehiculos/modelos?brand=${brand}&tipo=${tipo}`)
       .then((r) => r.json())
-      .then((data: string[]) => { setModelosML(data); setLoadingModelos(false); })
+      .then((data: string[]) => {
+        setModelosML(data);
+        setLoadingModelos(false);
+        // Fuzzy-match AI-detected model against fetched list
+        setAttrs((prev) => {
+          const current = prev.model as string | undefined;
+          if (!current || !data.length) return prev;
+
+          const norm = (s: string) => s.toUpperCase().replace(/[\s\-]/g, "");
+          const words = (s: string) => s.toUpperCase().split(/[\s\-]+/).filter(Boolean).sort().join("|");
+
+          const needle = norm(current);
+          const needleWords = words(current);
+
+          // 1. Exact case-insensitive
+          const exact = data.find((m) => m.toUpperCase() === current.toUpperCase());
+          if (exact) return { ...prev, model: exact };
+
+          // 2. Normalized exact (strip spaces/hyphens)
+          const normExact = data.find((m) => norm(m) === needle);
+          if (normExact) return { ...prev, model: normExact };
+
+          // 3. Same words regardless of order — "CB 250 TWISTER" == "CB TWISTER 250"
+          const wordMatch = data.find((m) => words(m) === needleWords);
+          if (wordMatch) return { ...prev, model: wordMatch };
+
+          // 4. Best prefix: needle starts with model (prefer longest)
+          const prefixMatches = data.filter((m) => needle.startsWith(norm(m)));
+          if (prefixMatches.length) {
+            const best = prefixMatches.reduce((a, b) => a.length >= b.length ? a : b);
+            return { ...prev, model: best };
+          }
+
+          return prev;
+        });
+      })
       .catch(() => setLoadingModelos(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attrs.brand, attrs.sub_category]);
@@ -935,10 +972,14 @@ export default function NewListingPage() {
 
   const vehicleModels = useMemo(() => getModels(attrs.brand ?? ""), [attrs.brand]);
   const marcasFiltradas = useMemo(() => {
-    const tipo = attrs.sub_category as "auto" | "camioneta" | undefined;
+    const tipo = attrs.sub_category;
     if (tipo === "auto" || tipo === "camioneta") {
       return CAR_BRANDS.filter((b) => MARCAS_POR_TIPO[tipo].has(b.value));
     }
+    if (tipo === "moto") return MOTO_BRANDS_LIST;
+    if (tipo === "cuatriciclo") return CUATRI_BRANDS_LIST;
+    if (tipo === "utv") return UTV_BRANDS_LIST;
+    if (tipo === "camion") return CAMION_BRANDS_LIST;
     return CAR_BRANDS;
   }, [attrs.sub_category]);
   const vehiclePriceRef = useMemo(() => {
@@ -1076,7 +1117,14 @@ export default function NewListingPage() {
         // ── Normalize brand ──
         if (normalizedAttrs.brand) {
           const normalized = normalizedAttrs.brand.toLowerCase().replace(/[\s-]/g, "_");
-          const found = CAR_BRANDS.find((b) => b.value === normalized);
+          const tipo = normalizedAttrs.sub_category as string | undefined;
+          const brandList =
+            tipo === "moto" ? MOTO_BRANDS_LIST :
+            tipo === "cuatriciclo" ? CUATRI_BRANDS_LIST :
+            tipo === "utv" ? UTV_BRANDS_LIST :
+            tipo === "camion" ? CAMION_BRANDS_LIST :
+            CAR_BRANDS;
+          const found = brandList.find((b) => b.value === normalized);
           normalizedAttrs.brand = found ? normalized : normalizedAttrs.brand;
         }
 
@@ -1104,7 +1152,7 @@ export default function NewListingPage() {
         if (normalizedAttrs.year) {
           const y = Number(normalizedAttrs.year);
           const currentYear = new Date().getFullYear();
-          if (!isNaN(y) && y >= currentYear - 39 && y <= currentYear + 1) {
+          if (!isNaN(y) && y >= 1930 && y <= currentYear) {
             normalizedAttrs.year = y;
           } else {
             delete normalizedAttrs.year; // out of range — don't pre-fill
@@ -1123,8 +1171,10 @@ export default function NewListingPage() {
       if (data.condition) filledFields.push("Estado");
       if (data.attributes?.brand) filledFields.push("Marca");
       if (data.attributes?.model) filledFields.push("Modelo");
+      if (data.attributes?.moto_subtipo) filledFields.push("Tipo de moto");
       if (data.attributes?.year) filledFields.push("Año");
       if (data.attributes?.km) filledFields.push("Kilómetros");
+      if (data.attributes?.cilindrada) filledFields.push("Cilindrada");
       setAiRevealFields(filledFields);
       setAiReveal(true);
       setTimeout(() => setAiReveal(false), 3000);
@@ -1144,8 +1194,14 @@ export default function NewListingPage() {
     if (isVehicle) {
       const missing: string[] = [];
       if (!attrs.sub_category) missing.push("Tipo de vehículo");
-      if (!attrs.brand) missing.push("Marca");
-      if (!attrs.model) missing.push("Modelo");
+      if (attrs.sub_category === "nautica") {
+        if (!attrs.nautica_categoria) missing.push("Categoría náutica");
+      } else if (attrs.sub_category === "otro") {
+        if (!attrs.otros_categoria) missing.push("Categoría");
+      } else {
+        if (!attrs.brand) missing.push("Marca");
+        if (!attrs.model) missing.push("Modelo");
+      }
       if (missing.length > 0) {
         setValidationErrors(missing);
         return;
@@ -1906,37 +1962,160 @@ export default function NewListingPage() {
                   {isVehicle && (
                     <>
 
-                      {/* Tipo — pills */}
+                      {/* Tipo */}
                       <Field label="Tipo" required>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                          {TIPOS_VEHICULO.map((tipo) => {
-                            const active = attrs.sub_category === tipo.value;
-                            return (
-                              <button
-                                key={tipo.value}
-                                type="button"
-                                onClick={() => {
-                                  if (attrs.sub_category !== tipo.value) {
-                                    handleAttr("sub_category", tipo.value);
-                                    handleAttr("brand", "");
-                                    handleAttr("model", "");
-                                    setModelosML([]);
-                                  }
-                                }}
-                                style={{
-                                  padding: "7px 14px", borderRadius: "8px", fontSize: "13px",
-                                  border: active ? "2px solid #534AB7" : "1.5px solid #e2e8f0",
-                                  background: active ? "#EEEDFE" : "#fff",
-                                  color: active ? "#3C3489" : "#475569",
-                                  fontWeight: active ? 600 : 400, cursor: "pointer",
-                                }}
-                              >
-                                {tipo.label}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <FocusSel
+                          value={attrs.sub_category ?? ""}
+                          onChange={(e) => {
+                            if (attrs.sub_category !== e.target.value) {
+                              handleAttr("sub_category", e.target.value);
+                              handleAttr("brand", "");
+                              handleAttr("model", "");
+                              setModelosML([]);
+                            }
+                          }}
+                        >
+                          <option value="">Seleccionar...</option>
+                          {TIPOS_VEHICULO.map((tipo) => (
+                            <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+                          ))}
+                        </FocusSel>
                       </Field>
+
+                      {attrs.sub_category && (<>
+
+                      {/* Tipo de moto — solo para moto */}
+                      {attrs.sub_category === "moto" && (
+                        <Field label="Tipo de moto" required>
+                          <FocusSel
+                            value={attrs.moto_subtipo ?? ""}
+                            onChange={(e) => handleAttr("moto_subtipo", e.target.value)}
+                          >
+                            <option value="">Seleccionar...</option>
+                            {MOTO_SUBTIPOS.map((s) => (
+                              <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                          </FocusSel>
+                        </Field>
+                      )}
+
+                      {/* ── Náutica: Categoría + Subcategoría + Marca (Motos de Agua) ── */}
+                      {attrs.sub_category === "nautica" ? (<>
+                        <Field label="Categoría" required>
+                          <FocusSel
+                            value={attrs.nautica_categoria ?? ""}
+                            onChange={(e) => {
+                              handleAttr("nautica_categoria", e.target.value);
+                              handleAttr("nautica_subcategoria", "");
+                              handleAttr("brand", "");
+                            }}
+                          >
+                            <option value="">Seleccionar...</option>
+                            {NAUTICA_CATEGORIAS.map((c) => (
+                              <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                          </FocusSel>
+                        </Field>
+
+                        {attrs.nautica_categoria && (() => {
+                          const cat = NAUTICA_CATEGORIAS.find((c) => c.value === attrs.nautica_categoria);
+                          return cat ? (
+                            <Field label="Subcategoría">
+                              <FocusSel
+                                value={attrs.nautica_subcategoria ?? ""}
+                                onChange={(e) => handleAttr("nautica_subcategoria", e.target.value)}
+                              >
+                                <option value="">Seleccionar...</option>
+                                {cat.subcategorias.map((s) => (
+                                  <option key={s} value={s}>{s}</option>
+                                ))}
+                              </FocusSel>
+                            </Field>
+                          ) : null;
+                        })()}
+
+                        {attrs.nautica_categoria && (<>
+                          {/* Marca: dropdown para Motos de Agua, texto libre para el resto */}
+                          <Field label="Marca">
+                            {attrs.nautica_categoria === "motos_de_agua" ? (
+                              <FocusSel
+                                value={attrs.brand ?? ""}
+                                onChange={(e) => handleAttr("brand", e.target.value)}
+                              >
+                                <option value="">Seleccionar...</option>
+                                {NAUTICA_CATEGORIAS.find((c) => c.value === "motos_de_agua")!.marcas!.map((m) => (
+                                  <option key={m} value={m}>{m}</option>
+                                ))}
+                              </FocusSel>
+                            ) : (
+                              <FocusInp
+                                value={attrs.brand ?? ""}
+                                onChange={(e) => handleAttr("brand", e.target.value)}
+                                placeholder="Marca..."
+                              />
+                            )}
+                          </Field>
+
+                          <Field label="Modelo">
+                            <FocusInp
+                              value={attrs.model ?? ""}
+                              onChange={(e) => handleAttr("model", e.target.value)}
+                              placeholder="Modelo..."
+                            />
+                          </Field>
+                        </>)}
+                      </>) : attrs.sub_category === "otro" ? (<>
+
+                        {/* Otros Vehículos: Categoría + Subcategoría + Marca + Modelo libres */}
+                        <Field label="Categoría" required>
+                          <FocusSel
+                            value={attrs.otros_categoria ?? ""}
+                            onChange={(e) => {
+                              handleAttr("otros_categoria", e.target.value);
+                              handleAttr("otros_subcategoria", "");
+                            }}
+                          >
+                            <option value="">Seleccionar...</option>
+                            {OTROS_VEHICULOS_CATEGORIAS.map((c) => (
+                              <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                          </FocusSel>
+                        </Field>
+
+                        {attrs.otros_categoria && (() => {
+                          const cat = OTROS_VEHICULOS_CATEGORIAS.find((c) => c.value === attrs.otros_categoria);
+                          return cat ? (
+                            <Field label="Subcategoría">
+                              <FocusSel
+                                value={attrs.otros_subcategoria ?? ""}
+                                onChange={(e) => handleAttr("otros_subcategoria", e.target.value)}
+                              >
+                                <option value="">Seleccionar...</option>
+                                {cat.subcategorias.map((s) => (
+                                  <option key={s} value={s}>{s}</option>
+                                ))}
+                              </FocusSel>
+                            </Field>
+                          ) : null;
+                        })()}
+
+                        <Field label="Marca">
+                          <FocusInp
+                            value={attrs.brand ?? ""}
+                            onChange={(e) => handleAttr("brand", e.target.value)}
+                            placeholder="Marca..."
+                          />
+                        </Field>
+
+                        <Field label="Modelo">
+                          <FocusInp
+                            value={attrs.model ?? ""}
+                            onChange={(e) => handleAttr("model", e.target.value)}
+                            placeholder="Modelo..."
+                          />
+                        </Field>
+
+                      </>) : (<>
 
                       {/* Marca */}
                       <Field label="Marca" required>
@@ -1954,6 +2133,7 @@ export default function NewListingPage() {
                               {b.label}
                             </option>
                           ))}
+                          <option value="otro">Otro</option>
                         </FocusSel>
                       </Field>
 
@@ -1966,7 +2146,7 @@ export default function NewListingPage() {
                           }}>
                             Cargando modelos...
                           </div>
-                        ) : modelosML.length > 0 ? (
+                        ) : modelosML.length > 0 && (!attrs.model || modelosML.includes(attrs.model as string) || attrs.model === "Otro") ? (
                           <FocusSel
                             value={attrs.model ?? ""}
                             onChange={(e) => handleAttr("model", e.target.value)}
@@ -1977,7 +2157,7 @@ export default function NewListingPage() {
                             ))}
                             <option value="Otro">Otro</option>
                           </FocusSel>
-                        ) : vehicleModels.length > 0 ? (
+                        ) : !["auto", "camioneta", "moto", "cuatriciclo", "utv", "camion"].includes(attrs.sub_category ?? "") && vehicleModels.length > 0 ? (
                           <FocusSel
                             value={attrs.model ?? ""}
                             onChange={(e) => handleAttr("model", e.target.value)}
@@ -1996,8 +2176,10 @@ export default function NewListingPage() {
                           />
                         )}
                       </Field>
+                      </>)}
 
-                      {/* Año */}
+                      {/* Año — oculto para náutica de servicios/accesorios y cuando no hay categoría aún */}
+                      {(attrs.sub_category !== "nautica" || (attrs.nautica_categoria && !["servicios", "accesorios_nauticos"].includes(attrs.nautica_categoria))) ? (
                       <Field label="Año" required>
                         <FocusSel
                           value={attrs.year ?? ""}
@@ -2007,8 +2189,8 @@ export default function NewListingPage() {
                         >
                           <option value="">Seleccionar...</option>
                           {Array.from(
-                            { length: 40 },
-                            (_, i) => new Date().getFullYear() + 1 - i,
+                            { length: new Date().getFullYear() - 1929 },
+                            (_, i) => new Date().getFullYear() - i,
                           ).map((y) => (
                             <option key={y} value={y}>
                               {y}
@@ -2016,21 +2198,47 @@ export default function NewListingPage() {
                           ))}
                         </FocusSel>
                       </Field>
+                      ) : null}
 
-                      {/* Km */}
-                      <Field label="Kilómetros" required>
+                      {/* Cilindrada — solo para moto/cuatriciclo/utv */}
+                      {["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                        <Field label="Cilindrada">
+                          <div style={{ position: "relative" }}>
+                            <FocusInp
+                              type="number"
+                              value={attrs.cilindrada ?? ""}
+                              onChange={(e) => handleAttr("cilindrada", e.target.value)}
+                              placeholder="125"
+                              style={{ paddingRight: "36px" }}
+                              min={0}
+                            />
+                            <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>cc</span>
+                          </div>
+                        </Field>
+                      )}
+
+                      {/* Km / Horas de uso */}
+                      {(attrs.sub_category !== "nautica"
+                        ? true
+                        : !!attrs.nautica_categoria && !["servicios", "accesorios_nauticos", "inflables_recreacion"].includes(attrs.nautica_categoria)
+                      ) && (
+                      <Field label={attrs.sub_category === "nautica" ? "Horas de uso" : "Kilómetros"} required>
                         <div style={{ position: "relative" }}>
                           <FocusInp
                             type="number"
                             value={attrs.km ?? ""}
                             onChange={(e) => handleAttr("km", e.target.value)}
                             placeholder="0"
-                            style={{ paddingRight: "36px" }}
+                            style={{ paddingRight: attrs.sub_category === "nautica" ? "44px" : "36px" }}
                           />
-                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>km</span>
+                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
+                            {attrs.sub_category === "nautica" ? "hs" : "km"}
+                          </span>
                         </div>
                       </Field>
+                      )}
 
+                      </>)}
                       {/* Provincia + Localidad + Estado — 3 cols en 1 fila */}
                       <div style={{ gridColumn: "span 2" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
@@ -2103,50 +2311,62 @@ export default function NewListingPage() {
                             padding: "16px", borderRadius: "10px",
                             border: `1px solid ${C.slate100}`, background: "#fafafa",
                           }}>
-                            {/* Versión */}
-                            <Field label="Versión">
-                              <FocusInp value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)} placeholder="Move, SR 4x4, Sport..." />
-                            </Field>
+                            {/* Versión — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Versión">
+                                <FocusInp value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)} placeholder="Move, SR 4x4, Sport..." />
+                              </Field>
+                            )}
 
-                            {/* Combustible */}
-                            <Field label="Combustible">
-                              <FocusSel value={attrs.fuel ?? ""} onChange={(e) => handleAttr("fuel", e.target.value)}>
-                                <option value="">Seleccionar...</option>
-                                {FUELS.map((f) => <option key={f} value={f.toLowerCase()}>{f}</option>)}
-                              </FocusSel>
-                            </Field>
+                            {/* Combustible — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Combustible">
+                                <FocusSel value={attrs.fuel ?? ""} onChange={(e) => handleAttr("fuel", e.target.value)}>
+                                  <option value="">Seleccionar...</option>
+                                  {FUELS.map((f) => <option key={f} value={f.toLowerCase()}>{f}</option>)}
+                                </FocusSel>
+                              </Field>
+                            )}
 
-                            {/* Transmisión */}
-                            <Field label="Transmisión">
-                              <FocusSel value={attrs.transmission ?? ""} onChange={(e) => handleAttr("transmission", e.target.value)}>
-                                <option value="">Seleccionar...</option>
-                                {TRANSMISIONS.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
-                              </FocusSel>
-                            </Field>
+                            {/* Transmisión — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Transmisión">
+                                <FocusSel value={attrs.transmission ?? ""} onChange={(e) => handleAttr("transmission", e.target.value)}>
+                                  <option value="">Seleccionar...</option>
+                                  {TRANSMISIONS.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                                </FocusSel>
+                              </Field>
+                            )}
 
-                            {/* Color */}
-                            <Field label="Color">
-                              <FocusInp value={attrs.color ?? ""} onChange={(e) => handleAttr("color", e.target.value)} placeholder="Gris plata..." />
-                            </Field>
+                            {/* Color — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Color">
+                                <FocusInp value={attrs.color ?? ""} onChange={(e) => handleAttr("color", e.target.value)} placeholder="Gris plata..." />
+                              </Field>
+                            )}
 
-                            {/* Motor */}
-                            <Field label="Motor">
-                              <FocusInp value={attrs.engine ?? ""} onChange={(e) => handleAttr("engine", e.target.value)} placeholder="1.6, 2.0 TDI..." />
-                            </Field>
+                            {/* Motor — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Motor">
+                                <FocusInp value={attrs.engine ?? ""} onChange={(e) => handleAttr("engine", e.target.value)} placeholder="1.6, 2.0 TDI..." />
+                              </Field>
+                            )}
 
-                            {/* Patente */}
-                            <Field label="Patente">
-                              <FocusInp
-                                value={attrs.patente ?? ""}
-                                onChange={(e) => handleAttr("patente", e.target.value.toUpperCase())}
-                                placeholder="PDL187" maxLength={8}
-                                style={{ letterSpacing: "2px", fontWeight: 700 }}
-                              />
-                              <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "12px", color: "#94a3b8", cursor: "pointer", userSelect: "none" as const }}>
-                                <input type="checkbox" checked={attrs.show_patente ?? false} onChange={(e) => handleAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1", cursor: "pointer" }} />
-                                Mostrar patente en la publicación
-                              </label>
-                            </Field>
+                            {/* Patente — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Patente">
+                                <FocusInp
+                                  value={attrs.patente ?? ""}
+                                  onChange={(e) => handleAttr("patente", e.target.value.toUpperCase())}
+                                  placeholder="PDL187" maxLength={8}
+                                  style={{ letterSpacing: "2px", fontWeight: 700 }}
+                                />
+                                <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "12px", color: "#94a3b8", cursor: "pointer", userSelect: "none" as const }}>
+                                  <input type="checkbox" checked={attrs.show_patente ?? false} onChange={(e) => handleAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1", cursor: "pointer" }} />
+                                  Mostrar patente en la publicación
+                                </label>
+                              </Field>
+                            )}
 
                             {/* Tipo de vendedor */}
                             <div style={{ gridColumn: "span 2" }}>
@@ -2198,7 +2418,8 @@ export default function NewListingPage() {
                                   ["has_gnc", "Con GNC"],
                                   ["has_alarm", "Con alarma"],
                                   ["has_service", "Con service"],
-                                ].map(([k, l]) => {
+                                ].filter(([k]) => k !== "has_gnc" || !["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? ""))
+                                .map(([k, l]) => {
                                   const active = !!attrs[k];
                                   return (
                                     <button

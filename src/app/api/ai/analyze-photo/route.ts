@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
       // Debug info (remove in prod if desired)
       ai_raw: {
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-sonnet-4-6",
         photos_analyzed: images.length,
         category: aiResult.category_id,
         fields_detected: Object.keys(aiResult.attributes ?? {}).length,

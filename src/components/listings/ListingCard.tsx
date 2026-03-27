@@ -213,25 +213,29 @@ export function ListingCard({
             </div>
           )}
 
-          <div style={{ fontSize: "12px", color: "#888", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <PinIcon size={11} />
-              <span>{locationLabel}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "20px" }}>
+          <div style={{ fontSize: "12px", color: "#888" }}>
+            {/* Row 1: location + views */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <PinIcon size={11} />
+                <span>{locationLabel}</span>
+              </div>
               {view_count != null && view_count > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#aaa" }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                     <circle cx="12" cy="12" r="3"/>
                   </svg>
-                  <span>{view_count.toLocaleString("es-AR")}</span>
+                  <span>{view_count.toLocaleString("es-AR")} vistas</span>
                 </div>
               )}
-              {dateLabel && (
-                dateLabel === "today" ? (
+            </div>
+            {/* Row 2: date */}
+            {dateLabel && (
+              <div style={{ marginTop: "4px", display: "flex", justifyContent: "flex-end" }}>
+                {dateLabel === "today" ? (
                   <span style={{
-                    display: "inline-flex", alignItems: "center", height: "20px",
+                    display: "inline-flex", alignItems: "center", height: "18px",
                     background: "linear-gradient(135deg,#22c55e,#16a34a)",
                     color: "#fff", borderRadius: "5px",
                     padding: "0 7px", fontSize: "10px", fontWeight: 800,
@@ -244,11 +248,11 @@ export function ListingCard({
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
-                    <span style={{ fontSize: "11px", lineHeight: "20px" }}>{dateLabel}</span>
+                    <span style={{ fontSize: "11px" }}>{dateLabel}</span>
                   </div>
-                )
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

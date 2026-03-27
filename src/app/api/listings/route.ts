@@ -47,6 +47,28 @@ export async function POST(request: Request) {
       await supabase.from('listing_images').insert(imageRows);
     }
 
+    // ── Contribute new moto/cuatriciclo/utv model to DB ──────────
+    const attrs = body.attributes ?? {};
+    if (
+      body.category_id === 2 &&
+      ["moto", "cuatriciclo", "utv"].includes(attrs.sub_category) &&
+      attrs.brand &&
+      typeof attrs.model === "string" &&
+      attrs.model.trim().length >= 2 &&
+      attrs.model.trim().length <= 80 &&
+      /^[\w\s\-\.\/]+$/i.test(attrs.model.trim())
+    ) {
+      const cc = Number(attrs.cilindrada) || null;
+      supabase.rpc("contribute_vehicle_model", {
+        p_tipo:       attrs.sub_category,
+        p_brand:      attrs.brand,
+        p_model:      attrs.model.trim(),
+        p_cilindrada: cc && cc > 0 ? cc : null,
+      }).then(({ error: e }) => {
+        if (e) console.warn("[vehicle_models]", e.message);
+      });
+    }
+
     return NextResponse.json(listing)
 
   } catch (error) {
