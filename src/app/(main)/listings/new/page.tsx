@@ -974,7 +974,7 @@ export default function NewListingPage() {
   const marcasFiltradas = useMemo(() => {
     const tipo = attrs.sub_category;
     if (tipo === "auto" || tipo === "camioneta") {
-      return CAR_BRANDS.filter((b) => MARCAS_POR_TIPO[tipo].has(b.value));
+      return CAR_BRANDS.filter((b) => MARCAS_POR_TIPO[tipo as "auto" | "camioneta"].has(b.value));
     }
     if (tipo === "moto") return MOTO_BRANDS_LIST;
     if (tipo === "cuatriciclo") return CUATRI_BRANDS_LIST;
