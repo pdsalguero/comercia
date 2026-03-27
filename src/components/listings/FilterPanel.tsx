@@ -53,14 +53,14 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     if (!categoryId) return;
     const supabase = createClient();
     const fetchBrands = async () => {
-      let q = supabase
+      let q: any = supabase
         .from("listings")
         .select("attributes")
         .eq("status", "active")
         .eq("category_id", categoryId)
         .not("attributes->brand", "is", null);
       if (filters.sub_category) {
-        q = q.eq("attributes->>sub_category" as any, filters.sub_category);
+        q = q.eq("attributes->>sub_category", filters.sub_category);
       }
       const { data } = await q;
       const brands = [
