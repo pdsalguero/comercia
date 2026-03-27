@@ -416,7 +416,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ViewTracker listingId={listing.id} />
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 8px", boxSizing: "border-box", width: "100%", maxWidth: "100%" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 8px", boxSizing: "border-box", width: "100%" }}>
 
         {/* Breadcrumb */}
         {(() => {
