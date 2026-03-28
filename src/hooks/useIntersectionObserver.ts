@@ -11,9 +11,9 @@ interface Options {
 
 export function useIntersectionObserver<T extends Element = HTMLDivElement>(
   options: Options = {},
-): [React.RefObject<T>, boolean] {
+): [React.RefObject<T | null>, boolean] {
   const { threshold = 0.15, rootMargin = "0px", once = true } = options;
-  const ref = useRef<T>(null);
+  const ref = useRef<T | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

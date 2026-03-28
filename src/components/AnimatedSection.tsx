@@ -19,11 +19,11 @@ export function AnimatedSection({
   style,
   className,
 }: Props) {
-  const [ref, visible] = useIntersectionObserver<HTMLDivElement>({ threshold: 0.12 });
+  const [ref, visible] = useIntersectionObserver({ threshold: 0.12 });
 
   return (
     <div
-      ref={ref}
+      ref={ref as React.RefObject<HTMLDivElement>}
       className={className}
       style={{
         opacity: visible ? 1 : 0,
