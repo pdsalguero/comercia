@@ -1,5 +1,7 @@
 // src/app/api/ai/analyze-photo/route.ts
 import { NextRequest, NextResponse } from "next/server";
+
+export const maxDuration = 60; // seconds — needed for Railway / Vercel
 import { analyzePhotoWithClaude } from "@/lib/claude/analyze-photo";
 import { createClient } from "@/lib/supabase/server";
 
