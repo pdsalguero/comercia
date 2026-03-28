@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import MercadoPagoConfig, { Preference } from "mercadopago";
 
-const PLAN_META: Record<string, { name: string; price: number; days: number; featured_level: string }> = {
+export const PLAN_META: Record<string, { name: string; price: number; days: number; featured_level: string }> = {
   bronze_7:  { name: "Estándar 7 días",   price: 699,  days: 7,  featured_level: "bronze" },
   bronze_15: { name: "Estándar 15 días",  price: 1299, days: 15, featured_level: "bronze" },
   bronze_30: { name: "Estándar 30 días",  price: 2499, days: 30, featured_level: "bronze" },
@@ -16,20 +16,35 @@ const PLAN_META: Record<string, { name: string; price: number; days: number; fea
 };
 
 export async function POST(req: NextRequest) {
+  // Auth check
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.redirect(new URL("/login", req.url));
 
-  const formData = await req.formData();
-  const listingId = formData.get("listing_id") as string;
-  const planKey   = formData.get("plan_key") as string;
+  // Parse body (supports both JSON and form-data)
+  let listingId: string;
+  let planKey: string;
+  const ct = req.headers.get("content-type") ?? "";
+  if (ct.includes("application/json")) {
+    const body = await req.json();
+    listingId = body.listing_id;
+    planKey   = body.plan_key;
+  } else {
+    const fd = await req.formData();
+    listingId = fd.get("listing_id") as string;
+    planKey   = fd.get("plan_key") as string;
+  }
 
   const plan = PLAN_META[planKey];
-  if (!plan || !listingId) return NextResponse.redirect(new URL(`/upgrade?listing_id=${listingId}&error=1`, req.url));
+  if (!plan || !listingId) {
+    return NextResponse.redirect(new URL(`/upgrade?listing_id=${listingId ?? ""}&error=1`, req.url));
+  }
 
   const BASE = process.env.NEXT_PUBLIC_APP_URL!;
-  const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
-  const prefClient = new Preference(client);
+
+  // Create MP preference
+  const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
+  const prefClient = new Preference(mpClient);
 
   const pref = await prefClient.create({
     body: {
@@ -50,6 +65,20 @@ export async function POST(req: NextRequest) {
       external_reference: `${listingId}|${planKey}|${user.id}`,
       notification_url: `${BASE}/api/mp/webhook`,
     },
+  });
+
+  // Save pago record with status=pending
+  const service = createServiceClient();
+  await service.from("pagos").insert({
+    listing_id:      listingId,
+    user_id:         user.id,
+    plan_key:        planKey,
+    plan_name:       plan.name,
+    amount:          plan.price,
+    days:            plan.days,
+    featured_level:  plan.featured_level,
+    mp_preference_id: pref.id,
+    mp_status:       "pending",
   });
 
   return NextResponse.redirect(pref.init_point!);
