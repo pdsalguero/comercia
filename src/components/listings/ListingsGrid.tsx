@@ -2,7 +2,48 @@
 
 import { useListingsView } from "./ListingsViewContext";
 import { ListingCard } from "./ListingCard";
-import { ListingListCard } from "./ListingListCard";
+import { ListingListCard, type ListingListCardProps } from "./ListingListCard";
+
+// ── Label maps ───────────────────────────────────────────────────────────────
+const VEH_SUBCATS: Record<string, string> = {
+  auto: "Auto", camioneta: "Pickup/SUV", moto: "Moto",
+  cuatriciclo: "Cuatriciclo", utv: "UTV/Arenero",
+  camion: "Camión", nautica: "Náutica",
+};
+const RE_OP: Record<string, string> = {
+  venta: "Venta", alquiler: "Alquiler", "alquiler-temporal": "Alq. Temp.",
+};
+const RE_PROP: Record<string, string> = {
+  casa: "Casa", departamento: "Dpto.", terreno: "Terreno",
+  finca: "Finca", local: "Local", galpon: "Galpón", cochera: "Cochera",
+};
+
+function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function buildBreadcrumbs(
+  attrs: Record<string, string | number | boolean | null> | undefined,
+): ListingListCardProps["breadcrumbs"] {
+  if (!attrs) return [];
+  const chips: ListingListCardProps["breadcrumbs"] = [];
+
+  // Vehicles: sub_category > brand > model > year
+  if (attrs.sub_category) {
+    chips.push({ label: VEH_SUBCATS[String(attrs.sub_category)] ?? cap(String(attrs.sub_category)), variant: "primary" });
+  }
+  if (attrs.brand) chips.push({ label: cap(String(attrs.brand)) });
+  if (attrs.model) chips.push({ label: String(attrs.model) });
+
+  // Real estate: operation_type > property_type > bedrooms
+  if (attrs.operation_type) {
+    chips.push({ label: RE_OP[String(attrs.operation_type)] ?? cap(String(attrs.operation_type)), variant: "primary" });
+  }
+  if (attrs.property_type) {
+    chips.push({ label: RE_PROP[String(attrs.property_type)] ?? cap(String(attrs.property_type)) });
+  }
+  if (attrs.bedrooms) chips.push({ label: `${attrs.bedrooms} dorm.` });
+
+  return chips;
+}
 
 interface Listing {
   id: string;
@@ -61,6 +102,9 @@ export function ListingsGrid({ featured, regular }: Props) {
             cover_image={l.cover_image}
             condition={(l.attributes?.condition as string | null) ?? null}
             neighborhood={l.neighborhood}
+            view_count={l.view_count}
+            created_at={l.created_at}
+            breadcrumbs={buildBreadcrumbs(l.attributes)}
             showDivider={i < items.length - 1}
           />
         ))}

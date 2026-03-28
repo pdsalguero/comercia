@@ -11,6 +11,8 @@ export interface ListingListCardProps {
   cover_image: string | null;
   condition: string | null;
   neighborhood: string | null;
+  view_count?: number | null;
+  created_at?: string | null;
   /** Optional attribute chips shown below the title (e.g. sub-category, brand, model) */
   breadcrumbs?: Array<{ label: string; variant?: "primary" | "secondary" }>;
   showDivider?: boolean;
@@ -25,6 +27,18 @@ const CONDITION_LABELS: Record<string, string> = {
   used: "Usado",
 };
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `hace ${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `hace ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `hace ${days}d`;
+  const months = Math.floor(days / 30);
+  return `hace ${months} mes${months > 1 ? "es" : ""}`;
+}
+
 export function ListingListCard({
   id,
   title,
@@ -34,6 +48,8 @@ export function ListingListCard({
   cover_image,
   condition,
   neighborhood,
+  view_count,
+  created_at,
   breadcrumbs,
   showDivider = true,
 }: ListingListCardProps) {
@@ -123,6 +139,20 @@ export function ListingListCard({
             {neighborhood && (
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}>
                 <PinIcon size={10} /> {neighborhood}
+              </span>
+            )}
+          </div>
+
+          {/* Meta: date + views */}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "5px" }}>
+            {created_at && (
+              <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
+                📅 {timeAgo(created_at)}
+              </span>
+            )}
+            {view_count != null && (
+              <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
+                👁 {view_count.toLocaleString("es-AR")} visitas
               </span>
             )}
           </div>

@@ -3098,17 +3098,19 @@ export default async function CategoryPage({
               {listings.map((listing: any, i: number) => {
                 const images = listing.listing_images as { url: string; position: number }[] | null;
                 const cover = images?.slice().sort((a: any, b: any) => a.position - b.position)[0]?.url ?? null;
+                const a = listing.attributes ?? {};
+                const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+                const RE_OP_L: Record<string,string> = { venta:"Venta", alquiler:"Alquiler", "alquiler-temporal":"Alq. Temp." };
+                const RE_PROP_L: Record<string,string> = { casa:"Casa", departamento:"Dpto.", terreno:"Terreno", finca:"Finca", local:"Local", galpon:"Galpón", cochera:"Cochera" };
+                const VEH_SUB_L: Record<string,string> = { auto:"Auto", camioneta:"Pickup/SUV", moto:"Moto", cuatriciclo:"Cuatriciclo", utv:"UTV/Arenero", camion:"Camión", nautica:"Náutica" };
                 const breadcrumbs = [
-                  listing.attributes?.sub_category
-                    ? { label: VEHICLE_TYPES.find((t: any) => t.value === listing.attributes.sub_category)?.label ?? listing.attributes.sub_category, variant: "primary" as const }
-                    : null,
-                  listing.attributes?.brand
-                    ? { label: VEHICLE_BRANDS.find((b: any) => b.value === listing.attributes.brand)?.label ?? listing.attributes.brand, variant: "secondary" as const }
-                    : null,
-                  listing.attributes?.model
-                    ? { label: listing.attributes.model, variant: "secondary" as const }
-                    : null,
-                ].filter(Boolean) as { label: string; variant: "primary" | "secondary" }[];
+                  a.sub_category    ? { label: VEH_SUB_L[String(a.sub_category)] ?? cap(String(a.sub_category)), variant: "primary" as const } : null,
+                  a.brand           ? { label: cap(String(a.brand)) }                                                                           : null,
+                  a.model           ? { label: String(a.model) }                                                                                : null,
+                  a.operation_type  ? { label: RE_OP_L[String(a.operation_type)] ?? cap(String(a.operation_type)), variant: "primary" as const }: null,
+                  a.property_type   ? { label: RE_PROP_L[String(a.property_type)] ?? cap(String(a.property_type)) }                             : null,
+                  a.bedrooms        ? { label: `${a.bedrooms} dorm.` }                                                                          : null,
+                ].filter(Boolean) as { label: string; variant?: "primary" | "secondary" }[];
                 return (
                   <ListingListCard
                     key={listing.id}
@@ -3118,8 +3120,10 @@ export default async function CategoryPage({
                     currency={listing.currency}
                     featured_level={listing.featured_level}
                     cover_image={cover}
-                    condition={listing.condition ?? listing.attributes?.condition ?? null}
+                    condition={listing.condition ?? a.condition ?? null}
                     neighborhood={listing.neighborhood}
+                    view_count={listing.view_count}
+                    created_at={listing.created_at}
                     breadcrumbs={breadcrumbs.length > 0 ? breadcrumbs : undefined}
                     showDivider={i < listings.length - 1}
                   />
