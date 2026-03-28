@@ -79,9 +79,21 @@ export default async function UpgradePage({
         </div>
       </div>
 
-      <div style={{ textAlign: "center", marginTop: "24px" }}>
+      <div style={{ textAlign: "center", marginTop: "24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+        {listing_id && (
+          <Link
+            href={`/listings/${listing_id}`}
+            style={{
+              fontSize: "13px", color: "#64748b", textDecoration: "none", fontWeight: 500,
+              background: "#f1f5f9", borderRadius: "8px", padding: "9px 20px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            Publicar sin destacar (aviso gratuito)
+          </Link>
+        )}
         {listing_id ? (
-          <Link href={`/dashboard/my-listings/${listing_id}/edit`} style={{ fontSize: "13px", color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
+          <Link href={`/listings/${listing_id}`} style={{ fontSize: "12px", color: "#94a3b8", textDecoration: "none" }}>
             ← Volver al aviso
           </Link>
         ) : (
