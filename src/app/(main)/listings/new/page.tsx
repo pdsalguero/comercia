@@ -1263,6 +1263,7 @@ export default function NewListingPage() {
       if (!res.ok) throw new Error(data.error ?? "Error al publicar");
       setDoneId(data.id);
       setStep("promo");
+      router.push(`/upgrade?listing_id=${data.id}`);
     } catch (e: any) {
       setError(e.message);
       setStep("form");

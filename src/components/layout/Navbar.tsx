@@ -122,8 +122,8 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
           }}
         >
           {/* Logo */}
-          <Link href="/" style={{ flexShrink: 0, textDecoration: "none" }}>
-            <Logo height={34} />
+          <Link href="/" style={{ flexShrink: 0, textDecoration: "none", display: "flex", alignItems: "center" }}>
+            <Logo height={46} />
           </Link>
 
           {/* Nav links — desktop */}

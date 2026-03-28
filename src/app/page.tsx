@@ -10,22 +10,22 @@ import { StoreCards } from "@/components/listings/StoreCards";
 import { PublishFAB } from "@/components/ui/PublishFAB";
 
 const CATEGORIES = [
-  { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2  },
-  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠", id: 3  },
-  { name: "Celulares",         slug: "phones",        icon: "📱", id: 21 },
-  { name: "Tecnología",        slug: "electronics",   icon: "💻", id: 1  },
-  { name: "Electrodomésticos", slug: "appliances",    icon: "🧊", id: 22 },
-  { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗", id: 4  },
-  { name: "Hogar y Muebles", slug: "home-garden", icon: "🛋️", id: 5 },
-  { name: "Deportes",          slug: "sports",        icon: "⚽", id: 6  },
-  { name: "Herramientas",      slug: "tools",         icon: "🔧", id: 7  },
-  { name: "Bebés y Niños",     slug: "babies",        icon: "👶", id: 23 },
-  { name: "Música, Libros y Revistas", slug: "books",         icon: "📚", id: 8  },
-  { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄", id: 24 },
-  { name: "Juegos y Juguetes", slug: "toys",          icon: "🧸", id: 25 },
-  { name: "Mascotas",          slug: "pets",          icon: "🐾", id: 9  },
-  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26 },
-  { name: "Otros",             slug: "other",         icon: "📦", id: 10 },
+  { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2,  active: true  },
+  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠", id: 3,  active: true  },
+  { name: "Celulares",         slug: "phones",        icon: "📱", id: 21, active: false },
+  { name: "Tecnología",        slug: "electronics",   icon: "💻", id: 1,  active: false },
+  { name: "Electrodomésticos", slug: "appliances",    icon: "🧊", id: 22, active: false },
+  { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗", id: 4,  active: false },
+  { name: "Hogar y Muebles",   slug: "home-garden",   icon: "🛋️", id: 5,  active: false },
+  { name: "Deportes",          slug: "sports",        icon: "⚽", id: 6,  active: false },
+  { name: "Herramientas",      slug: "tools",         icon: "🔧", id: 7,  active: false },
+  { name: "Bebés y Niños",     slug: "babies",        icon: "👶", id: 23, active: false },
+  { name: "Música, Libros y Revistas", slug: "books", icon: "📚", id: 8,  active: false },
+  { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄", id: 24, active: false },
+  { name: "Juegos y Juguetes", slug: "toys",          icon: "🧸", id: 25, active: false },
+  { name: "Mascotas",          slug: "pets",          icon: "🐾", id: 9,  active: false },
+  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26, active: false },
+  { name: "Otros",             slug: "other",         icon: "📦", id: 10, active: false },
 ];
 
 const CAT_NAMES: Record<string, string> = Object.fromEntries(CATEGORIES.map(c => [c.slug, c.name]));
@@ -146,7 +146,7 @@ export default async function HomePage() {
               backgroundPosition: "center 60%",
               position: "relative",
               overflow: "hidden",
-              height: "260px",
+              height: "210px",
               display: "flex",
               alignItems: "stretch",
             }}
@@ -215,12 +215,6 @@ export default async function HomePage() {
                   iconBg: "#fef3c7", dot: "#d97706",
                   value: `+${totalStores.toLocaleString("es-AR")}`,
                   label: "tiendas activas",
-                },
-                {
-                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-                  iconBg: "#ecfdf5", dot: "#059669",
-                  value: `+${viewsToday.toLocaleString("es-AR")}`,
-                  label: "visitas hoy",
                 },
               ].map((s, i) => (
                 <div key={i} className={i >= 2 ? "stat-hide-mobile" : ""} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#fff", borderRadius: "8px", padding: "5px 10px 5px 6px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", flexShrink: 0 }}>

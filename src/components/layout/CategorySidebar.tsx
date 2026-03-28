@@ -9,6 +9,7 @@ interface Category {
   slug: string;
   icon: string;
   count: number;
+  active?: boolean;
 }
 
 interface CategorySidebarProps {
@@ -79,40 +80,37 @@ export function CategorySidebar({ categories }: CategorySidebarProps) {
           </div>
         </Link>
 
-        {categories.map((cat, i) => {
+        {categories.slice(0, 4).map((cat, i) => {
           const isActive = activeSlug === cat.slug;
-          const isLast = i === categories.length - 1;
-          return (
-            <Link
-              key={cat.slug}
-              href={`/category/${cat.slug}`}
-              style={{ textDecoration: "none" }}
+          const isLast = i === 3;
+          const enabled = cat.active !== false;
+
+          const inner = (
+            <div
+              style={{
+                padding: "9px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottom: "1px solid #f8fafc",
+                cursor: enabled ? "pointer" : "default",
+                background: isActive ? "#f0f4ff" : "#fff",
+                opacity: enabled ? 1 : 0.45,
+              }}
             >
-              <div
-                style={{
-                  padding: "9px 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottom: isLast ? "none" : "1px solid #f8fafc",
-                  cursor: "pointer",
-                  background: isActive ? "#f0f4ff" : "#fff",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <CategoryIcon slug={cat.slug} size={18} />
+                <span
+                  style={{
+                    fontSize: "13px",
+                    color: isActive ? "#6366f1" : enabled ? "#334155" : "#94a3b8",
+                    fontWeight: isActive ? 700 : 400,
+                  }}
                 >
-                  <CategoryIcon slug={cat.slug} size={18} />
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      color: isActive ? "#6366f1" : "#334155",
-                      fontWeight: isActive ? 700 : 400,
-                    }}
-                  >
-                    {cat.name}
-                  </span>
-                </div>
+                  {cat.name}
+                </span>
+              </div>
+              {enabled ? (
                 <span
                   style={{
                     fontSize: "10px",
@@ -125,10 +123,52 @@ export function CategorySidebar({ categories }: CategorySidebarProps) {
                 >
                   {cat.count}
                 </span>
-              </div>
+              ) : (
+                <span
+                  style={{
+                    fontSize: "9px",
+                    color: "#a78bfa",
+                    background: "#f5f3ff",
+                    borderRadius: "4px",
+                    padding: "1px 5px",
+                    fontWeight: 700,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  PRÓX.
+                </span>
+              )}
+            </div>
+          );
+
+          return enabled ? (
+            <Link key={cat.slug} href={`/category/${cat.slug}`} style={{ textDecoration: "none" }}>
+              {inner}
             </Link>
+          ) : (
+            <div key={cat.slug}>{inner}</div>
           );
         })}
+
+        {/* Coming soon banner */}
+        <div
+          style={{
+            margin: "0 12px 12px",
+            background: "linear-gradient(135deg, #f5f3ff, #ede9fe)",
+            border: "1px dashed #c4b5fd",
+            borderRadius: "10px",
+            padding: "10px 12px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "16px", marginBottom: "2px" }}>🚀</div>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", marginBottom: "2px" }}>
+            ¡Más categorías en camino!
+          </div>
+          <div style={{ fontSize: "10px", color: "#8b5cf6", lineHeight: 1.4 }}>
+            Estamos trabajando para traerte todo en un solo lugar.
+          </div>
+        </div>
       </div>
 
       {/* Featured upsell */}

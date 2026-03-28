@@ -141,13 +141,13 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
         className="hero-search-card"
         style={{
           width: "100%",
-          minHeight: "220px",
+          minHeight: "160px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: "16px",
-          padding: "32px 20px",
+          gap: "10px",
+          padding: "20px 20px",
           position: "relative",
           zIndex: 2,
           boxSizing: "border-box",
@@ -156,7 +156,7 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
         <h1
           className="hero-main-title"
           style={{
-            fontSize: "clamp(20px, 4vw, 36px)",
+            fontSize: "clamp(18px, 3vw, 28px)",
             fontWeight: 900,
             textAlign: "center",
             lineHeight: 1.15,
@@ -170,19 +170,31 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
           {" "}de Argentina.
         </h1>
 
-        <p
+        <div
           className="hero-main-subtitle"
           style={{
-            fontSize: "15px",
-            textAlign: "center",
-            color: "rgba(255,255,255,0.85)",
-            margin: 0,
-            lineHeight: 1.5,
-            textShadow: "0 1px 4px rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "rgba(0,0,0,0.35)",
+            backdropFilter: "blur(6px)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: "999px",
+            padding: "6px 18px",
+            fontSize: "13px",
+            color: "#fff",
+            fontWeight: 500,
+            letterSpacing: "0.01em",
           }}
         >
-          Subí una foto y publicamos tu aviso solo. Gratis. En 30 segundos.
-        </p>
+          <span>📸 Subí una foto</span>
+          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
+          <span>✨ La IA redacta tu aviso</span>
+          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
+          <span>🆓 Gratis</span>
+          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
+          <span>⚡ 30 segundos</span>
+        </div>
 
         <div
           style={{
