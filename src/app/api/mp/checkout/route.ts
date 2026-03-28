@@ -29,6 +29,21 @@ export async function POST(req: NextRequest) {
     // Get user email from auth
     const userEmail = user.email ?? "";
 
+    // Validate email
+    if (!userEmail || !userEmail.includes("@")) {
+      console.error("[mp/checkout] Invalid payer email:", userEmail);
+      return NextResponse.json({ error: "Email de usuario inválido" }, { status: 400 });
+    }
+
+    // Fetch full name from profiles
+    const service = createServiceClient();
+    const { data: profile } = await service
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+    const fullName = profile?.full_name ?? "Usuario ComerxIA";
+
     // Parse body — always JSON
     const body = await req.json();
     const listingId: string = body.listing_id;
@@ -57,39 +72,44 @@ export async function POST(req: NextRequest) {
     });
     const prefClient = new Preference(mpClient);
 
-    const pref = await prefClient.create({
-      body: {
-        items: [
-          {
-            id:          planKey,
-            title:       `ComerxIA - ${plan.name}`,
-            description: `Destacado por ${plan.days} dias en ComerxIA`,
-            quantity:    1,
-            unit_price:  plan.price,
-            currency_id: "ARS",
-          },
-        ],
-        payer: {
-          email: userEmail,
+    const prefBody = {
+      items: [
+        {
+          id:          planKey,
+          title:       `ComerxIA - ${plan.name}`,
+          description: `Destacado por ${plan.days} dias en ComerxIA`,
+          quantity:    1,
+          unit_price:  plan.price,
+          currency_id: "ARS",
         },
-        back_urls: {
-          success: `${BASE}/api/mp/callback`,
-          failure: `${BASE}/upgrade?listing_id=${listingId}&error=1`,
-          pending: `${BASE}/upgrade?listing_id=${listingId}&pending=1`,
-        },
-        auto_return:        "approved",
-        external_reference: externalRef,
-        notification_url:   `${BASE}/api/mp/webhook`,
-        statement_descriptor: "ComerxIA",
+      ],
+      payer: {
+        name:  fullName,
+        email: userEmail,
       },
-    });
+      back_urls: {
+        success: `${BASE}/api/mp/callback`,
+        failure: `${BASE}/upgrade?listing_id=${listingId}&error=1`,
+        pending: `${BASE}/upgrade?listing_id=${listingId}&pending=1`,
+      },
+      auto_return:        "approved",
+      external_reference: externalRef,
+      notification_url:   `${BASE}/api/mp/webhook`,
+      statement_descriptor: "ComerxIA",
+    };
+
+    console.log("[mp/checkout] preference body:", JSON.stringify(prefBody, null, 2));
+    console.log("[mp/checkout] MP_ACCESS_TOKEN prefix:", process.env.MP_ACCESS_TOKEN?.slice(0, 12));
+
+    const pref = await prefClient.create({ body: prefBody });
 
     if (!pref.init_point) {
       return NextResponse.json({ error: "MP no devolvio init_point" }, { status: 500 });
     }
 
+    console.log("[mp/checkout] preference created:", pref.id, "init_point:", pref.init_point?.slice(0, 60));
+
     // Save pago record
-    const service = createServiceClient();
     await service.from("pagos").insert({
       listing_id:       listingId,
       user_id:          user.id,
