@@ -99,9 +99,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error: any) {
-    console.error("[analyze-photo] Error:", error);
+    const msg = error?.message ?? "Error interno al analizar la foto";
+    const isApiKey = !process.env.ANTHROPIC_API_KEY || msg.includes("API") || msg.includes("401") || msg.includes("403");
+    console.error("[analyze-photo] Error:", msg, { hasKey: !!process.env.ANTHROPIC_API_KEY });
     return NextResponse.json(
-      { error: error.message ?? "Error interno al analizar la foto" },
+      {
+        error: isApiKey
+          ? "ANTHROPIC_API_KEY no configurada en el servidor"
+          : msg,
+      },
       { status: 500 },
     );
   }
