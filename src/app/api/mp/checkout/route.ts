@@ -3,83 +3,112 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import MercadoPagoConfig, { Preference } from "mercadopago";
 
+export const maxDuration = 30;
+
 export const PLAN_META: Record<string, { name: string; price: number; days: number; featured_level: string }> = {
-  bronze_7:  { name: "Estándar 7 días",   price: 699,  days: 7,  featured_level: "bronze" },
-  bronze_15: { name: "Estándar 15 días",  price: 1299, days: 15, featured_level: "bronze" },
-  bronze_30: { name: "Estándar 30 días",  price: 2499, days: 30, featured_level: "bronze" },
-  silver_7:  { name: "Destacado 7 días",  price: 1299, days: 7,  featured_level: "silver" },
-  silver_15: { name: "Destacado 15 días", price: 2299, days: 15, featured_level: "silver" },
-  silver_30: { name: "Destacado 30 días", price: 4199, days: 30, featured_level: "silver" },
-  gold_7:    { name: "Premium 7 días",    price: 1799, days: 7,  featured_level: "gold"   },
-  gold_15:   { name: "Premium 15 días",   price: 3299, days: 15, featured_level: "gold"   },
-  gold_30:   { name: "Premium 30 días",   price: 6999, days: 30, featured_level: "gold"   },
+  bronze_7:  { name: "Estandar 7 dias",   price: 699,  days: 7,  featured_level: "bronze" },
+  bronze_15: { name: "Estandar 15 dias",  price: 1299, days: 15, featured_level: "bronze" },
+  bronze_30: { name: "Estandar 30 dias",  price: 2499, days: 30, featured_level: "bronze" },
+  silver_7:  { name: "Destacado 7 dias",  price: 1299, days: 7,  featured_level: "silver" },
+  silver_15: { name: "Destacado 15 dias", price: 2299, days: 15, featured_level: "silver" },
+  silver_30: { name: "Destacado 30 dias", price: 4199, days: 30, featured_level: "silver" },
+  gold_7:    { name: "Premium 7 dias",    price: 1799, days: 7,  featured_level: "gold"   },
+  gold_15:   { name: "Premium 15 dias",   price: 3299, days: 15, featured_level: "gold"   },
+  gold_30:   { name: "Premium 30 dias",   price: 6999, days: 30, featured_level: "gold"   },
 };
 
 export async function POST(req: NextRequest) {
-  // Auth check
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL("/login", req.url));
+  try {
+    // Auth
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
 
-  // Parse body (supports both JSON and form-data)
-  let listingId: string;
-  let planKey: string;
-  const ct = req.headers.get("content-type") ?? "";
-  if (ct.includes("application/json")) {
+    // Get user email from auth
+    const userEmail = user.email ?? "";
+
+    // Parse body — always JSON
     const body = await req.json();
-    listingId = body.listing_id;
-    planKey   = body.plan_key;
-  } else {
-    const fd = await req.formData();
-    listingId = fd.get("listing_id") as string;
-    planKey   = fd.get("plan_key") as string;
-  }
+    const listingId: string = body.listing_id;
+    const planKey: string   = body.plan_key;
 
-  const plan = PLAN_META[planKey];
-  if (!plan || !listingId) {
-    return NextResponse.redirect(new URL(`/upgrade?listing_id=${listingId ?? ""}&error=1`, req.url));
-  }
+    if (!listingId || !planKey) {
+      return NextResponse.json({ error: "listing_id y plan_key son requeridos" }, { status: 400 });
+    }
 
-  const BASE = process.env.NEXT_PUBLIC_APP_URL!;
+    const plan = PLAN_META[planKey];
+    if (!plan) {
+      return NextResponse.json({ error: `Plan no reconocido: ${planKey}` }, { status: 400 });
+    }
 
-  // Create MP preference
-  const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
-  const prefClient = new Preference(mpClient);
+    const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+    if (!BASE) {
+      return NextResponse.json({ error: "NEXT_PUBLIC_APP_URL no configurado" }, { status: 500 });
+    }
 
-  const pref = await prefClient.create({
-    body: {
-      items: [{
-        id: planKey,
-        title: `Plan ${plan.name} — ComerxIA`,
-        quantity: 1,
-        unit_price: plan.price,
-        currency_id: "ARS",
-        description: `Destacado por ${plan.days} días`,
-      }],
-      back_urls: {
-        success: `${BASE}/api/mp/callback`,
-        failure: `${BASE}/upgrade?listing_id=${listingId}&error=1`,
-        pending: `${BASE}/upgrade?listing_id=${listingId}&pending=1`,
+    // Build external_reference without special characters (use - instead of |)
+    const externalRef = `${listingId}__${planKey}__${user.id}`;
+
+    // Create MP preference
+    const mpClient = new MercadoPagoConfig({
+      accessToken: process.env.MP_ACCESS_TOKEN!,
+    });
+    const prefClient = new Preference(mpClient);
+
+    const pref = await prefClient.create({
+      body: {
+        items: [
+          {
+            id:          planKey,
+            title:       `ComerxIA - ${plan.name}`,
+            description: `Destacado por ${plan.days} dias en ComerxIA`,
+            quantity:    1,
+            unit_price:  plan.price,
+            currency_id: "ARS",
+          },
+        ],
+        payer: {
+          email: userEmail,
+        },
+        back_urls: {
+          success: `${BASE}/api/mp/callback`,
+          failure: `${BASE}/upgrade?listing_id=${listingId}&error=1`,
+          pending: `${BASE}/upgrade?listing_id=${listingId}&pending=1`,
+        },
+        auto_return:        "approved",
+        external_reference: externalRef,
+        notification_url:   `${BASE}/api/mp/webhook`,
+        statement_descriptor: "ComerxIA",
       },
-      auto_return: "approved",
-      external_reference: `${listingId}|${planKey}|${user.id}`,
-      notification_url: `${BASE}/api/mp/webhook`,
-    },
-  });
+    });
 
-  // Save pago record with status=pending
-  const service = createServiceClient();
-  await service.from("pagos").insert({
-    listing_id:      listingId,
-    user_id:         user.id,
-    plan_key:        planKey,
-    plan_name:       plan.name,
-    amount:          plan.price,
-    days:            plan.days,
-    featured_level:  plan.featured_level,
-    mp_preference_id: pref.id,
-    mp_status:       "pending",
-  });
+    if (!pref.init_point) {
+      return NextResponse.json({ error: "MP no devolvio init_point" }, { status: 500 });
+    }
 
-  return NextResponse.redirect(pref.init_point!);
+    // Save pago record
+    const service = createServiceClient();
+    await service.from("pagos").insert({
+      listing_id:       listingId,
+      user_id:          user.id,
+      plan_key:         planKey,
+      plan_name:        plan.name,
+      amount:           plan.price,
+      days:             plan.days,
+      featured_level:   plan.featured_level,
+      mp_preference_id: pref.id,
+      mp_status:        "pending",
+    });
+
+    return NextResponse.json({ init_point: pref.init_point });
+
+  } catch (err: any) {
+    console.error("[mp/checkout] error:", err?.message ?? err);
+    return NextResponse.json(
+      { error: err?.message ?? "Error al crear preferencia MercadoPago" },
+      { status: 500 }
+    );
+  }
 }

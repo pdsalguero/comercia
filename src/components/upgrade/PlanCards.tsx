@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const TIERS = [
   {
@@ -67,10 +68,42 @@ interface Props {
 }
 
 export function PlanCards({ listingId }: Props) {
+  const router = useRouter();
   // Single global selection: "tierKey_days"
   const [selected, setSelected] = useState("silver_30");
+  const [loading, setLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  async function handleCheckout(planKey: string) {
+    if (!listingId) return;
+    setLoading(true);
+    setCheckoutError(null);
+    try {
+      const res = await fetch("/api/mp/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing_id: listingId, plan_key: planKey }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.init_point) {
+        setCheckoutError(data.error ?? "Error al iniciar el pago");
+        return;
+      }
+      window.location.href = data.init_point;
+    } catch {
+      setCheckoutError("Error de conexion. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
+    <>
+    {checkoutError && (
+      <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "10px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px", color: "#b91c1c" }}>
+        ❌ {checkoutError}
+      </div>
+    )}
     <div style={{
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -177,28 +210,32 @@ export function PlanCards({ listingId }: Props) {
             {/* CTA — only shown when coming from a listing */}
             {listingId && (
               <div style={{ padding: "0 20px 18px" }}>
-                <form action="/api/mp/checkout" method="POST">
-                  <input type="hidden" name="listing_id" value={listingId} />
-                  <input type="hidden" name="plan_key" value={selected} />
-                  <button type="submit" disabled={!isThisTierSelected} style={{
+                <button
+                  disabled={!isThisTierSelected || loading}
+                  onClick={() => handleCheckout(selected)}
+                  style={{
                     width: "100%",
                     background: isThisTierSelected ? tier.gradient : "#e2e8f0",
                     color: isThisTierSelected ? "#fff" : "#94a3b8",
                     border: "none", borderRadius: "10px", padding: "13px",
                     fontSize: "14px", fontWeight: 700,
-                    cursor: isThisTierSelected ? "pointer" : "default",
+                    cursor: isThisTierSelected && !loading ? "pointer" : "default",
                     boxShadow: isThisTierSelected ? tier.shadow : "none",
-                  }}>
-                    {isThisTierSelected && ctaPrice
+                    opacity: loading && isThisTierSelected ? 0.7 : 1,
+                  }}
+                >
+                  {loading && isThisTierSelected
+                    ? "Procesando..."
+                    : isThisTierSelected && ctaPrice
                       ? `${tier.cta} · ${selDays}d · $${ctaPrice.toLocaleString("es-AR")}`
                       : tier.cta}
-                  </button>
-                </form>
+                </button>
               </div>
             )}
           </div>
         );
       })}
     </div>
+    </>
   );
 }

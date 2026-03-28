@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const externalRef = payment.external_reference;
     if (!externalRef) return NextResponse.json({ ok: true });
 
-    const [listingId, planKey, userId] = externalRef.split("|");
+    const [listingId, planKey, userId] = externalRef.split("__");
     if (!listingId || !planKey || !userId) return NextResponse.json({ ok: true });
 
     const service = createServiceClient();

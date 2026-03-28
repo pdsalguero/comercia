@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const [listingId, planKey, userId] = externalRef.split("|");
+  const [listingId, planKey, userId] = externalRef.split("__");
   if (!listingId || !planKey || !userId) {
     return NextResponse.redirect(`${BASE}/upgrade?error=1`);
   }
