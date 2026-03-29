@@ -89,6 +89,15 @@ export function ComerxIALanding() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Track landing page visit (fire-and-forget)
+  useEffect(() => {
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page: "landing" }),
+    }).catch(() => {});
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.includes("@")) { setError("Ingresá un email válido"); return; }
@@ -286,7 +295,7 @@ export function ComerxIALanding() {
 
       {/* ── Features ────────────────────────────────────────────────────────── */}
       <section style={{
-        background: "#fff", padding: "80px 20px",
+        background: "#fff", padding: "48px 20px",
       }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <AnimatedSection style={{ textAlign: "center", marginBottom: "52px" }}>
@@ -362,7 +371,7 @@ export function ComerxIALanding() {
       </section>
 
       {/* ── Vendedores / Compradores ─────────────────────────────────────────── */}
-      <section style={{ background: "#f8fafc", padding: "80px 20px" }}>
+      <section style={{ background: "#f8fafc", padding: "48px 20px" }}>
         <div style={{
           maxWidth: "1100px", margin: "0 auto",
           display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
@@ -435,7 +444,7 @@ export function ComerxIALanding() {
       {/* ── CTA Final ───────────────────────────────────────────────────────── */}
       <section style={{
         background: "linear-gradient(135deg,#0f172a,#1E5BA8)",
-        padding: "80px 20px", textAlign: "center",
+        padding: "48px 20px", textAlign: "center",
       }}>
         <AnimatedSection style={{ maxWidth: "600px", margin: "0 auto" }}>
           <h2 style={{ fontSize: "clamp(28px,4vw,46px)", fontWeight: 900, color: "#fff", marginBottom: "16px" }}>

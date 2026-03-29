@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 // Rutas que siguen accesibles en modo coming soon
-const COMING_SOON_ALLOWED = ['/landing', '/api/']
+const COMING_SOON_ALLOWED = ['/landing', '/api/', '/admin', '/login']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

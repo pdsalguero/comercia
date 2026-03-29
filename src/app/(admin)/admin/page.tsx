@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
+  const service = createServiceClient();
 
   const [
     { count: totalListings },
@@ -10,6 +12,8 @@ export default async function AdminDashboard() {
     { count: totalUsers },
     { count: blockedUsers },
     { count: totalStores },
+    { count: landingViews },
+    { count: landingViewsToday },
   ] = await Promise.all([
     supabase.from("listings").select("*", { count: "exact", head: true }),
     supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "active"),
@@ -17,6 +21,9 @@ export default async function AdminDashboard() {
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_blocked", true),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_store", true),
+    service.from("page_views").select("*", { count: "exact", head: true }).eq("page", "landing"),
+    service.from("page_views").select("*", { count: "exact", head: true }).eq("page", "landing")
+      .gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString()),
   ]);
 
   // Recent listings
@@ -40,6 +47,8 @@ export default async function AdminDashboard() {
     { label: "Usuarios registrados", value: totalUsers ?? 0, icon: "👥", color: "#3b82f6", bg: "#eff6ff" },
     { label: "Usuarios bloqueados", value: blockedUsers ?? 0, icon: "🔒", color: "#f59e0b", bg: "#fffbeb" },
     { label: "Tiendas activas", value: totalStores ?? 0, icon: "🏪", color: "#8b5cf6", bg: "#f5f3ff" },
+    { label: "Visitas landing (total)", value: landingViews ?? 0, icon: "👁", color: "#0ea5e9", bg: "#f0f9ff" },
+    { label: "Visitas landing (hoy)", value: landingViewsToday ?? 0, icon: "📅", color: "#FF8C00", bg: "#fff7ed" },
   ];
 
   return (
@@ -52,7 +61,7 @@ export default async function AdminDashboard() {
       </p>
 
       {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px", marginBottom: "32px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px", marginBottom: "32px" }}>
         {stats.map((s) => (
           <div key={s.label} style={{
             background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0",
