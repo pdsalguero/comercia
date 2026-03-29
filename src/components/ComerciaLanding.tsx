@@ -65,6 +65,7 @@ const BUYER_BENEFITS = [
   "Avisos verificados y actualizados",
   "Filtros avanzados por zona, precio y características",
   "Contacto directo con el vendedor",
+  "Calificá a los vendedores y comprá con confianza",
   "Sin intermediarios",
 ];
 
