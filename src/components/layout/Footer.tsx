@@ -44,7 +44,7 @@ export function Footer() {
                 { label: "Todos los avisos", href: "/listings" },
                 { label: "Publicar aviso", href: "/listings/new" },
                 { label: "Tiendas", href: "/tiendas" },
-                { label: "Categorías", href: "/listings" },
+                { label: "Categorías", href: "/" },
                 { label: "Destacados", href: "/upgrade" },
               ].map(l => (
                 <Link key={l.href + l.label} href={l.href}

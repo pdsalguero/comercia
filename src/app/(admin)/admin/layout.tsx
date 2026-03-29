@@ -17,11 +17,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!profile?.is_admin) redirect("/");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9" }}>
+    <div className="admin-layout">
       <AdminSidebar admin={{ name: profile.full_name ?? user.email ?? "Admin", avatar: profile.avatar_url }} />
-      <main style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
+      <main className="admin-main">
         {children}
       </main>
+      <style>{`
+        .admin-layout {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          background: #f1f5f9;
+        }
+        .admin-main {
+          flex: 1;
+          padding: 20px 16px;
+          overflow-y: auto;
+        }
+        @media (min-width: 768px) {
+          .admin-layout { flex-direction: row; }
+          .admin-main { padding: 32px; }
+        }
+      `}</style>
     </div>
   );
 }

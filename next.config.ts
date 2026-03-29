@@ -23,8 +23,8 @@ const nextConfig: NextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-  org: "comerxia",
-  project: "javascript",
+  org: process.env.SENTRY_ORG ?? "comerxia",
+  project: process.env.SENTRY_PROJECT ?? "javascript-nextjs",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: true,
   widenClientFileUpload: true,
