@@ -26,8 +26,8 @@ export default withSentryConfig(nextConfig, {
   org: "comerxia",
   project: "javascript",
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: false,
+  silent: true,
   widenClientFileUpload: true,
-  hideSourceMaps: true,
-  disableLogger: true,
+  sourcemaps: { disable: true },
+  telemetry: false,
 });
