@@ -104,8 +104,12 @@ export function ComerxIALanding() {
     setLoading(true);
     setError(null);
     try {
-      // TODO: connect to backend — e.g. POST /api/waitlist { email }
-      await new Promise((r) => setTimeout(r, 800)); // placeholder
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error("Error al registrar");
       setSubmitted(true);
     } catch {
       setError("Error al registrarse. Intentá de nuevo.");
