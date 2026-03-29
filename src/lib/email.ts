@@ -17,7 +17,7 @@ interface SendEmailOptions {
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   try {
     const command = new SendEmailCommand({
-      Source: process.env.AWS_SES_FROM_EMAIL ?? "noreply@comerxia.com.ar",
+      Source: process.env.AWS_SES_FROM_EMAIL ?? "pdsalguero@gmail.com",
       Destination: { ToAddresses: [to] },
       Message: {
         Subject: { Data: subject, Charset: "UTF-8" },
