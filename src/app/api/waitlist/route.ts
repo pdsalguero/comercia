@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
     if (!email || !email.includes("@")) {
       return NextResponse.json({ error: "Email inválido" }, { status: 400 });
+    }
+
+    const supabase = createServiceClient();
+    const { error: dbError } = await supabase
+      .from("waitlist")
+      .upsert({ email: email.toLowerCase().trim() }, { onConflict: "email", ignoreDuplicates: true });
+
+    if (dbError) {
+      console.error("[waitlist] DB error:", dbError);
     }
 
     await sendEmail({
