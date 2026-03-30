@@ -1,0 +1,440 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
+
+// ─── Destacar Modal ────────────────────────────────────────────────────────────
+
+const PLANS = [
+  {
+    key: 'bronze_7',
+    label: 'Bronze',
+    days: 7,
+    price: 1500,
+    emoji: '🥉',
+    color: '#b45309',
+    bg: '#fef3c7',
+    perks: ['2x más visibilidad', 'Badge en el aviso'],
+  },
+  {
+    key: 'silver_15',
+    label: 'Silver',
+    days: 15,
+    price: 2800,
+    emoji: '🥈',
+    color: '#475569',
+    bg: '#f1f5f9',
+    perks: ['3x más visibilidad', 'Posición prioritaria', 'Badge destacado'],
+  },
+  {
+    key: 'gold_30',
+    label: 'Gold',
+    days: 30,
+    price: 4500,
+    emoji: '🥇',
+    color: '#92400e',
+    bg: '#fff7ed',
+    perks: ['5x más visibilidad', 'Top de resultados', 'Badge oro', 'Estadísticas avanzadas'],
+    recommended: true,
+  },
+]
+
+function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#fff', borderRadius: '16px',
+          padding: '28px', maxWidth: '520px', width: '100%',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b', margin: 0 }}>
+              Destacar aviso
+            </h2>
+            <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+              Obtén más vistas y contactos con nuestros planes
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8', padding: '0 4px' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {PLANS.map(plan => (
+            <div
+              key={plan.key}
+              style={{
+                border: plan.recommended ? '2px solid #FF8C00' : '1px solid #e2e8f0',
+                borderRadius: '12px', padding: '16px',
+                background: plan.recommended ? '#fff7ed' : '#fff',
+                position: 'relative',
+              }}
+            >
+              {plan.recommended && (
+                <span style={{
+                  position: 'absolute', top: '-10px', right: '16px',
+                  background: '#FF8C00', color: '#fff',
+                  fontSize: '11px', fontWeight: 700,
+                  padding: '2px 10px', borderRadius: '20px',
+                }}>
+                  MÁS POPULAR
+                </span>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '24px' }}>{plan.emoji}</span>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: plan.color }}>
+                      {plan.label} · {plan.days} días
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      {plan.perks.join(' · ')}
+                    </div>
+                  </div>
+                </div>
+                <Link href={`/upgrade?listing=${listingId}&plan=${plan.key}`} onClick={onClose}>
+                  <button style={{
+                    background: plan.recommended ? '#FF8C00' : '#1E5BA8',
+                    color: '#fff', border: 'none',
+                    borderRadius: '8px', padding: '8px 16px',
+                    fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    ${plan.price.toLocaleString('es-AR')}
+                  </button>
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── More Menu ────────────────────────────────────────────────────────────────
+
+function MoreMenu({
+  listingId,
+  status,
+  onClose,
+  onToggleStatus,
+  onDelete,
+}: {
+  listingId: string
+  status: string
+  onClose: () => void
+  onToggleStatus: () => void
+  onDelete: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  const items = [
+    {
+      label: status === 'active' ? '⏸ Pausar aviso' : '▶ Activar aviso',
+      onClick: () => { onToggleStatus(); onClose() },
+    },
+    {
+      label: '🔗 Copiar link',
+      onClick: () => {
+        navigator.clipboard.writeText(`${window.location.origin}/listings/${listingId}`)
+        onClose()
+      },
+    },
+    { label: '🗑 Eliminar', onClick: () => { onDelete(); onClose() }, danger: true },
+  ]
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: 'absolute', right: 0, bottom: '100%', marginBottom: '4px',
+        background: '#fff', borderRadius: '10px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.14)',
+        border: '1px solid #e2e8f0',
+        minWidth: '180px', zIndex: 100, overflow: 'hidden',
+      }}
+    >
+      {items.map((item, i) => (
+        <button
+          key={i}
+          onClick={item.onClick}
+          style={{
+            display: 'block', width: '100%', textAlign: 'left',
+            padding: '10px 14px', fontSize: '13px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: item.danger ? '#ef4444' : '#1e293b',
+            borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none',
+          }}
+          className="hover:bg-gray-50"
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ─── Listing Card ─────────────────────────────────────────────────────────────
+
+function daysOnline(createdAt: string): number {
+  return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000)
+}
+
+interface ListingCardProps {
+  listing: UserListing
+  onToggleStatus: (id: string, current: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+}
+
+export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardProps) {
+  const [showMenu, setShowMenu] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  const totalInteractions = listing.view_count + listing.msg_count
+  const conv = listing.view_count > 0
+    ? Math.round((listing.msg_count / listing.view_count) * 100)
+    : 0
+
+  const statusColors: Record<string, { bg: string; color: string; label: string }> = {
+    active:  { bg: '#dcfce7', color: '#16a34a', label: '● Activo' },
+    paused:  { bg: '#f1f5f9', color: '#64748b', label: '⏸ Pausado' },
+    sold:    { bg: '#dbeafe', color: '#2563eb', label: '✓ Vendido' },
+    expired: { bg: '#fee2e2', color: '#dc2626', label: '⏱ Expirado' },
+  }
+  const badge = statusColors[listing.status] ?? { bg: '#f1f5f9', color: '#64748b', label: listing.status }
+
+  async function handleToggle() {
+    setLoading(true)
+    await onToggleStatus(listing.id, listing.status)
+    router.refresh()
+    setLoading(false)
+  }
+
+  async function handleDelete() {
+    if (!confirm(`¿Eliminás "${listing.title}"? Esta acción no se puede deshacer.`)) return
+    setLoading(true)
+    await onDelete(listing.id)
+    router.refresh()
+    setLoading(false)
+  }
+
+  return (
+    <>
+      {showModal && (
+        <DestacadoModal listingId={listing.id} onClose={() => setShowModal(false)} />
+      )}
+
+      <div style={{
+        background: '#fff',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        border: listing.destacado_activo ? '2px solid #FF8C00' : '1px solid #e2e8f0',
+        display: 'flex',
+        flexDirection: 'column',
+        opacity: loading ? 0.6 : 1,
+        transition: 'opacity 0.2s, box-shadow 0.2s',
+        position: 'relative',
+      }}
+        className="hover:shadow-md"
+      >
+        {/* Destacado badge */}
+        {listing.destacado_activo && (
+          <div style={{
+            position: 'absolute', top: '8px', left: '8px', zIndex: 2,
+            background: '#FF8C00', color: '#fff',
+            fontSize: '10px', fontWeight: 700,
+            padding: '2px 8px', borderRadius: '20px',
+          }}>
+            {listing.destacado_tipo?.toUpperCase() ?? 'DESTACADO'}
+          </div>
+        )}
+
+        {/* Image */}
+        <div style={{ height: '140px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
+          {listing.cover_url
+            ? <img src={listing.cover_url} alt={listing.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>
+                📦
+              </div>
+            )
+          }
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+
+          {/* Title + price */}
+          <div>
+            <div style={{
+              fontSize: '13px', fontWeight: 600, color: '#1e293b',
+              overflow: 'hidden', textOverflow: 'ellipsis',
+              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+              lineHeight: '1.4',
+            }}>
+              {listing.title}
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E5BA8', marginTop: '4px' }}>
+              ${listing.price.toLocaleString('es-AR')}
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b' }}>
+            <span>👁 {listing.view_count}</span>
+            <span>·</span>
+            <span>💬 {listing.msg_count}</span>
+            <span>·</span>
+            <span>{conv}% conv</span>
+          </div>
+
+          {/* Days online + status */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+              ⏱ {daysOnline(listing.created_at)}d online
+            </span>
+            <span style={{
+              fontSize: '11px', fontWeight: 600,
+              padding: '2px 8px', borderRadius: '20px',
+              background: badge.bg, color: badge.color,
+            }}>
+              {badge.label}
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: '6px', marginTop: '2px', position: 'relative' }}>
+            <Link href={`/dashboard/my-listings/${listing.id}/edit`} style={{ flex: 1 }}>
+              <button style={{
+                width: '100%', padding: '7px 0',
+                border: '1px solid #e2e8f0', borderRadius: '8px',
+                background: '#fff', color: '#1e293b',
+                fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+              }}
+                className="hover:bg-gray-50"
+              >
+                ✏️ Editar
+              </button>
+            </Link>
+
+            <button
+              onClick={() => setShowModal(true)}
+              style={{
+                flex: 1, padding: '7px 0',
+                border: 'none', borderRadius: '8px',
+                background: listing.destacado_activo ? '#fff7ed' : '#1E5BA8',
+                color: listing.destacado_activo ? '#FF8C00' : '#fff',
+                fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              ⭐ Destacar
+            </button>
+
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowMenu(v => !v)}
+                style={{
+                  padding: '7px 10px', border: '1px solid #e2e8f0',
+                  borderRadius: '8px', background: '#fff',
+                  fontSize: '16px', cursor: 'pointer', color: '#64748b',
+                }}
+                className="hover:bg-gray-50"
+                aria-label="Más opciones"
+              >
+                ···
+              </button>
+              {showMenu && (
+                <MoreMenu
+                  listingId={listing.id}
+                  status={listing.status}
+                  onClose={() => setShowMenu(false)}
+                  onToggleStatus={handleToggle}
+                  onDelete={handleDelete}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ─── Listings Grid ────────────────────────────────────────────────────────────
+
+interface ListingsGridProps {
+  listings: UserListing[]
+  onToggleStatus: (id: string, current: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+}
+
+export function ListingsGrid({ listings, onToggleStatus, onDelete }: ListingsGridProps) {
+  if (listings.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 24px', color: '#94a3b8' }}>
+        <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+        <p style={{ fontSize: '16px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+          Todavía no publicaste ningún aviso
+        </p>
+        <p style={{ fontSize: '13px', marginBottom: '20px' }}>
+          Publicá tu primer aviso en 30 segundos con IA
+        </p>
+        <Link href="/listings/new">
+          <button style={{
+            background: '#1E5BA8', color: '#fff', border: 'none',
+            borderRadius: '8px', padding: '10px 24px',
+            fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+          }}>
+            📸 Publicar con IA
+          </button>
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+      gap: '16px',
+    }}>
+      {listings.map(listing => (
+        <ListingCard
+          key={listing.id}
+          listing={listing}
+          onToggleStatus={onToggleStatus}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  )
+}
