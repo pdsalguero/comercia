@@ -219,7 +219,6 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const totalInteractions = listing.view_count + listing.msg_count
   const conv = listing.view_count > 0
     ? Math.round((listing.msg_count / listing.view_count) * 100)
     : 0
@@ -248,7 +247,8 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
   }
 
   return (
-    <>
+    // div raíz = item directo del grid → height 100% funciona correctamente
+    <div style={{ height: '100%' }}>
       {showModal && (
         <DestacadoModal listingId={listing.id} onClose={() => setShowModal(false)} />
       )}
@@ -260,6 +260,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
         border: listing.destacado_activo ? '2px solid #FF8C00' : '1px solid #e2e8f0',
         display: 'flex',
         flexDirection: 'column',
+        height: '100%',
         opacity: loading ? 0.6 : 1,
         transition: 'opacity 0.2s, box-shadow 0.2s',
         position: 'relative',
@@ -300,6 +301,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
               overflow: 'hidden', textOverflow: 'ellipsis',
               display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
               lineHeight: '1.4',
+              minHeight: 'calc(1.4em * 2)', // siempre 2 líneas → cards mismo alto
             }}>
               {listing.title}
             </div>
@@ -308,13 +310,31 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
             </div>
           </div>
 
-          {/* Stats row */}
-          <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b' }}>
-            <span>👁 {listing.view_count}</span>
-            <span>·</span>
-            <span>💬 {listing.msg_count}</span>
-            <span>·</span>
-            <span>{conv}% conv</span>
+          {/* Stats row — grid de 3 columnas centradas */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+            gap: '4px',
+            background: '#f8fafc', borderRadius: '8px',
+            padding: '7px 4px',
+          }}>
+            {[
+              { icon: '👁', value: listing.view_count, label: 'vistas' },
+              { icon: '💬', value: listing.msg_count,  label: 'msgs' },
+              { icon: '📈', value: `${conv}%`,         label: 'conv' },
+            ].map((m, i) => (
+              <div key={i} style={{
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                borderRight: i < 2 ? '1px solid #e2e8f0' : 'none',
+                lineHeight: 1,
+              }}>
+                <span style={{ fontSize: '13px' }}>{m.icon}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', marginTop: '2px' }}>
+                  {m.value}
+                </span>
+                <span style={{ fontSize: '10px', color: '#94a3b8', marginTop: '1px' }}>{m.label}</span>
+              </div>
+            ))}
           </div>
 
           {/* Days online + status */}
@@ -331,61 +351,72 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
             </span>
           </div>
 
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: '6px', marginTop: '2px', position: 'relative' }}>
-            <Link href={`/dashboard/my-listings/${listing.id}/edit`} style={{ flex: 1 }}>
-              <button style={{
-                width: '100%', padding: '7px 0',
-                border: '1px solid #e2e8f0', borderRadius: '8px',
-                background: '#fff', color: '#1e293b',
-                fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-              }}
-                className="hover:bg-gray-50"
-              >
-                ✏️ Editar
-              </button>
-            </Link>
+          {/* Actions — fila superior: Editar + Más; fila inferior: Destacar full width */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '2px' }}>
+            {/* Row 1 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '6px' }}>
+              <Link href={`/dashboard/my-listings/${listing.id}/edit`}>
+                <button style={{
+                  width: '100%', height: '32px',
+                  border: '1px solid #e2e8f0', borderRadius: '8px',
+                  background: '#f8fafc', color: '#475569',
+                  fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                }}
+                  className="hover:bg-gray-100"
+                >
+                  🖊️ Editar
+                </button>
+              </Link>
 
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowMenu(v => !v)}
+                  style={{
+                    height: '32px', width: '36px',
+                    border: '1px solid #e2e8f0', borderRadius: '8px',
+                    background: '#f8fafc', cursor: 'pointer', color: '#64748b',
+                    fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                  className="hover:bg-gray-100"
+                  aria-label="Más opciones"
+                >
+                  ⋯
+                </button>
+                {showMenu && (
+                  <MoreMenu
+                    listingId={listing.id}
+                    status={listing.status}
+                    onClose={() => setShowMenu(false)}
+                    onToggleStatus={handleToggle}
+                    onDelete={handleDelete}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Row 2 — Destacar full width */}
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => !listing.destacado_activo && setShowModal(true)}
+              disabled={listing.destacado_activo}
               style={{
-                flex: 1, padding: '7px 0',
+                width: '100%', height: '34px',
                 border: 'none', borderRadius: '8px',
-                background: listing.destacado_activo ? '#fff7ed' : '#1E5BA8',
-                color: listing.destacado_activo ? '#FF8C00' : '#fff',
-                fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                background: listing.destacado_activo ? '#e2e8f0' : '#FF8C00',
+                color: listing.destacado_activo ? '#94a3b8' : '#fff',
+                fontSize: '13px', fontWeight: 700,
+                cursor: listing.destacado_activo ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                transition: 'opacity 0.15s',
               }}
             >
-              ⭐ Destacar
+              {listing.destacado_activo ? '✓ Destacado activo' : '⭐ Destacar aviso'}
             </button>
-
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowMenu(v => !v)}
-                style={{
-                  padding: '7px 10px', border: '1px solid #e2e8f0',
-                  borderRadius: '8px', background: '#fff',
-                  fontSize: '16px', cursor: 'pointer', color: '#64748b',
-                }}
-                className="hover:bg-gray-50"
-                aria-label="Más opciones"
-              >
-                ···
-              </button>
-              {showMenu && (
-                <MoreMenu
-                  listingId={listing.id}
-                  status={listing.status}
-                  onClose={() => setShowMenu(false)}
-                  onToggleStatus={handleToggle}
-                  onDelete={handleDelete}
-                />
-              )}
-            </div>
           </div>
+
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

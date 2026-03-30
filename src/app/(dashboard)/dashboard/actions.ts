@@ -140,6 +140,7 @@ export async function getUserListings(userId: string): Promise<UserListing[]> {
     .from('listings')
     .select(`
       id, title, price, status, view_count, created_at,
+      featured_level, featured_until,
       destacado_activo, destacado_hasta, destacado_tipo,
       listing_images(url, position)
     `)
@@ -169,8 +170,9 @@ export async function getUserListings(userId: string): Promise<UserListing[]> {
       status: l.status,
       view_count: l.view_count ?? 0,
       created_at: l.created_at,
-      destacado_activo: l.destacado_activo ?? false,
-      destacado_hasta: l.destacado_hasta ?? null,
+      // un aviso está destacado si tiene featured_level (sistema viejo) o destacado_activo (sistema nuevo)
+      destacado_activo: (l.destacado_activo ?? false) || !!l.featured_level,
+      destacado_hasta: l.destacado_hasta ?? l.featured_until ?? null,
       destacado_tipo: l.destacado_tipo ?? null,
       cover_url: cover,
       msg_count: msgMap[l.id] ?? 0,

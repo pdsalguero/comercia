@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 import { DeleteButton } from './DeleteButton'
+import { ListingsGrid } from '@/components/dashboard/ListingCardActions'
+import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
 
 async function toggleStatus(formData: FormData) {
   'use server'
@@ -78,7 +80,9 @@ export default async function MyListingsPage({
     .select(`
       id, title, price, currency, status, condition,
       view_count, favorite_count,
-      featured_level, created_at, slug,
+      featured_level, featured_until,
+      destacado_activo, destacado_hasta, destacado_tipo,
+      created_at, slug,
       listing_images(url, position),
       categories(name, slug)
     `)
@@ -96,6 +100,40 @@ export default async function MyListingsPage({
   const msgCountMap: Record<string, number> = {}
   for (const m of (msgRows ?? [])) {
     if (m.listing_id) msgCountMap[m.listing_id] = (msgCountMap[m.listing_id] ?? 0) + 1
+  }
+
+  // Map to UserListing for the shared grid component
+  const userListings: UserListing[] = (listings ?? []).map(l => {
+    const images = l.listing_images as { url: string; position: number }[] | null
+    const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null
+    return {
+      id: l.id,
+      title: l.title,
+      price: l.price,
+      status: l.status,
+      view_count: l.view_count ?? 0,
+      created_at: l.created_at,
+      destacado_activo: ((l as any).destacado_activo ?? false) || !!l.featured_level,
+      destacado_hasta: (l as any).destacado_hasta ?? (l as any).featured_until ?? null,
+      destacado_tipo: (l as any).destacado_tipo ?? l.featured_level ?? null,
+      cover_url: cover,
+      msg_count: msgCountMap[l.id] ?? 0,
+    }
+  })
+
+  async function handleToggle(id: string, current: string) {
+    'use server'
+    const next = current === 'active' ? 'paused' : 'active'
+    const sb = await createClient()
+    await sb.from('listings').update({ status: next }).eq('id', id)
+    revalidatePath('/dashboard/my-listings')
+  }
+
+  async function handleDelete(id: string) {
+    'use server'
+    const sb = await createClient()
+    await sb.from('listings').delete().eq('id', id)
+    revalidatePath('/dashboard/my-listings')
   }
 
   return (
@@ -142,79 +180,13 @@ export default async function MyListingsPage({
         </div>
       </div>
 
-      {/* Grid view */}
-      {isGrid && listings && listings.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '12px' }}>
-          {listings.map(listing => {
-            const images = listing.listing_images as { url: string; position: number }[] | null
-            const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null
-            const catName = CAT_NAMES[(listing as any).categories?.slug] ?? (listing as any).categories?.name
-            return (
-              <div key={listing.id} style={{
-                background: '#fff', borderRadius: '12px', overflow: 'hidden',
-                border: listing.featured_level === 'gold' ? '2px solid #fbbf24' : listing.featured_level === 'silver' ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              }}>
-                {/* Clickable image + title area */}
-                <Link href={`/listings/${listing.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                  <div style={{ height: '160px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
-                    {cover
-                      ? <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>📦</div>
-                    }
-                    <span style={{
-                      position: 'absolute', bottom: '8px', left: '8px',
-                      background: STATUS_BG[listing.status] ?? '#f9fafb',
-                      color: STATUS_DOT[listing.status] ?? '#6b7280',
-                      fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px',
-                      border: `1px solid ${STATUS_DOT[listing.status] ?? '#e5e7eb'}33`,
-                    }}>
-                      {STATUS_LABEL[listing.status] ?? listing.status}
-                    </span>
-                  </div>
-                  <div style={{ padding: '10px 12px 6px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
-                      {listing.title}
-                    </div>
-                    {catName && <div style={{ fontSize: '11px', color: '#6366f1', fontWeight: 600, marginBottom: '3px' }}>{catName}</div>}
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#3483fa' }}>
-                      {listing.currency === 'USD' ? 'U$S' : '$'} {listing.price?.toLocaleString('es-AR')}
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '10px', color: '#94a3b8' }}>
-                      <span>{listing.view_count} vistas</span>
-                      <span>·</span>
-                      <span>{listing.favorite_count} favs</span>
-                    </div>
-                  </div>
-                </Link>
-                {/* Actions outside the link */}
-                <div style={{ display: 'flex', gap: '6px', padding: '0 12px 10px', flexWrap: 'wrap' }}>
-                  {(listing.status === 'active' || listing.status === 'paused') && (
-                    <form action={toggleStatus} style={{ flex: 1 }}>
-                      <input type="hidden" name="id" value={listing.id} />
-                      <input type="hidden" name="status" value={listing.status} />
-                      <button type="submit" style={{
-                        width: '100%',
-                        background: listing.status === 'active' ? '#fef2f2' : '#f0fdf4',
-                        color: listing.status === 'active' ? '#dc2626' : '#16a34a',
-                        border: `1px solid ${listing.status === 'active' ? '#fecaca' : '#bbf7d0'}`,
-                        borderRadius: '6px', padding: '5px', fontSize: '11px', cursor: 'pointer', fontWeight: 600,
-                      }}>
-                        {listing.status === 'active' ? 'Pausar' : 'Activar'}
-                      </button>
-                    </form>
-                  )}
-                  <Link href={`/dashboard/my-listings/${listing.id}/edit`} style={{ textDecoration: 'none', flex: 1 }}>
-                    <button style={{ width: '100%', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}>
-                      Editar
-                    </button>
-                  </Link>
-                  <DeleteButton id={listing.id} title={listing.title} onDelete={deleteListing} />
-                </div>
-              </div>
-            )
-          })}
-        </div>
+      {/* Grid view — mismo componente que el dashboard */}
+      {isGrid && (
+        <ListingsGrid
+          listings={userListings}
+          onToggleStatus={handleToggle}
+          onDelete={handleDelete}
+        />
       )}
 
       {/* Table */}
