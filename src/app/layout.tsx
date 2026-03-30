@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -37,6 +38,8 @@ export default function RootLayout({
   return (
     <html lang="es" className={inter.variable}>
       <body style={{ fontFamily: "var(--font-inter), 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>{children}</body>
+      {/* GA4 solo se carga en producción; en dev next/third-parties lo omite automáticamente */}
+      <GoogleAnalytics gaId="G-GQSJBS2HWF" />
     </html>
   );
 }
