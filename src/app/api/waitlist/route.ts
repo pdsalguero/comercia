@@ -11,9 +11,10 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient();
     const { error: dbError } = await supabase
       .from("waitlist")
-      .upsert({ email: email.toLowerCase().trim() }, { onConflict: "email", ignoreDuplicates: true });
+      .insert({ email: email.toLowerCase().trim() });
 
-    if (dbError) {
+    // 23505 = unique_violation (email already registered), treat as success
+    if (dbError && dbError.code !== "23505") {
       console.error("[waitlist] DB error:", dbError);
       return NextResponse.json({ error: "Error al guardar" }, { status: 500 });
     }
