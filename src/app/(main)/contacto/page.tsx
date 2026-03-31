@@ -141,7 +141,7 @@ export default function ContactPage() {
           {status === "error" && (
             <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 16px", fontSize: "13px", color: "#dc2626" }}>
               Hubo un error al enviar el mensaje. Intentá nuevamente o escribinos directamente a{" "}
-              <a href="mailto:hola@comerxia.com.ar" style={{ color: "#dc2626", fontWeight: 700 }}>hola@comerxia.com.ar</a>.
+              <a href="mailto:contacto@comerxia.com.ar" style={{ color: "#dc2626", fontWeight: 700 }}>contacto@comerxia.com.ar</a>.
             </div>
           )}
 
@@ -164,7 +164,7 @@ export default function ContactPage() {
 
       {/* Contact channels */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "20px" }}>
-        <a href="mailto:hola@comerxia.com.ar" style={{ textDecoration: "none" }}>
+        <a href="mailto:contacto@comerxia.com.ar" style={{ textDecoration: "none" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: "12px",
             background: "#fff", borderRadius: "12px", padding: "16px",
@@ -181,7 +181,7 @@ export default function ContactPage() {
             </div>
             <div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>hola@comerxia.com.ar</div>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>contacto@comerxia.com.ar</div>
             </div>
           </div>
         </a>

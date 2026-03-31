@@ -124,9 +124,10 @@ export function ListingCard({
           {featured_level === "gold" && (
             <div style={{
               position: "absolute", top: "10px", left: "10px",
-              background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
-              color: "#fff", borderRadius: "6px", padding: "3px 8px",
+              background: "linear-gradient(135deg,#eab308,#fde047)",
+              color: "#713f12", borderRadius: "20px", padding: "3px 10px",
               fontSize: "10px", fontWeight: 800,
+              boxShadow: "0 2px 8px rgba(234,179,8,0.5)",
             }}>
               👑 PREMIUM
             </div>
@@ -135,8 +136,9 @@ export function ListingCard({
             <div style={{
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#6366f1,#818cf8)",
-              color: "#fff", borderRadius: "6px", padding: "3px 8px",
+              color: "#fff", borderRadius: "20px", padding: "3px 10px",
               fontSize: "10px", fontWeight: 800,
+              boxShadow: "0 2px 8px rgba(99,102,241,0.45)",
             }}>
               🚀 DESTACADO
             </div>
@@ -144,11 +146,12 @@ export function ListingCard({
           {featured_level === "bronze" && (
             <div style={{
               position: "absolute", top: "10px", left: "10px",
-              background: "linear-gradient(135deg,#f97316,#fb923c)",
-              color: "#fff", borderRadius: "6px", padding: "3px 8px",
+              background: "linear-gradient(135deg,#c2410c,#ea580c)",
+              color: "#fff", borderRadius: "20px", padding: "3px 10px",
               fontSize: "10px", fontWeight: 800,
+              boxShadow: "0 2px 8px rgba(194,65,12,0.4)",
             }}>
-              ⭐ ESTÁNDAR
+              ⭐ ESENCIAL
             </div>
           )}
 
@@ -191,7 +194,7 @@ export function ListingCard({
             {title}
           </h3>
 
-          <div className="lc-price" style={{ fontSize: "16px", fontWeight: 800, color: price === 0 ? "#6366f1" : "#111", marginBottom: "4px" }}>
+          <div className="lc-price" style={{ fontSize: "16px", fontWeight: 700, color: price === 0 ? "#6366f1" : "#0f172a", marginBottom: "4px", letterSpacing: "-0.2px" }}>
             {price === 0 ? "Consultar" : formatPrice(price, currency)}
           </div>
 

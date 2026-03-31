@@ -4,10 +4,13 @@ import { ListingListCard } from "@/components/listings/ListingListCard";
 import { SubcategoryPills } from "@/components/ui/SubcategoryPills";
 import type { SubcatPill } from "@/components/ui/SubcategoryPills";
 import { FilterPanel } from "@/components/listings/FilterPanel";
+import { BrandSearchList } from "@/components/listings/BrandSearchList";
+import { ProvinceSelectNav } from "@/components/ui/ProvinceSelectNav";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { RE_LOCATIONS, ALL_RE_ZONES } from "@/lib/re-locations";
+import { MOTO_SUBTIPOS } from "@/data/modelos-motos";
 import { OrderSelect } from "@/components/ui/OrderSelect";
 import { SearchWithSuggestions } from "@/components/ui/SearchWithSuggestions";
 import type { Metadata } from "next";
@@ -39,7 +42,7 @@ const VEHICLE_TYPES = [
   { value: "camioneta", label: "Pickups / SUV / Utilitarios" },
   { value: "moto", label: "Motos" },
   { value: "cuatriciclo", label: "Cuatriciclos" },
-  { value: "utv", label: "Areneros" },
+  { value: "utv", label: "Areneros/UTV" },
   { value: "camion", label: "Camiones" },
   { value: "nautica", label: "Náutica" },
 ];
@@ -312,7 +315,7 @@ type Params = { slug: string };
 type SP = {
   q?: string; order?: string;
   // vehicle
-  type?: string; sub_category?: string; brand?: string; model?: string;
+  type?: string; sub_category?: string; moto_subtipo?: string; brand?: string; model?: string;
   year_from?: string; year_to?: string;
   km_max?: string; fuel?: string; transmission?: string;
   seller_type?: string; v_province?: string; v_zone?: string;
@@ -372,12 +375,12 @@ export async function generateMetadata(
   const meta = CATEGORY_META[slug];
   if (!meta) return { title: "Categoría" };
   return {
-    title: `${meta.name} en San Juan`,
-    description: `Comprá y vendé ${meta.name.toLowerCase()} en San Juan. Los mejores avisos clasificados en ComerxIA.`,
+    title: `${meta.name}`,
+    description: `Comprá y vendé ${meta.name.toLowerCase()}. Los mejores avisos clasificados en ComerxIA.`,
     alternates: { canonical: `/category/${slug}` },
     openGraph: {
-      title: `${meta.name} en San Juan | ComerxIA`,
-      description: `Encontrá ${meta.name.toLowerCase()} en San Juan. Marketplace con IA.`,
+      title: `${meta.name} | ComerxIA`,
+      description: `Encontrá ${meta.name.toLowerCase()} en ComerxIA. Marketplace con IA.`,
       type: "website",
     },
   };
@@ -461,10 +464,8 @@ export default async function CategoryPage({
     if (sp.seller_type) query = query.eq("attributes->>seller_type" as any, sp.seller_type);
     if (sp.v_zone) {
       query = query.eq("attributes->>zone" as any, sp.v_zone);
-    } else if (sp.v_province && RE_LOCATIONS[sp.v_province]) {
-      const provinceZones = RE_LOCATIONS[sp.v_province].zones.map(z => z.value);
-      query = query.in("attributes->>zone" as any, provinceZones);
     }
+    // v_province is handled in JS filter (to also match listings stored via neighborhood)
   }
 
   // Phones-specific JSON filters
@@ -643,6 +644,18 @@ export default async function CategoryPage({
       if (sp.phone_unlocked === "1" && !a.unlocked) return false;
       if (sp.phone_trade === "1" && !a.accepts_trade) return false;
     }
+    // Moto subtype filter (JS-side to avoid PostgREST JSONB quirks)
+    if (isVehicles && sp.moto_subtipo) {
+      if ((a.moto_subtipo as string | undefined) !== sp.moto_subtipo) return false;
+    }
+    // Vehicle province filter — checks attributes.zone slug OR neighborhood string
+    if (isVehicles && sp.v_province && RE_LOCATIONS[sp.v_province] && !sp.v_zone) {
+      const provinceZones = new Set(RE_LOCATIONS[sp.v_province].zones.map(z => z.value));
+      const provinceName = RE_LOCATIONS[sp.v_province].label.toLowerCase();
+      const zone = (a.zone as string | undefined) ?? "";
+      const nb = ((l.neighborhood as string | undefined) ?? "").toLowerCase();
+      if (!provinceZones.has(zone) && !nb.includes(provinceName)) return false;
+    }
     // General FilterPanel filters
     if (sp.size && a.size !== sp.size) return false;
     return true;
@@ -718,6 +731,8 @@ export default async function CategoryPage({
   let otherConditionCounts: Record<string, number> = {};
   let vProvinceCounts: Record<string, number> = {};
   let vZoneCounts: Record<string, number> = {};
+  let motoSubtipoCounts: Record<string, number> = {};
+  let noSubCatVehicleCount = 0;
   if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices || isOther) {
     const { data: all } = await supabase
       .from("listings")
@@ -730,9 +745,16 @@ export default async function CategoryPage({
         const b = (row.attributes as any)?.brand;
         const zone = (row.attributes as any)?.zone as string | undefined;
         if (t) typeCounts[t] = (typeCounts[t] ?? 0) + 1;
-        // Filter brands by selected type
+        else noSubCatVehicleCount++;
+        // Moto subtype counts
+        if (t === "moto") {
+          const ms = ((row.attributes as any)?.moto_subtipo as string | undefined) || "otro";
+          motoSubtipoCounts[ms] = (motoSubtipoCounts[ms] ?? 0) + 1;
+        }
+        // Filter brands by selected type and moto subtype
         const activeVType = sp.sub_category || sp.type;
-        if (b && (!activeVType || t === activeVType)) brandCounts[b] = (brandCounts[b] ?? 0) + 1;
+        const motoSubtipoMatch = !sp.moto_subtipo || (row.attributes as any)?.moto_subtipo === sp.moto_subtipo;
+        if (b && (!activeVType || t === activeVType) && motoSubtipoMatch) brandCounts[b] = (brandCounts[b] ?? 0) + 1;
         // Province/zone counts
         if (zone) {
           const provKey = Object.entries(RE_LOCATIONS).find(([, p]) => p.zones.some(z => z.value === zone))?.[0];
@@ -937,11 +959,21 @@ export default async function CategoryPage({
     }
   }
 
+  // Vehicles with unrecognized or missing sub_category (data quality gap)
+  const recognizedVehicleTypeTotal = isVehicles
+    ? VEHICLE_TYPES.reduce((s, t) => s + (typeCounts[t.value] ?? 0), 0)
+    : 0;
+  const allTypedVehicleTotal = isVehicles
+    ? Object.values(typeCounts).reduce((s, v) => s + v, 0)
+    : 0;
+  // Counts of vehicles with unrecognized sub_category + those with no sub_category at all
+  const otherVehicleCount = Math.max(0, allTypedVehicleTotal - recognizedVehicleTypeTotal) + noSubCatVehicleCount;
+
   function buildUrl(overrides: Partial<SP & { order: string }>) {
     const merged: Record<string, string | undefined> = {
       q: sp.q, order: sp.order,
       // vehicle
-      type: sp.type, sub_category: sp.sub_category, brand: sp.brand, model: sp.model,
+      type: sp.type, sub_category: sp.sub_category, moto_subtipo: sp.moto_subtipo, brand: sp.brand, model: sp.model,
       year_from: sp.year_from, year_to: sp.year_to,
       km_max: sp.km_max, fuel: sp.fuel, transmission: sp.transmission,
       seller_type: sp.seller_type, v_province: sp.v_province, v_zone: sp.v_zone,
@@ -1060,10 +1092,10 @@ export default async function CategoryPage({
 
           {/* Vehicle type tabs */}
           {isVehicles && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Tipo de vehículo
-              </div>
+            <details open className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Tipo de vehículo <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
               {VEHICLE_TYPES.filter(t => typeCounts[t.value] > 0).map((t) => {
                 const active = sp.type === t.value;
                 return (
@@ -1086,101 +1118,165 @@ export default async function CategoryPage({
                   </Link>
                 );
               })}
-            </div>
+              {otherVehicleCount > 0 && (
+                <Link href={buildUrl({ type: undefined })} style={{ textDecoration: "none" }}>
+                  <div style={{
+                    padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    color: "#94a3b8", borderLeft: "3px solid transparent",
+                  }}>
+                    <span>Otros</span>
+                    <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: "#f1f5f9", color: "#888" }}>
+                      {otherVehicleCount}
+                    </span>
+                  </div>
+                </Link>
+              )}
+            </details>
+          )}
+
+          {/* Moto subtypes — shown as nested tree when type=moto */}
+          {isVehicles && (sp.type === "moto" || sp.moto_subtipo) && (typeCounts["moto"] ?? 0) > 0 && (
+            <details open className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Tipo de moto <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              {MOTO_SUBTIPOS.filter(s => (motoSubtipoCounts[s.value] ?? 0) > 0).map(s => {
+                const active = sp.moto_subtipo === s.value;
+                return (
+                  <Link key={s.value} href={buildUrl({ moto_subtipo: active ? undefined : s.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px 8px 28px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#555",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{s.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        {motoSubtipoCounts[s.value]}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </details>
           )}
 
           {/* Brand */}
+          {isVehicles && Object.keys(brandCounts).length > 0 && (
+            <details open className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Marca <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              <BrandSearchList
+                brands={(() => {
+                  const knownSet = new Set(VEHICLE_BRANDS.map(b => b.value));
+                  const known = VEHICLE_BRANDS
+                    .filter(b => brandCounts[b.value] > 0)
+                    .map(b => ({ value: b.value, label: b.label, count: brandCounts[b.value] }));
+                  const unknown = Object.entries(brandCounts)
+                    .filter(([v]) => !knownSet.has(v))
+                    .map(([v, count]) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1), count }))
+                    .sort((a, b) => b.count - a.count);
+                  return [...known, ...unknown];
+                })()}
+                activeBrand={sp.brand}
+                baseHref={buildUrl({ brand: undefined })}
+              />
+            </details>
+          )}
+
+          {/* Price (vehicles) */}
           {isVehicles && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Marca
-              </div>
-              <div style={{ maxHeight: "260px", overflowY: "auto" }}>
-                {VEHICLE_BRANDS.filter(b => brandCounts[b.value] > 0).map((b) => {
-                  const active = sp.brand === b.value;
-                  return (
-                    <Link key={b.value} href={buildUrl({ brand: active ? undefined : b.value })} style={{ textDecoration: "none" }}>
-                      <div style={{
-                        padding: "8px 16px", fontSize: "13px", cursor: "pointer",
-                        display: "flex", justifyContent: "space-between", alignItems: "center",
-                        background: active ? "#eff6ff" : "transparent",
-                        color: active ? "#2563eb" : "#444",
-                        fontWeight: active ? 700 : 400,
-                        borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
-                      }}>
-                        <span>{b.label}</span>
-                        <span style={{
-                          fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px",
-                          background: active ? "#dbeafe" : "#f1f5f9",
-                          color: active ? "#2563eb" : "#888",
-                        }}>{brandCounts[b.value]}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+            <details open className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Precio <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              <form method="GET" action={`/category/${slug}`}>
+                {Object.entries(sp).map(([k, v]) =>
+                  v && k !== "price_min" && k !== "price_max"
+                    ? <input key={k} type="hidden" name={k} value={v} />
+                    : null
+                )}
+                <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  <button type="submit" style={{
+                    background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px",
+                    padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                  }}>Aplicar</button>
+                </div>
+              </form>
+            </details>
           )}
 
           {/* Year range (vehicles) */}
           {isVehicles && (
-            <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              {Object.entries(sp).map(([k, v]) =>
-                v && k !== "year_from" && k !== "year_to"
-                  ? <input key={k} type="hidden" name={k} value={v} />
-                  : null
-              )}
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Año
-              </div>
-              <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
-                <input name="year_from" type="number" defaultValue={sp.year_from} placeholder="Desde"
-                  style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
-                <input name="year_to" type="number" defaultValue={sp.year_to} placeholder="Hasta"
-                  style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
-              </div>
-              <div style={{ padding: "0 16px 12px" }}>
-                <button type="submit" style={{
-                  background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px",
-                  padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer", width: "100%",
-                }}>Aplicar</button>
-              </div>
-            </form>
+            <details open className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Año <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              <form method="GET" action={`/category/${slug}`}>
+                {Object.entries(sp).map(([k, v]) =>
+                  v && k !== "year_from" && k !== "year_to"
+                    ? <input key={k} type="hidden" name={k} value={v} />
+                    : null
+                )}
+                <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
+                  <input name="year_from" type="number" defaultValue={sp.year_from} placeholder="Desde"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
+                  <input name="year_to" type="number" defaultValue={sp.year_to} placeholder="Hasta"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
+                </div>
+                <div style={{ padding: "0 16px 12px" }}>
+                  <button type="submit" style={{
+                    background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px",
+                    padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer", width: "100%",
+                  }}>Aplicar</button>
+                </div>
+              </form>
+            </details>
           )}
 
           {/* KM max */}
           {isVehicles && (
-            <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              {Object.entries(sp).map(([k, v]) =>
-                v && k !== "km_max" ? <input key={k} type="hidden" name={k} value={v} /> : null
-              )}
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Kilómetros (máx.)
-              </div>
-              <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                {[50000, 100000, 150000, 200000].map(km => (
-                  <Link key={km} href={buildUrl({ km_max: sp.km_max === String(km) ? undefined : String(km) })} style={{ textDecoration: "none" }}>
-                    <div style={{
-                      padding: "7px 10px", borderRadius: "6px", fontSize: "13px", cursor: "pointer",
-                      background: sp.km_max === String(km) ? "#eff6ff" : "#f8fafc",
-                      color: sp.km_max === String(km) ? "#2563eb" : "#444",
-                      fontWeight: sp.km_max === String(km) ? 700 : 400,
-                      border: sp.km_max === String(km) ? "1.5px solid #bfdbfe" : "1.5px solid transparent",
-                    }}>
-                      Hasta {km.toLocaleString("es-AR")} km
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </form>
+            <details className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Kilómetros (máx.) <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              <form method="GET" action={`/category/${slug}`}>
+                {Object.entries(sp).map(([k, v]) =>
+                  v && k !== "km_max" ? <input key={k} type="hidden" name={k} value={v} /> : null
+                )}
+                <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {[50000, 100000, 150000, 200000].map(km => (
+                    <Link key={km} href={buildUrl({ km_max: sp.km_max === String(km) ? undefined : String(km) })} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        padding: "7px 10px", borderRadius: "6px", fontSize: "13px", cursor: "pointer",
+                        background: sp.km_max === String(km) ? "#eff6ff" : "#f8fafc",
+                        color: sp.km_max === String(km) ? "#2563eb" : "#444",
+                        fontWeight: sp.km_max === String(km) ? 700 : 400,
+                        border: sp.km_max === String(km) ? "1.5px solid #bfdbfe" : "1.5px solid transparent",
+                      }}>
+                        Hasta {km.toLocaleString("es-AR")} km
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </form>
+            </details>
           )}
 
           {/* Fuel */}
           {isVehicles && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Combustible
-              </div>
+            <details className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Combustible <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
               {FUELS.map(f => {
                 const active = sp.fuel === f.value;
                 return (
@@ -1197,15 +1293,15 @@ export default async function CategoryPage({
                   </Link>
                 );
               })}
-            </div>
+            </details>
           )}
 
           {/* Transmission */}
           {isVehicles && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Transmisión
-              </div>
+            <details className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Transmisión <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
               {TRANSMISSIONS.map(t => {
                 const active = sp.transmission === t.value;
                 return (
@@ -1222,15 +1318,15 @@ export default async function CategoryPage({
                   </Link>
                 );
               })}
-            </div>
+            </details>
           )}
 
           {/* Seller type */}
           {isVehicles && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Vendedor
-              </div>
+            <details className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Vendedor <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
               {[{ value: "particular", label: "Particular" }, { value: "concesionaria", label: "Concesionaria" }].map(s => {
                 const active = sp.seller_type === s.value;
                 return (
@@ -1247,46 +1343,15 @@ export default async function CategoryPage({
                   </Link>
                 );
               })}
-            </div>
+            </details>
           )}
 
-          {/* Province (vehicles) */}
-          {isVehicles && Object.keys(vProvinceCounts).length > 0 && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Provincia
-              </div>
-              {Object.entries(RE_LOCATIONS)
-                .filter(([k]) => (vProvinceCounts[k] ?? 0) > 0)
-                .map(([k, prov]) => {
-                  const active = sp.v_province === k;
-                  return (
-                    <Link key={k} href={buildUrl({ v_province: active ? undefined : k, v_zone: undefined })} style={{ textDecoration: "none" }}>
-                      <div style={{
-                        padding: "8px 16px", fontSize: "13px", cursor: "pointer",
-                        display: "flex", justifyContent: "space-between", alignItems: "center",
-                        background: active ? "#eff6ff" : "transparent",
-                        color: active ? "#2563eb" : "#444",
-                        fontWeight: active ? 700 : 400,
-                        borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
-                      }}>
-                        <span>{prov.label}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
-                          {vProvinceCounts[k]}
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-            </div>
-          )}
-
-          {/* Locality (vehicles) — shown when province selected */}
+          {/* Locality (vehicles) — shown when province selected via search bar selector */}
           {isVehicles && sp.v_province && RE_LOCATIONS[sp.v_province] && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Localidad
-              </div>
+            <details className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Localidad <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
               {RE_LOCATIONS[sp.v_province].zones
                 .filter(z => (vZoneCounts[z.value] ?? 0) > 0)
                 .map(z => {
@@ -1309,7 +1374,37 @@ export default async function CategoryPage({
                     </Link>
                   );
                 })}
-            </div>
+            </details>
+          )}
+
+          {/* Condition (vehicles) */}
+          {isVehicles && (
+            <details className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Condición <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              {[
+                { value: "new", label: "Nuevo" },
+                { value: "like_new", label: "Como nuevo" },
+                { value: "very_good", label: "Muy bueno" },
+                { value: "good", label: "Bueno" },
+              ].map(c => {
+                const active = sp.condition === c.value;
+                return (
+                  <Link key={c.value} href={buildUrl({ condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      {c.label}
+                    </div>
+                  </Link>
+                );
+              })}
+            </details>
           )}
 
           {/* ── Electronics filters ── */}
@@ -2817,28 +2912,6 @@ export default async function CategoryPage({
             </div>
           )}
 
-          {/* Price */}
-          <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-            {Object.entries(sp).map(([k, v]) =>
-              v && k !== "price_min" && k !== "price_max"
-                ? <input key={k} type="hidden" name={k} value={v} />
-                : null
-            )}
-            <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Precio
-            </div>
-            <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
-                style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-              <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
-                style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-              <button type="submit" style={{
-                background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px",
-                padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer",
-              }}>Aplicar</button>
-            </div>
-          </form>
-
           {/* Clear filters */}
           {hasFilters && (
             <Link href={`/category/${slug}`} style={{ textDecoration: "none" }}>
@@ -2852,11 +2925,12 @@ export default async function CategoryPage({
             </Link>
           )}
 
-          {/* FilterPanel — desktop */}
-          <FilterPanel
+          {/* FilterPanel — desktop (not for vehicles: they have dedicated sidebar sections) */}
+          {!isVehicles && <FilterPanel
             mode="desktop"
             category={slug}
             categoryId={cat.id}
+            hideCategoryFilters={isRealEstate}
             currentFilters={{
               q: sp.q, order: sp.order,
               price_min: sp.price_min, price_max: sp.price_max,
@@ -2872,7 +2946,7 @@ export default async function CategoryPage({
             }}
             totalCount={listings?.length ?? 0}
             basePath={`/category/${slug}`}
-          />
+          />}
 
           {/* Publicar con IA widget */}
           <div style={{
@@ -2927,6 +3001,24 @@ export default async function CategoryPage({
                 style={{ flex: 1, minWidth: 0 }}
               />
 
+              {/* Province selector — vehicles: shown in search bar */}
+              {isVehicles && (
+                <ProvinceSelectNav
+                  options={Object.entries(RE_LOCATIONS).map(([k, p]) => ({ value: k, label: p.label }))}
+                  value={sp.v_province}
+                  paramName="v_province"
+                  clearParam="v_zone"
+                  basePath={`/category/${slug}`}
+                  baseSearch={(() => {
+                    const base = new URLSearchParams();
+                    for (const [k, v] of Object.entries(sp)) {
+                      if (v && k !== "v_province" && k !== "v_zone") base.set(k, v);
+                    }
+                    return base.toString();
+                  })()}
+                />
+              )}
+
               <OrderSelect
                 value={sp.order ?? ""}
                 action={`/category/${slug}`}
@@ -2966,6 +3058,7 @@ export default async function CategoryPage({
                 mode="mobile"
                 category={slug}
                 categoryId={cat.id}
+                hideCategoryFilters={isVehicles || isRealEstate}
                 currentFilters={{
                   q: sp.q, order: sp.order,
                   price_min: sp.price_min, price_max: sp.price_max,
@@ -2989,6 +3082,7 @@ export default async function CategoryPage({
           {hasFilters && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
               {isVehicles && sp.type && <Chip label={`Tipo: ${VEHICLE_TYPES.find(t => t.value === sp.type)?.label ?? sp.type}`} href={buildUrl({ type: undefined })} />}
+              {isVehicles && sp.moto_subtipo && <Chip label={`Subtipo: ${MOTO_SUBTIPOS.find(s => s.value === sp.moto_subtipo)?.label ?? sp.moto_subtipo}`} href={buildUrl({ moto_subtipo: undefined })} />}
               {isVehicles && sp.brand && <Chip label={`Marca: ${VEHICLE_BRANDS.find(b => b.value === sp.brand)?.label ?? sp.brand}`} href={buildUrl({ brand: undefined })} />}
               {isElectronics && sp.tech_group && <Chip label={TECH_GROUPS[sp.tech_group]?.label ?? sp.tech_group} href={buildUrl({ tech_group: undefined, tech_type: undefined })} />}
               {isElectronics && sp.tech_type && <Chip label={`Tipo: ${sp.tech_type}`} href={buildUrl({ tech_type: undefined })} />}

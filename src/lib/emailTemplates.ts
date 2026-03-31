@@ -120,7 +120,7 @@ export function welcomeEmailTemplate(userName: string): {
       <a href="https://comerxia.com.ar/listings/new" class="btn">Crear mi primera publicación →</a>
     </div>
 
-    <p class="text" style="font-size:13px; color:#94a3b8; text-align:center;">¿Tenés alguna duda? Escribinos a <a href="mailto:hola@comerxia.com.ar" style="color:#1E5BA8;">hola@comerxia.com.ar</a> — respondemos en menos de 24 hs.</p>
+    <p class="text" style="font-size:13px; color:#94a3b8; text-align:center;">¿Tenés alguna duda? Escribinos a <a href="mailto:contacto@comerxia.com.ar" style="color:#1E5BA8;">contacto@comerxia.com.ar</a> — respondemos en menos de 24 hs.</p>
     `
   );
 

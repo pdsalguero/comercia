@@ -128,7 +128,7 @@ export default function TerminosPage() {
           <table style={S.table}>
             <tbody>
               <tr><td style={{ ...S.td, fontWeight: 700, width: "160px" }}>Sitio Web</td><td style={S.td}>https://comerxia.com.ar</td></tr>
-              <tr><td style={{ ...S.td, fontWeight: 700 }}>Email de Contacto</td><td style={S.td}>hola@comerxia.com.ar</td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700 }}>Email de Contacto</td><td style={S.td}>contacto@comerxia.com.ar</td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Jurisdicción</td><td style={S.td}>Argentina (Provincia de San Juan)</td></tr>
             </tbody>
           </table>
@@ -165,7 +165,7 @@ export default function TerminosPage() {
             <li>Sos responsable de mantener la confidencialidad de tu contraseña</li>
             <li>Sos responsable de todas las actividades bajo tu cuenta</li>
             <li><strong>No podés</strong> transferir, vender ni ceder tu cuenta a terceros</li>
-            <li>Si detectás acceso no autorizado, notificá inmediatamente a <a href="mailto:hola@comerxia.com.ar" style={{ color: "#f97316" }}>hola@comerxia.com.ar</a></li>
+            <li>Si detectás acceso no autorizado, notificá inmediatamente a <a href="mailto:contacto@comerxia.com.ar" style={{ color: "#f97316" }}>contacto@comerxia.com.ar</a></li>
           </ul>
           <h3 style={S.h3}>3.3 Suspensión de Cuenta</h3>
           <p style={S.p}>
@@ -219,7 +219,7 @@ export default function TerminosPage() {
             </thead>
             <tbody>
               <tr>
-                <td style={{ ...S.td, fontWeight: 700 }}>Estándar</td>
+                <td style={{ ...S.td, fontWeight: 700 }}>Esencial</td>
                 <td style={S.td}>$699 ARS</td>
                 <td style={S.td}>$1.299 ARS</td>
                 <td style={S.td}>$2.499 ARS</td>
@@ -327,7 +327,7 @@ export default function TerminosPage() {
           <h2 style={S.h2}>14. Contacto y Soporte</h2>
           <table style={S.table}>
             <tbody>
-              <tr><td style={{ ...S.td, fontWeight: 700, width: "140px" }}>Email</td><td style={S.td}><a href="mailto:hola@comerxia.com.ar" style={{ color: "#f97316" }}>hola@comerxia.com.ar</a></td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700, width: "140px" }}>Email</td><td style={S.td}><a href="mailto:contacto@comerxia.com.ar" style={{ color: "#f97316" }}>contacto@comerxia.com.ar</a></td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Horario</td><td style={S.td}>Lunes a viernes, 9 AM – 6 PM (Hora Argentina)</td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Respuesta</td><td style={S.td}>Máximo 48 horas hábiles</td></tr>
             </tbody>

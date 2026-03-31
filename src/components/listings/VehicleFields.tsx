@@ -179,7 +179,7 @@ const SUB_CATS = [
   { value: "camioneta", label: "Pickup / SUV / Utilitario" },
   { value: "moto",        label: "Moto" },
   { value: "cuatriciclo", label: "Cuatriciclo" },
-  { value: "utv",         label: "Areneros" },
+  { value: "utv",         label: "Areneros/UTV" },
   { value: "camion", label: "Camión" },
   { value: "nautica", label: "Náutica" },
   { value: "plan-ahorro", label: "Plan de Ahorro" },

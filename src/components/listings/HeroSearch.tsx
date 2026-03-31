@@ -170,30 +170,26 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
           {" "}de Argentina.
         </h1>
 
-        <div
-          className="hero-main-subtitle"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
+        <div className="hero-main-subtitle" style={{
+            display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center",
+            gap: "4px 8px",
             background: "rgba(0,0,0,0.35)",
             backdropFilter: "blur(6px)",
             border: "1px solid rgba(255,255,255,0.15)",
-            borderRadius: "999px",
-            padding: "6px 18px",
-            fontSize: "13px",
+            borderRadius: "12px",
+            padding: "7px 16px",
+            fontSize: "12px",
             color: "#fff",
             fontWeight: 500,
-            letterSpacing: "0.01em",
           }}
         >
-          <span>📸 Subí una foto</span>
-          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span>✨ La IA redacta tu aviso</span>
-          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span>🆓 Gratis</span>
-          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span>⚡ 30 segundos</span>
+          <span style={{ whiteSpace: "nowrap" }}>📸 Subí una foto</span>
+          <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>
+          <span style={{ whiteSpace: "nowrap" }}>✨ La IA redacta tu aviso</span>
+          <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>
+          <span style={{ whiteSpace: "nowrap" }}>🆓 Gratis</span>
+          <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>
+          <span style={{ whiteSpace: "nowrap" }}>⚡ 30 segundos</span>
         </div>
 
         <div

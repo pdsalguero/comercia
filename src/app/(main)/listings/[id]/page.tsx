@@ -5,6 +5,7 @@ import { GallerySection } from "./GallerySection";
 import { DetailTabs } from "./DetailTabs";
 import { getCategoryConfig } from "@/lib/category-config";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
+import { RelatedCarousel } from "@/components/listings/RelatedCarousel";
 import { ShareButton } from "@/components/listings/ShareButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
@@ -57,7 +58,7 @@ const CATEGORY_SLUGS: Record<number, string> = {
 
 const VEHICLE_TYPE_LABELS: Record<string, string> = {
   auto: "Autos", camioneta: "Pickups / SUV / Utilitarios", moto: "Motos",
-  cuatriciclo: "Cuatriciclos", utv: "Areneros",
+  cuatriciclo: "Cuatriciclos", utv: "Areneros/UTV",
   camion: "Camiones", nautica: "Náutica", otro: "Otros",
 };
 
@@ -800,15 +801,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
         {/* También te puede interesar */}
         {related.length >= 3 && (
-          <div style={{ marginTop: "28px" }}>
-            <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#333", margin: "0 0 14px" }}>
-              También te puede interesar{relatedLabel ? ` · ${relatedLabel}` : ""}
-            </h2>
-            <div style={{
-              display: "flex", gap: "14px",
-              overflowX: "auto", paddingBottom: "8px",
-              scrollbarWidth: "none",
-            }}>
+          <RelatedCarousel title={`También te puede interesar${relatedLabel ? ` · ${relatedLabel}` : ""}`}>
               {related.map((r: any) => {
                 const rImgs = ((r.listing_images as any[]) ?? []).sort((a: any, b: any) => a.position - b.position);
                 const rAttrs = (r.attributes as Record<string, any>) ?? {};
@@ -857,15 +850,14 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                           <div style={{ fontSize: "13px", color: "#999" }}>Precio a consultar</div>
                         )}
                         <div style={{ fontSize: "11px", color: "#999", marginTop: "10px", display: "flex", alignItems: "center", gap: "3px" }}>
-                          <PinIcon size={10} /> {r.neighborhood ?? "San Juan"}
+                          <PinIcon size={10} /> {r.neighborhood ?? ""}
                         </div>
                       </div>
                     </div>
                   </Link>
                 );
               })}
-            </div>
-          </div>
+          </RelatedCarousel>
         )}
 
       </div>

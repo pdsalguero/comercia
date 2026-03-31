@@ -90,7 +90,7 @@ export async function generateMetadata(
   const name = p.store_name ?? slug;
   const desc = p.store_description
     ? p.store_description.slice(0, 155)
-    : `Visitá la tienda virtual de ${name} en ComerxIA. Comprá con confianza en San Juan.`;
+    : `Visitá la tienda virtual de ${name} en ComerxIA. Comprá con confianza.`;
 
   return {
     title: `${name} — Tienda Virtual`,

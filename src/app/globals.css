@@ -142,6 +142,12 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* FilterPanel — desktop visible, mobile button hidden */
+/* Collapsible sidebar sections */
+details.sf { background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #f0f0f0; }
+details.sf > summary { list-style: none; cursor: pointer; }
+details.sf > summary::-webkit-details-marker { display: none; }
+details.sf > summary::marker { display: none; }
+
 .filter-panel-desktop { display: block; }
 .filter-btn-mobile    { display: none !important; }
 
@@ -177,17 +183,18 @@ a { color: inherit; text-decoration: none; }
   .cat-pills-bar {
     display: flex !important;
     flex-wrap: nowrap !important;
+    align-items: center !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    gap: 7px;
-    padding: 10px 10px 12px;
+    gap: 6px;
+    padding: 8px 12px;
     background: #fff;
     border-bottom: 1px solid #f0f0f0;
   }
   .cat-pills-bar::-webkit-scrollbar { display: none; }
-  .cat-pill { flex-shrink: 0 !important; }
+  .cat-pill { flex-shrink: 0 !important; align-items: center !important; }
 
   /* Hero: text stays white (bg image + overlay kept, zIndex handled inline) */
 

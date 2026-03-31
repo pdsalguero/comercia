@@ -238,7 +238,7 @@ export default async function SellerPage({
   };
   const VEHICLE_TYPE_LABELS: Record<string, string> = {
     auto: "Autos", camioneta: "Pickups / SUV / Utilitarios", moto: "Motos",
-    cuatriciclo: "Cuatriciclos", utv: "Areneros",
+    cuatriciclo: "Cuatriciclos", utv: "Areneros/UTV",
     camion: "Camiones", nautica: "Náutica", otro: "Otros",
   };
 

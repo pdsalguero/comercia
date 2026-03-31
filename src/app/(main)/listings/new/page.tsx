@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORY_CONFIGS, getCategoryConfig } from "@/lib/category-config";
 import { CategoryIcon, TechGroupIcon } from "@/components/ui/CategoryIcon";
-import { CAR_BRANDS, getModels, getModelPriceRef } from "@/lib/vehicle-data";
+import { CAR_BRANDS, getModels } from "@/lib/vehicle-data";
 import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
 import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CATEGORIAS } from "@/data/vehiculos";
 import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
@@ -982,10 +982,6 @@ export default function NewListingPage() {
     if (tipo === "camion") return CAMION_BRANDS_LIST;
     return CAR_BRANDS;
   }, [attrs.sub_category]);
-  const vehiclePriceRef = useMemo(() => {
-    if (!isVehicle || !attrs.brand || !attrs.year) return null;
-    return getModelPriceRef(attrs.brand, attrs.model ?? "", Number(attrs.year));
-  }, [isVehicle, attrs.brand, attrs.model, attrs.year]);
 
   // Quality checks
   const checks = [
@@ -1262,7 +1258,6 @@ export default function NewListingPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al publicar");
       setDoneId(data.id);
-      setStep("promo");
       router.push(`/upgrade?listing_id=${data.id}`);
     } catch (e: any) {
       setError(e.message);
@@ -2827,28 +2822,6 @@ export default function NewListingPage() {
                   />
                 </div>
 
-                {/* Vehicle price reference */}
-                {isVehicle && vehiclePriceRef && (
-                  <div style={{
-                    marginTop: "12px", padding: "12px 14px",
-                    background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-                    borderRadius: "10px", border: "1px solid #bbf7d0",
-                  }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#15803d", marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>Referencia de mercado</div>
-                    <div style={{ fontSize: "13px", color: "#166534", lineHeight: 1.5 }}>
-                      {attrs.brand && attrs.model ? `${attrs.brand} ${attrs.model}` : "Este modelo"}{attrs.year ? ` ${attrs.year}` : ""} · <strong>U$S {vehiclePriceRef.min.toLocaleString("es-AR")} – {vehiclePriceRef.max.toLocaleString("es-AR")}</strong>
-                    </div>
-                    {!price && (
-                      <button type="button" onClick={() => { setCurrency("USD"); setPrice(String(vehiclePriceRef.avg)); }} style={{
-                        marginTop: "8px", padding: "5px 12px", borderRadius: "6px",
-                        background: "#16a34a", color: "#fff", border: "none",
-                        fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      }}>
-                        Usar precio sugerido U$S {vehiclePriceRef.avg.toLocaleString("es-AR")}
-                      </button>
-                    )}
-                  </div>
-                )}
 
                 {/* Category price reference */}
                 {!isVehicle && priceData && priceData.count >= 3 && (
@@ -2978,22 +2951,22 @@ export default function NewListingPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "16px" }}>
-            {/* Estándar (bronze) */}
+            {/* Esencial (bronze) */}
             {[
               {
-                key: "bronze", badge: "⭐ ESTÁNDAR", name: "Estándar", price: "1.500",
+                key: "bronze", badge: "⭐ ESTÁNDAR", name: "Esencial", price: "1.500",
                 color: "#f97316", colorLight: "#fff7ed", colorBorder: "#fed7aa",
                 gradient: "linear-gradient(135deg,#f97316,#fb923c)",
                 shadow: "0 4px 24px rgba(249,115,22,0.18)",
-                features: ["Aparece antes que los gratuitos","Badge ⭐ Estándar en tu publicación","Borde naranja destacado","Vigencia 7 días"],
-                cta: "Activar Estándar",
+                features: ["Aparece antes que los gratuitos","Badge ⭐ Esencial en tu publicación","Borde naranja destacado","Vigencia 7 días"],
+                cta: "Activar Esencial",
               },
               {
                 key: "silver", badge: "🚀 DESTACADO", name: "Destacado", price: "3.500",
                 color: "#6366f1", colorLight: "#eef2ff", colorBorder: "#c7d2fe",
                 gradient: "linear-gradient(135deg,#6366f1,#818cf8)",
                 shadow: "0 4px 24px rgba(99,102,241,0.22)",
-                features: ["Todo lo de Estándar","Badge 🚀 Destacado en tu publicación","Borde violeta llamativo","Posición preferencial en la categoría","Vigencia 15 días"],
+                features: ["Todo lo de Esencial","Badge 🚀 Destacado en tu publicación","Borde violeta llamativo","Posición preferencial en la categoría","Vigencia 15 días"],
                 cta: "Activar Destacado",
                 popular: true,
               },
@@ -3140,7 +3113,7 @@ export default function NewListingPage() {
                 lineHeight: 1.5,
               }}
             >
-              Tu aviso ya está visible en San Juan.
+              Tu aviso ya está visible en ComerxIA.
             </div>
             <div
               style={{

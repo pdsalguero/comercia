@@ -31,13 +31,15 @@ interface Props {
   totalCount: number;
   mode: "desktop" | "mobile";
   basePath?: string;
+  /** When true, skip category-specific sections (e.g. vehicles/RE) already shown in server sidebar */
+  hideCategoryFilters?: boolean;
 }
 
 const VEHICLE_SLUGS = ["vehicles", "autos", "camionetas", "motos", "utilitarios", "pickups", "vehiculos"];
 const REALESTATE_SLUGS = ["real-estate", "inmuebles", "casas", "departamentos", "terrenos"];
 const CLOTHING_SLUGS = ["clothing", "ropa", "indumentaria"];
 
-export function FilterPanel({ category, categoryId, currentFilters, totalCount, mode, basePath = "/listings" }: Props) {
+export function FilterPanel({ category, categoryId, currentFilters, totalCount, mode, basePath = "/listings", hideCategoryFilters = false }: Props) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>(currentFilters);
@@ -180,7 +182,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
       <div style={{ display: "flex", flexDirection: "column" }}>
 
         {/* ── VEHÍCULOS ── */}
-        {isVehicles && (
+        {isVehicles && !hideCategoryFilters && (
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #f5f5f5", display: "flex", flexDirection: "column", gap: "14px" }}>
 
             {/* Tipo de vehículo */}
@@ -195,7 +197,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                   { value: "camioneta" as any, label: "Pickups / SUV / Utilitarios" },
                   { value: "moto" as any, label: "Motos" },
                   { value: "cuatriciclo" as any, label: "Cuatriciclos" },
-                  { value: "utv" as any, label: "Areneros" },
+                  { value: "utv" as any, label: "Areneros/UTV" },
                 ]}
               />
             </div>
@@ -269,7 +271,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
         )}
 
         {/* ── INMUEBLES ── */}
-        {isRealEstate && (
+        {isRealEstate && !hideCategoryFilters && (
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #f5f5f5", display: "flex", flexDirection: "column", gap: "14px" }}>
             <div style={sectionLabel}>Inmueble</div>
             <SelectFilter label="Operación" field="operation" options={[
@@ -296,7 +298,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
         )}
 
         {/* ── INDUMENTARIA ── */}
-        {isClothing && (
+        {isClothing && !hideCategoryFilters && (
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #f5f5f5" }}>
             <SelectFilter label="Talle" field="size" options={[
               { value: "XS", label: "XS" }, { value: "S", label: "S" }, { value: "M", label: "M" },

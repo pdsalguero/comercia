@@ -207,7 +207,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 <option value="camioneta">Pickup / SUV / Utilitario</option>
                 <option value="moto">Moto</option>
                 <option value="cuatriciclo">Cuatriciclo</option>
-                <option value="utv">Areneros</option>
+                <option value="utv">Areneros/UTV</option>
                 <option value="camion">Camión</option>
                 <option value="nautica">Náutica</option>
                 <option value="otro">Otro</option>

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { AdminListingActions } from "@/components/admin/AdminListingActions";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -20,7 +20,7 @@ export default async function AdminPublicaciones({
   searchParams: Promise<{ q?: string; status?: string; cat?: string }>;
 }) {
   const { q, status, cat } = await searchParams;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   let query = supabase
     .from("listings")
