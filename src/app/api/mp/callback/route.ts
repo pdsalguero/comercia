@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { sendEmail } from "@/lib/email";
+import { destacadoActivadoTemplate } from "@/lib/emailTemplates";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL!;
 
@@ -69,4 +71,26 @@ export async function applyDestacado({
     mp_status:     "approved",
     updated_at:    new Date().toISOString(),
   }).eq("listing_id", listingId).eq("user_id", userId).eq("mp_status", "pending");
+
+  // Enviar email de confirmación (fire-and-forget)
+  const [{ data: listing }, { data: authUser }] = await Promise.all([
+    service.from("listings").select("title").eq("id", listingId).single(),
+    service.auth.admin.getUserById(userId),
+  ]);
+
+  const userEmail = authUser?.user?.email;
+  if (userEmail && listing?.title) {
+    const { data: profile } = await service.from("profiles").select("full_name").eq("id", userId).single();
+    const userName = profile?.full_name?.split(" ")[0] ?? userEmail.split("@")[0];
+    const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+    const { subject, html } = destacadoActivadoTemplate({
+      userName,
+      listingTitle: listing.title,
+      listingUrl: `${BASE}/listings/${listingId}`,
+      planLevel: plan.featured_level,
+      planDays: plan.days,
+      expiresAt: hasta,
+    });
+    sendEmail({ to: userEmail, subject, html }).catch(console.error);
+  }
 }

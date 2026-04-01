@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { sendEmail } from '@/lib/email'
+import { listingPublishedTemplate } from '@/lib/emailTemplates'
 
 export async function POST(request: Request) {
   try {
@@ -67,6 +69,24 @@ export async function POST(request: Request) {
       }).then(({ error: e }) => {
         if (e) console.warn("[vehicle_models]", e.message);
       });
+    }
+
+    // Enviar email de publicación en vivo (fire-and-forget)
+    if (user.email) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single()
+
+      const userName = profile?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
+      const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
+      const { subject, html } = listingPublishedTemplate({
+        userName,
+        listingTitle: listing.title,
+        listingUrl: `${BASE}/listings/${listing.id}`,
+      })
+      sendEmail({ to: user.email, subject, html }).catch(console.error)
     }
 
     return NextResponse.json(listing)
