@@ -12,12 +12,25 @@ export async function middleware(request: NextRequest) {
   if (process.env.COMING_SOON === 'true') {
     const isAllowed = COMING_SOON_ALLOWED.some((p) => pathname.startsWith(p))
     if (!isAllowed) {
-      // Los admins logueados pueden ver todo el sitio igualmente
+      // Crear cliente con manejo correcto de cookies para que el token se refresque
+      let response = NextResponse.next({ request })
       const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => request.cookies.getAll(), setAll: () => {} } }
+        {
+          cookies: {
+            getAll: () => request.cookies.getAll(),
+            setAll: (cookiesToSet) => {
+              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+              response = NextResponse.next({ request })
+              cookiesToSet.forEach(({ name, value, options }) =>
+                response.cookies.set(name, value, options)
+              )
+            },
+          },
+        }
       )
+
       const { data: { user } } = await supabase.auth.getUser()
       let isAdmin = false
       if (user) {
@@ -34,6 +47,9 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/landing'
         return NextResponse.redirect(url)
       }
+
+      // Admin verificado — continuar con sesión actualizada
+      return response
     }
   }
 
