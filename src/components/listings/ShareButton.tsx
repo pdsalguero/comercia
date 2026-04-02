@@ -26,7 +26,7 @@ export function ShareButton({ listingId, title, price, currency }: Props) {
   const getLinks = () => {
     const u = getUrl();
     return {
-      wa:   `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${u}`)}`,
+      wa:   `https://wa.me/?text=${encodeURIComponent(u)}`,
       fb:   `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
       tw:   `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(u)}`,
     };
