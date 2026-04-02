@@ -94,10 +94,6 @@ export async function POST(req: NextRequest) {
           currency_id: "ARS",
         },
       ],
-      payer: {
-        name:  fullName,
-        email: userEmail,
-      },
       back_urls: {
         success: `${BASE}/api/mp/callback`,
         failure: `${BASE}/upgrade?listing_id=${listingId}&error=1`,
