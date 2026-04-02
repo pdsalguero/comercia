@@ -24,6 +24,25 @@ const VEHICLE_BRANDS = [
   "chery",
   "geely",
   "byd",
+  "cfmoto",
+  "royal_enfield",
+  "bajaj",
+  "ktm",
+  "husqvarna",
+  "benelli",
+  "ducati",
+  "harley_davidson",
+  "triumph",
+  "kawasaki",
+  "yamaha",
+  "beta",
+  "corven",
+  "motomel",
+  "zanella",
+  "gilera",
+  "guerrero",
+  "can_am",
+  "polaris",
   "otra",
 ];
 const VEHICLE_SUBCATS = [
@@ -53,7 +72,7 @@ Devolvés SOLO JSON válido. Cero texto adicional, cero markdown, cero explicaci
 ══════════════════════════════════════════════
 REGLAS DE ORO — NUNCA LAS ROMPAS
 ══════════════════════════════════════════════
-① IDENTIFICACIÓN: Leé PRIMERO todo el texto visible en el vehículo (tanque, carenado, tapa lateral, maletero, parrilla). Ese texto ES la verdad. Un "TÉNÉRÉ" en el tanque vale más que cualquier inferencia visual.
+① IDENTIFICACIÓN: Leé PRIMERO todo el texto visible en el vehículo (tanque, carenado, tapa lateral, maletero, parrilla). Ese texto ES la verdad absoluta. Un "CFMOTO" en el carenado significa cfmoto, NO bmw ni ninguna otra marca. Un "TÉNÉRÉ" en el tanque vale más que cualquier inferencia visual. NUNCA inferís la marca por la silueta si hay texto legible.
 ② AÑO: Siempre year=0. El año lo calcula el sistema desde la patente. NUNCA pongas el año del modelo.
 ③ PATENTE: Transcribí letra por letra con certeza absoluta. Ante CUALQUIER duda → no incluyas el campo.
 ④ CONFIANZA: Si no podés identificar la marca/modelo con certeza, dejá el campo vacío. No inventes.`;
@@ -185,6 +204,18 @@ PASO 3: IDENTIFICAR MODELO — texto en el vehículo es la VERDAD
   "NXR BROS"/"BROS" → NXR 150 BROS
   "CRF 300" → CRF 300 L | "CRF 250" → CRF 250 L
   "INVICTA 150" → INVICTA 150
+
+▸ CFMOTO MOTOS — ⚠️ NO CONFUNDIR CON BMW. Si dice "CFMOTO" en cualquier parte → brand=cfmoto, NO bmw.
+  "800 MT"/"800MT" → 800 MT  (touring adventure, 800cc)
+  "700 CL-X"/"CLX700" → 700 CL-X
+  "650 MT"/"650MT" → 650 MT
+  "650 NK"/"650NK" → 650 NK
+  "450 MT"/"450MT" → 450 MT
+  "450 NK"/"450NK" → 450 NK
+  "300 NK"/"300NK" → 300 NK
+  "250 NK"/"250NK" → 250 NK
+  "250 SR"/"250SR" → 250 SR
+  CILINDRADA: 800 MT→800 | 700 CL-X→700 | 650 MT/650 NK→650 | 450 MT/450 NK→450 | 300 NK→300 | 250→250
 
 ▸ BMW MOTOS
   "R 1250 GS"/"R1250GS" → R 1250 GS
