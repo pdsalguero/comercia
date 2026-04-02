@@ -6,9 +6,9 @@ import MercadoPagoConfig, { Preference } from "mercadopago";
 export const maxDuration = 30;
 
 export const PLAN_META: Record<string, { name: string; price: number; days: number; featured_level: string }> = {
-  bronze_7:  { name: "Estandar 7 dias",   price: 699,  days: 7,  featured_level: "bronze" },
-  bronze_15: { name: "Estandar 15 dias",  price: 1299, days: 15, featured_level: "bronze" },
-  bronze_30: { name: "Estandar 30 dias",  price: 2499, days: 30, featured_level: "bronze" },
+  bronze_7:  { name: "Esencial 7 dias",   price: 699,  days: 7,  featured_level: "bronze" },
+  bronze_15: { name: "Esencial 15 dias",  price: 1299, days: 15, featured_level: "bronze" },
+  bronze_30: { name: "Esencial 30 dias",  price: 2499, days: 30, featured_level: "bronze" },
   silver_7:  { name: "Destacado 7 dias",  price: 1299, days: 7,  featured_level: "silver" },
   silver_15: { name: "Destacado 15 dias", price: 2299, days: 15, featured_level: "silver" },
   silver_30: { name: "Destacado 30 dias", price: 4199, days: 30, featured_level: "silver" },
@@ -126,11 +126,14 @@ export async function POST(req: NextRequest) {
       throw mpErr;
     }
 
-    if (!pref.init_point) {
+    const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith("TEST-");
+    const checkoutUrl = isSandbox ? pref.sandbox_init_point : pref.init_point;
+
+    if (!checkoutUrl) {
       return NextResponse.json({ error: "MP no devolvio init_point" }, { status: 500 });
     }
 
-    console.log("[mp/checkout] SUCCESS — pref.id:", pref.id);
+    console.log("[mp/checkout] SUCCESS — pref.id:", pref.id, "| sandbox:", isSandbox);
 
     // Save pago record
     await service.from("pagos").insert({
@@ -145,7 +148,7 @@ export async function POST(req: NextRequest) {
       mp_status:        "pending",
     });
 
-    return NextResponse.json({ init_point: pref.init_point });
+    return NextResponse.json({ init_point: checkoutUrl });
 
   } catch (err: any) {
     console.error("[mp/checkout] error:", err?.message ?? err);
