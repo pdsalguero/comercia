@@ -170,14 +170,109 @@ export async function getUserListings(userId: string): Promise<UserListing[]> {
       status: l.status,
       view_count: l.view_count ?? 0,
       created_at: l.created_at,
-      // un aviso está destacado si tiene featured_level (sistema viejo) o destacado_activo (sistema nuevo)
-      destacado_activo: (l.destacado_activo ?? false) || !!l.featured_level,
+      // solo tiers de pago: bronze/silver/gold — 'standard' no es tier destacado
+      destacado_activo: (l.destacado_activo ?? false) || ['bronze', 'silver', 'gold'].includes(l.featured_level ?? ''),
       destacado_hasta: l.destacado_hasta ?? l.featured_until ?? null,
-      destacado_tipo: l.destacado_tipo ?? null,
+      destacado_tipo: l.destacado_tipo ?? l.featured_level ?? null,
       cover_url: cover,
       msg_count: msgMap[l.id] ?? 0,
     }
   })
+}
+
+// ─── getListingSummary ────────────────────────────────────────────────────────
+
+export interface ListingStatusCounts {
+  active: number
+  paused: number
+  expired: number
+  sold: number
+  total: number
+}
+
+export interface TopListing {
+  id: string
+  title: string
+  view_count: number
+  msg_count: number
+  status: string
+  cover_url: string | null
+}
+
+export interface ListingSummary {
+  statusCounts: ListingStatusCounts
+  topByViews: TopListing[]
+  topByMessages: TopListing[]
+  totalFavorites: number
+  totalMessages: number
+  avgViewsPerListing: number
+}
+
+export async function getListingSummary(userId: string): Promise<ListingSummary> {
+  const supabase = await createClient()
+
+  const { data: listings } = await supabase
+    .from('listings')
+    .select('id, title, view_count, favorite_count, status, listing_images(url, position)')
+    .eq('user_id', userId)
+
+  if (!listings || listings.length === 0) {
+    return {
+      statusCounts: { active: 0, paused: 0, expired: 0, sold: 0, total: 0 },
+      topByViews: [], topByMessages: [],
+      totalFavorites: 0, totalMessages: 0, avgViewsPerListing: 0,
+    }
+  }
+
+  const statusCounts: ListingStatusCounts = { active: 0, paused: 0, expired: 0, sold: 0, total: listings.length }
+  let totalFavorites = 0
+  for (const l of listings) {
+    if (l.status === 'active') statusCounts.active++
+    else if (l.status === 'paused') statusCounts.paused++
+    else if (l.status === 'expired') statusCounts.expired++
+    else if (l.status === 'sold') statusCounts.sold++
+    totalFavorites += l.favorite_count ?? 0
+  }
+
+  const totalViews = listings.reduce((s, l) => s + (l.view_count ?? 0), 0)
+  const avgViewsPerListing = listings.length > 0 ? Math.round(totalViews / listings.length) : 0
+
+  const allIds = listings.map(l => l.id)
+  const { data: msgs } = await supabase
+    .from('messages')
+    .select('listing_id')
+    .in('listing_id', allIds)
+
+  const msgMap: Record<string, number> = {}
+  for (const m of (msgs ?? [])) {
+    if (m.listing_id) msgMap[m.listing_id] = (msgMap[m.listing_id] ?? 0) + 1
+  }
+  const totalMessages = Object.values(msgMap).reduce((s, n) => s + n, 0)
+
+  type ListingRow = (typeof listings)[number]
+  function toTopListing(l: ListingRow): TopListing {
+    const images = (l.listing_images as { url: string; position: number }[] ?? [])
+    const cover = images.sort((a, b) => a.position - b.position)[0]?.url ?? null
+    return {
+      id: l.id, title: l.title,
+      view_count: l.view_count ?? 0,
+      msg_count: msgMap[l.id] ?? 0,
+      status: l.status, cover_url: cover,
+    }
+  }
+
+  const topByViews = [...listings]
+    .sort((a, b) => (b.view_count ?? 0) - (a.view_count ?? 0))
+    .slice(0, 5)
+    .map(toTopListing)
+
+  const topByMessages = [...listings]
+    .sort((a, b) => (msgMap[b.id] ?? 0) - (msgMap[a.id] ?? 0))
+    .filter(l => (msgMap[l.id] ?? 0) > 0)
+    .slice(0, 5)
+    .map(toTopListing)
+
+  return { statusCounts, topByViews, topByMessages, totalFavorites, totalMessages, avgViewsPerListing }
 }
 
 // ─── getSmartRecommendations ──────────────────────────────────────────────────
