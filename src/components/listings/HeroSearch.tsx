@@ -165,9 +165,8 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
             textShadow: "0 2px 8px rgba(0,0,0,0.5)",
           }}
         >
-          El primer clasificado con{" "}
-          <span style={{ color: "#fbbf24" }}>IA</span>
-          {" "}de Argentina.
+          El marketplace inteligente. Todo con el poder de la{" "}
+          <span style={{ color: "#fbbf24" }}>IA</span>.
         </h1>
 
         <div className="hero-main-subtitle" style={{

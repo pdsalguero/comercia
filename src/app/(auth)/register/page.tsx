@@ -5,53 +5,63 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+const INPUT = {
+  width: '100%',
+  border: '1.5px solid #e2e8f0',
+  borderRadius: '10px',
+  padding: '11px 14px',
+  fontSize: '14px',
+  outline: 'none',
+  boxSizing: 'border-box' as const,
+  color: '#0f172a',
+  background: '#fff',
+  transition: 'border-color 0.15s',
+}
+
+const LABEL = {
+  fontSize: '13px',
+  fontWeight: 600,
+  color: '#374151',
+  display: 'block',
+  marginBottom: '6px',
+}
+
 export default function RegisterPage() {
   const router = useRouter()
-  const [step, setStep]             = useState<1 | 2>(1)
-  const [fullName, setFullName]     = useState('')
-  const [username, setUsername]     = useState('')
-  const [email, setEmail]           = useState('')
-  const [password, setPassword]     = useState('')
-  const [confirm, setConfirm]       = useState('')
-  const [loading, setLoading]       = useState(false)
-  const [error, setError]           = useState('')
+  const [step, setStep]         = useState<1 | 2>(1)
+  const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
+  const [email, setEmail]       = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm]   = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
 
     if (step === 1) {
-      if (!fullName.trim() || !username.trim()) {
-        setError('Completá todos los campos.')
-        return
-      }
+      if (!fullName.trim() || !username.trim()) { setError('Completá todos los campos.'); return }
       setError('')
       setStep(2)
       return
     }
 
-    if (password !== confirm) {
-      setError('Las contraseñas no coinciden.')
-      return
-    }
-    if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres.')
-      return
-    }
+    if (password !== confirm) { setError('Las contraseñas no coinciden.'); return }
+    if (password.length < 8)  { setError('La contraseña debe tener al menos 8 caracteres.'); return }
 
     setLoading(true)
     setError('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName, username },
-      },
+      options: { data: { full_name: fullName, username } },
     })
 
-    if (error) {
-      setError(error.message === 'User already registered'
+    if (signUpError) {
+      setError(signUpError.message === 'User already registered'
         ? 'Ya existe una cuenta con ese email.'
         : 'Ocurrió un error. Intentá de nuevo.')
       setLoading(false)
@@ -61,69 +71,55 @@ export default function RegisterPage() {
     router.push('/dashboard')
   }
 
-  const inputStyle = {
-    width: '100%',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    padding: '10px 12px',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-  }
-
-  const labelStyle = {
-    fontSize: '14px',
-    fontWeight: 600,
-    color: '#333',
-    display: 'block',
-    marginBottom: '6px',
-  }
+  const strength = password.length === 0 ? 0 : password.length < 8 ? 1 : password.length < 10 ? 2 : password.length < 12 ? 3 : 4
+  const strengthColor = ['#e2e8f0', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e'][strength]
+  const strengthLabel = ['', 'Muy corta', 'Débil', 'Aceptable', '✓ Segura'][strength]
 
   return (
     <div style={{
       background: '#fff',
-      borderRadius: '8px',
-      padding: '32px',
+      borderRadius: '16px',
+      padding: '36px 32px',
       width: '100%',
       maxWidth: '420px',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
     }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#333', marginBottom: '6px' }}>
+      <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
         Crear cuenta gratis
       </h1>
-      <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>
+      <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>
         ¿Ya tenés cuenta?{' '}
-        <Link href="/login" style={{ color: '#3483fa', fontWeight: 600 }}>
+        <Link href="/login" style={{ color: '#3483fa', fontWeight: 600, textDecoration: 'none' }}>
           Ingresá acá
         </Link>
       </p>
 
-      {/* Step indicator */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-        {[1, 2].map(s => (
-          <div key={s} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{
-              height: '3px',
-              borderRadius: '2px',
-              background: s <= step ? '#3483fa' : '#eee',
-              transition: 'background 0.3s',
-            }} />
-            <span style={{ fontSize: '11px', color: s <= step ? '#3483fa' : '#bbb' }}>
-              {s === 1 ? 'Tus datos' : 'Acceso'}
-            </span>
-          </div>
-        ))}
+      {/* Steps */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
+        {(['Tus datos', 'Acceso'] as const).map((label, i) => {
+          const s = i + 1
+          const active = s <= step
+          return (
+            <div key={s} style={{ flex: 1 }}>
+              <div style={{
+                height: '3px', borderRadius: '2px',
+                background: active ? '#3483fa' : '#e2e8f0',
+                marginBottom: '5px',
+                transition: 'background 0.3s',
+              }} />
+              <span style={{ fontSize: '11px', fontWeight: 600, color: active ? '#3483fa' : '#94a3b8' }}>
+                {label}
+              </span>
+            </div>
+          )
+        })}
       </div>
 
       {error && (
         <div style={{
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '6px',
-          padding: '10px 14px',
-          fontSize: '13px',
-          color: '#dc2626',
-          marginBottom: '16px',
+          background: '#fef2f2', border: '1px solid #fecaca',
+          borderRadius: '8px', padding: '10px 14px',
+          fontSize: '13px', color: '#dc2626', marginBottom: '18px',
         }}>
           ⚠️ {error}
         </div>
@@ -134,23 +130,23 @@ export default function RegisterPage() {
         {step === 1 && (
           <>
             <div>
-              <label style={labelStyle}>Nombre completo</label>
+              <label style={LABEL}>Nombre completo</label>
               <input
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 placeholder="Juan Pérez"
                 required
-                style={inputStyle}
+                style={INPUT}
               />
             </div>
 
             <div>
-              <label style={labelStyle}>Nombre de usuario</label>
+              <label style={LABEL}>Nombre de usuario</label>
               <div style={{ position: 'relative' }}>
                 <span style={{
-                  position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-                  fontSize: '14px', color: '#999',
+                  position: 'absolute', left: '14px', top: '50%',
+                  transform: 'translateY(-50%)', fontSize: '14px', color: '#94a3b8',
                 }}>@</span>
                 <input
                   type="text"
@@ -158,86 +154,83 @@ export default function RegisterPage() {
                   onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                   placeholder="juanperez"
                   required
-                  style={{ ...inputStyle, paddingLeft: '28px' }}
+                  style={{ ...INPUT, paddingLeft: '30px' }}
                 />
               </div>
-              <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                Solo letras, números y guión bajo. No se puede cambiar después.
+              <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '5px' }}>
+                Solo letras, números y guión bajo.{' '}
+                <span style={{ color: '#ef4444' }}>No se puede cambiar después.</span>
               </p>
             </div>
 
-            <button
-              type="submit"
-              style={{
-                background: '#3483fa',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '12px',
-                fontWeight: 800,
-                fontSize: '15px',
-                cursor: 'pointer',
-                marginTop: '4px',
-              }}
-            >
+            <button type="submit" style={{
+              background: 'linear-gradient(135deg, #3483fa, #2563eb)',
+              color: '#fff', border: 'none', borderRadius: '10px',
+              padding: '12px', fontWeight: 800, fontSize: '15px',
+              cursor: 'pointer', marginTop: '4px',
+              boxShadow: '0 2px 10px rgba(52,131,250,0.30)',
+            }}>
               Continuar →
             </button>
+
           </>
         )}
 
         {step === 2 && (
           <>
             <div>
-              <label style={labelStyle}>Email</label>
+              <label style={LABEL}>Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 required
-                style={inputStyle}
+                style={INPUT}
               />
             </div>
 
             <div>
-              <label style={labelStyle}>Contraseña</label>
+              <label style={LABEL}>Contraseña</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
                 required
-                style={inputStyle}
+                style={INPUT}
               />
+              {password && (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                    {[1,2,3,4].map(i => (
+                      <div key={i} style={{
+                        flex: 1, height: '3px', borderRadius: '2px',
+                        background: i <= strength ? strengthColor : '#e2e8f0',
+                        transition: 'background 0.2s',
+                      }} />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>
+                </div>
+              )}
             </div>
 
             <div>
-              <label style={labelStyle}>Confirmar contraseña</label>
+              <label style={LABEL}>Confirmar contraseña</label>
               <input
                 type="password"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="Repetí tu contraseña"
                 required
-                style={inputStyle}
+                style={{
+                  ...INPUT,
+                  borderColor: confirm && confirm !== password ? '#ef4444' : INPUT.border.replace('1.5px solid ', ''),
+                }}
               />
-              {/* Password strength */}
-              {password && (
-                <div style={{ marginTop: '6px' }}>
-                  <div style={{ display: 'flex', gap: '4px', marginBottom: '3px' }}>
-                    {[1,2,3,4].map(i => (
-                      <div key={i} style={{
-                        flex: 1, height: '3px', borderRadius: '2px',
-                        background: password.length >= i * 3
-                          ? (password.length >= 10 ? '#22c55e' : '#f59e0b')
-                          : '#eee',
-                      }} />
-                    ))}
-                  </div>
-                  <span style={{ fontSize: '11px', color: password.length >= 10 ? '#22c55e' : '#f59e0b' }}>
-                    {password.length < 8 ? 'Muy corta' : password.length < 10 ? 'Aceptable' : '✓ Segura'}
-                  </span>
-                </div>
+              {confirm && confirm !== password && (
+                <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>Las contraseñas no coinciden</p>
               )}
             </div>
 
@@ -246,15 +239,9 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => { setStep(1); setError('') }}
                 style={{
-                  flex: 1,
-                  background: '#fff',
-                  color: '#333',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  padding: '11px',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: 'pointer',
+                  flex: 1, background: '#fff', color: '#475569',
+                  border: '1.5px solid #e2e8f0', borderRadius: '10px',
+                  padding: '11px', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
                 }}
               >
                 ← Volver
@@ -264,14 +251,11 @@ export default function RegisterPage() {
                 disabled={loading}
                 style={{
                   flex: 2,
-                  background: loading ? '#a0c4ff' : '#3483fa',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '12px',
-                  fontWeight: 800,
-                  fontSize: '15px',
+                  background: loading ? '#93c5fd' : 'linear-gradient(135deg, #3483fa, #2563eb)',
+                  color: '#fff', border: 'none', borderRadius: '10px',
+                  padding: '12px', fontWeight: 800, fontSize: '15px',
                   cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: loading ? 'none' : '0 2px 10px rgba(52,131,250,0.30)',
                 }}
               >
                 {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
@@ -280,60 +264,7 @@ export default function RegisterPage() {
           </>
         )}
       </form>
-
-      {step === 1 && (
-        <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: '#eee' }} />
-            <span style={{ fontSize: '12px', color: '#999' }}>o registrate con</span>
-            <div style={{ flex: 1, height: '1px', background: '#eee' }} />
-          </div>
-          <GoogleButton />
-        </>
-      )}
     </div>
   )
 }
 
-function GoogleButton() {
-  const [loading, setLoading] = useState(false)
-
-  async function handleGoogle() {
-    setLoading(true)
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
-
-  return (
-    <button
-      onClick={handleGoogle}
-      disabled={loading}
-      style={{
-        width: '100%',
-        background: '#fff',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        padding: '11px',
-        fontSize: '14px',
-        fontWeight: 600,
-        color: '#333',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-      }}
-    >
-      <svg width="18" height="18" viewBox="0 0 18 18">
-        <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-        <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/>
-        <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/>
-        <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
-      </svg>
-      {loading ? 'Redirigiendo...' : 'Continuar con Google'}
-    </button>
-  )
-}

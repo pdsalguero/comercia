@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { MetadataRoute } from "next";
 
-const BASE = "https://comercia.com.ar";
+const BASE = "https://comerxia.com.ar";
 
 const STATIC_CATEGORIES = [
   "vehicles", "real-estate", "phones", "electronics", "appliances",

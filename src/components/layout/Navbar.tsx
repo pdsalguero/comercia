@@ -15,35 +15,58 @@ interface Suggestion {
   currency: string;
 }
 
-export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: boolean }) {
+export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: User | null; hideSearch?: boolean; initialUnreadCount?: number }) {
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const CATEGORIES = [
-    { name: "Vehículos",             slug: "vehicles"      },
-    { name: "Inmuebles",             slug: "real-estate"   },
-    { name: "Celulares",             slug: "phones"        },
-    { name: "Tecnología",            slug: "electronics"   },
-    { name: "Electrodomésticos",     slug: "appliances"    },
-    { name: "Ropa y Calzado",        slug: "clothing"      },
-    { name: "Hogar y Muebles",       slug: "home-garden"   },
-    { name: "Deportes",              slug: "sports"        },
-    { name: "Herramientas",          slug: "tools"         },
-    { name: "Bebés y Niños",         slug: "babies"        },
-    { name: "Música, Libros y Rev.", slug: "books"         },
-    { name: "Belleza y Salud",       slug: "beauty-health" },
-    { name: "Juegos y Juguetes",     slug: "toys"          },
-    { name: "Mascotas",              slug: "pets"          },
-    { name: "Servicios",             slug: "services"      },
-    { name: "Otros",                 slug: "other"         },
+    { name: "Vehículos",             slug: "vehicles",      active: true  },
+    { name: "Inmuebles",             slug: "real-estate",   active: true  },
+    { name: "Celulares",             slug: "phones",        active: false },
+    { name: "Tecnología",            slug: "electronics",   active: false },
+    { name: "Electrodomésticos",     slug: "appliances",    active: false },
+    { name: "Ropa y Calzado",        slug: "clothing",      active: false },
+    { name: "Hogar y Muebles",       slug: "home-garden",   active: false },
+    { name: "Deportes",              slug: "sports",        active: false },
+    { name: "Herramientas",          slug: "tools",         active: false },
+    { name: "Bebés y Niños",         slug: "babies",        active: false },
+    { name: "Música, Libros y Rev.", slug: "books",         active: false },
+    { name: "Belleza y Salud",       slug: "beauty-health", active: false },
+    { name: "Juegos y Juguetes",     slug: "toys",          active: false },
+    { name: "Mascotas",              slug: "pets",          active: false },
+    { name: "Servicios",             slug: "services",      active: false },
+    { name: "Otros",                 slug: "other",         active: false },
   ];
+
+  // Realtime: incrementa el badge cuando llega un mensaje nuevo
+  useEffect(() => {
+    if (!user) return;
+    const supabase = createClient();
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("receiver_id", user.id)
+        .eq("is_read", false);
+      setUnreadCount(count ?? 0);
+    };
+    const channel = supabase
+      .channel("navbar-unread")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${user.id}` }, () => {
+        setUnreadCount((c) => c + 1);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: `receiver_id=eq.${user.id}` }, fetchUnread)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   // Fetch suggestions with debounce
   useEffect(() => {
@@ -157,7 +180,7 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
                   boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
                   zIndex: 200, minWidth: "220px", overflow: "hidden",
                 }}>
-                  {CATEGORIES.map((cat, i) => (
+                  {CATEGORIES.filter(c => c.active).map((cat, i) => (
                     <Link
                       key={cat.slug}
                       href={`/category/${cat.slug}`}
@@ -340,13 +363,22 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
                   style={{ fontSize: "14px", color: "#475569", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}
                   className="hover:text-indigo-600"
                 >
-                  <div style={{
-                    width: "28px", height: "28px", borderRadius: "50%",
-                    background: "#eef2ff", border: "1.5px solid #c7d2fe",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "12px", fontWeight: 800, color: "#6366f1",
-                  }}>
-                    {displayName[0].toUpperCase()}
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <div style={{
+                      width: "28px", height: "28px", borderRadius: "50%",
+                      background: "#eef2ff", border: "1.5px solid #c7d2fe",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "12px", fontWeight: 800, color: "#6366f1",
+                    }}>
+                      {displayName[0].toUpperCase()}
+                    </div>
+                    {unreadCount > 0 && (
+                      <span style={{
+                        position: "absolute", top: "-2px", right: "-2px",
+                        width: "9px", height: "9px", borderRadius: "50%",
+                        background: "#ef4444", border: "1.5px solid #fff",
+                      }} />
+                    )}
                   </div>
                   {displayName}
                 </Link>
@@ -424,90 +456,205 @@ export function Navbar({ user, hideSearch }: { user?: User | null; hideSearch?: 
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — slide-in drawer */}
       {menuOpen && (
-        <div
-          style={{
-            background: "#fff",
-            borderTop: "1px solid #f1f5f9",
-            padding: "16px 24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
-          className="md:hidden"
-        >
-          {!hideSearch && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                overflow: "hidden",
-              }}
-            >
-              <span style={{ paddingLeft: "12px", color: "#94a3b8" }}>🔍</span>
-              <input
-                type="text"
-                placeholder="¿Qué estás buscando?"
-                style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  padding: "10px 12px",
-                  fontSize: "14px",
-                  background: "transparent",
-                }}
-              />
-            </div>
-          )}
-          <div style={{ display: "flex", gap: "16px" }}>
-            <Link href="/listings" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Avisos</Link>
-            <Link href="/tiendas" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>Tiendas</Link>
-          </div>
-          <Link href="/listings/new" onClick={() => setMenuOpen(false)}>
-            <button
-              style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #f97316, #fb923c)",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                padding: "11px",
-                fontWeight: 800,
-                fontSize: "14px",
-                cursor: "pointer",
-                boxShadow: "0 2px 10px rgba(249,115,22,0.3)",
-              }}
-            >
-              📸 Publicar con IA — Gratis
-            </button>
-          </Link>
-          {user ? (
-            <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-              <Link href="/dashboard" style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}>
-                👤 {displayName}
-              </Link>
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setMenuOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 49 }}
+          />
+
+          {/* Drawer */}
+          <div style={{
+            position: "fixed", top: 0, right: 0,
+            width: "82%", maxWidth: "320px",
+            height: "auto", maxHeight: "100dvh",
+            background: "#fff", zIndex: 51,
+            display: "flex", flexDirection: "column",
+            boxShadow: "-6px 0 32px rgba(0,0,0,0.18)",
+            overflowY: "auto",
+          }}>
+
+            {/* Drawer header */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "14px 18px", borderBottom: "1px solid #f1f5f9", flexShrink: 0,
+            }}>
+              <Logo height={38} />
               <button
-                onClick={handleSignOut}
-                style={{ fontSize: "14px", color: "#94a3b8", background: "none", border: "none", cursor: "pointer" }}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  background: "#f1f5f9", border: "none", borderRadius: "50%",
+                  width: 32, height: 32, fontSize: "15px", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "#475569",
+                }}
               >
-                Salir
+                ✕
               </button>
             </div>
-          ) : (
-            <div style={{ display: "flex", gap: "16px" }}>
-              <Link href="/login" style={{ fontSize: "14px", color: "#475569", fontWeight: 600 }}>
-                Ingresar
+
+            {/* User card */}
+            {user ? (
+              <Link href="/dashboard" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "14px 18px", borderBottom: "1px solid #f1f5f9",
+                  background: "#fafbff",
+                }}>
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: "50%",
+                      background: "linear-gradient(135deg, #6366f1, #818cf8)",
+                      color: "#fff", display: "flex", alignItems: "center",
+                      justifyContent: "center", fontSize: "17px", fontWeight: 800,
+                    }}>
+                      {displayName[0].toUpperCase()}
+                    </div>
+                    {unreadCount > 0 && (
+                      <span style={{
+                        position: "absolute", top: 0, right: 0,
+                        width: "12px", height: "12px", borderRadius: "50%",
+                        background: "#ef4444", border: "2px solid #fff",
+                      }} />
+                    )}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontWeight: 700, fontSize: "14px", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {displayName}
+                      </span>
+                      {unreadCount > 0 && (
+                        <span style={{
+                          background: "#ef4444", color: "#fff",
+                          fontSize: "10px", fontWeight: 700,
+                          padding: "1px 5px", borderRadius: "20px", flexShrink: 0,
+                        }}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: "12px", color: "#6366f1", fontWeight: 600 }}>
+                      Ver mi dashboard →
+                    </div>
+                  </div>
+                </div>
               </Link>
-              <Link href="/register" style={{ fontSize: "14px", color: "#475569" }}>
-                Crear cuenta
-              </Link>
+            ) : (
+              <div style={{
+                display: "flex", gap: "8px",
+                padding: "14px 18px", borderBottom: "1px solid #f1f5f9",
+              }}>
+                <Link href="/login" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none", flex: 1 }}>
+                  <button style={{
+                    width: "100%", padding: "9px", borderRadius: "8px",
+                    border: "1.5px solid #e2e8f0", background: "#fff",
+                    fontSize: "13px", fontWeight: 600, color: "#475569", cursor: "pointer",
+                  }}>
+                    Ingresar
+                  </button>
+                </Link>
+                <Link href="/register" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none", flex: 1 }}>
+                  <button style={{
+                    width: "100%", padding: "9px", borderRadius: "8px",
+                    border: "none", background: "#eef2ff",
+                    fontSize: "13px", fontWeight: 600, color: "#6366f1", cursor: "pointer",
+                  }}>
+                    Crear cuenta
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {/* Tabs: Avisos | Tiendas */}
+            <div style={{ display: "flex", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
+              {[
+                { label: "Avisos", href: "/listings" },
+                { label: "Tiendas", href: "/tiendas" },
+              ].map((tab) => (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  onClick={() => setMenuOpen(false)}
+                  style={{ textDecoration: "none", flex: 1, textAlign: "center" }}
+                >
+                  <div style={{
+                    padding: "12px 0",
+                    fontSize: "14px", fontWeight: 600,
+                    color: "#64748b",
+                    borderBottom: "2px solid transparent",
+                  }}
+                  className="hover:text-indigo-600"
+                  >
+                    {tab.label}
+                  </div>
+                </Link>
+              ))}
             </div>
-          )}
-        </div>
+
+            {/* Body */}
+            <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {/* Publish CTA */}
+              <Link href="/listings/new" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+                <button style={{
+                  width: "100%",
+                  background: "linear-gradient(135deg, #f97316, #fb923c)",
+                  color: "#fff", border: "none", borderRadius: "10px",
+                  padding: "14px", fontWeight: 800, fontSize: "15px",
+                  cursor: "pointer", display: "flex", alignItems: "center",
+                  justifyContent: "center", gap: "8px",
+                  boxShadow: "0 3px 12px rgba(249,115,22,0.35)",
+                }}>
+                  ⚡ Publicar nuevo aviso
+                </button>
+              </Link>
+
+              {/* Quick nav */}
+              <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                {CATEGORIES.filter(c => c.active).map((cat) => (
+                  <Link key={cat.slug} href={`/category/${cat.slug}`} onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: "10px",
+                      padding: "9px 10px", borderRadius: "8px", fontSize: "13px",
+                      color: "#475569", fontWeight: 500,
+                    }}
+                    className="hover:bg-slate-50 hover:text-indigo-600"
+                    >
+                      <CategoryIcon slug={cat.slug} size={16} />
+                      {cat.name}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            {user && (
+              <div style={{
+                padding: "12px 18px", borderTop: "1px solid #f1f5f9", flexShrink: 0,
+              }}>
+                <button
+                  onClick={() => { handleSignOut(); setMenuOpen(false); }}
+                  style={{
+                    width: "100%", background: "none", border: "1.5px solid #fee2e2",
+                    borderRadius: "8px", padding: "9px", fontSize: "13px",
+                    fontWeight: 600, color: "#ef4444", cursor: "pointer",
+                  }}
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+
+            <div style={{
+              padding: "10px 18px", background: "#6366f1", flexShrink: 0,
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>El marketplace inteligente con IA</div>
+              <div style={{ fontSize: "11px", color: "#c7d2fe" }}>Subi foto • IA redacta</div>
+            </div>
+          </div>
+        </>
       )}
     </header>
   );

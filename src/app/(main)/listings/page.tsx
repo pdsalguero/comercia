@@ -6,24 +6,25 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import Link from "next/link";
 import { OrderSelect } from "@/components/ui/OrderSelect";
 import { FilterPanel, type FilterValues } from "@/components/listings/FilterPanel";
+import { CategorySidebar } from "@/components/layout/CategorySidebar";
 
 const CATEGORIES = [
-  { name: "Vehículos",         slug: "vehicles",      icon: "🚗" },
-  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠" },
-  { name: "Celulares",         slug: "phones",        icon: "📱" },
-  { name: "Tecnología",        slug: "electronics",   icon: "💻" },
-  { name: "Electrodomésticos", slug: "appliances",    icon: "🧊" },
-  { name: "Ropa y Calzado",    slug: "clothing",      icon: "👗" },
-  { name: "Hogar y Muebles", slug: "home-garden", icon: "🛋️" },
-  { name: "Deportes",          slug: "sports",        icon: "⚽" },
-  { name: "Herramientas",      slug: "tools",         icon: "🔧" },
-  { name: "Bebés y Niños",     slug: "babies",        icon: "👶" },
-  { name: "Música, Libros y Revistas", slug: "books",         icon: "📚" },
-  { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄" },
-  { name: "Juegos y Juguetes", slug: "toys",          icon: "🧸" },
-  { name: "Mascotas",          slug: "pets",          icon: "🐾" },
-  { name: "Servicios",         slug: "services",      icon: "🛠️" },
-  { name: "Otros",             slug: "other",         icon: "📦" },
+  { name: "Vehículos",                 slug: "vehicles",      icon: "🚗",  active: true  },
+  { name: "Inmuebles",                 slug: "real-estate",   icon: "🏠",  active: true  },
+  { name: "Celulares",                 slug: "phones",        icon: "📱",  active: false },
+  { name: "Tecnología",                slug: "electronics",   icon: "💻",  active: false },
+  { name: "Electrodomésticos",         slug: "appliances",    icon: "🧊",  active: false },
+  { name: "Ropa y Calzado",            slug: "clothing",      icon: "👗",  active: false },
+  { name: "Hogar y Muebles",           slug: "home-garden",   icon: "🛋️", active: false },
+  { name: "Deportes",                  slug: "sports",        icon: "⚽",  active: false },
+  { name: "Herramientas",              slug: "tools",         icon: "🔧",  active: false },
+  { name: "Bebés y Niños",             slug: "babies",        icon: "👶",  active: false },
+  { name: "Música, Libros y Revistas", slug: "books",         icon: "📚",  active: false },
+  { name: "Belleza y Salud",           slug: "beauty-health", icon: "💄",  active: false },
+  { name: "Juegos y Juguetes",         slug: "toys",          icon: "🧸",  active: false },
+  { name: "Mascotas",                  slug: "pets",          icon: "🐾",  active: false },
+  { name: "Servicios",                 slug: "services",      icon: "🛠️", active: false },
+  { name: "Otros",                     slug: "other",         icon: "📦",  active: false },
 ];
 
 
@@ -156,63 +157,46 @@ export default async function ListingsPage({
   return (
     <ListingsViewProvider>
     <div className="listings-page-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px", boxSizing: "border-box", width: "100%" }}>
+
+      {/* ── Hero banner ── */}
+      <div style={{
+        borderRadius: "16px",
+        backgroundColor: "#0f1b2d",
+        backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80')",
+        backgroundSize: "cover",
+        backgroundPosition: "center 60%",
+        position: "relative",
+        overflow: "hidden",
+        height: "140px",
+        display: "flex",
+        alignItems: "center",
+        marginBottom: "16px",
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(160deg, rgba(10,20,60,0.60) 0%, rgba(10,30,80,0.75) 100%)",
+        }} />
+        <div style={{ position: "relative", zIndex: 1, padding: "0 32px" }}>
+          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
+            {category ? `${CATEGORIES.find(c => c.slug === category)?.icon ?? ""} ${CATEGORIES.find(c => c.slug === category)?.name ?? category}` : "Todos los avisos"}
+          </h1>
+          <p style={{ margin: "6px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.65)" }}>
+            {listings.length} publicaciones disponibles en ComerxIA
+          </p>
+        </div>
+      </div>
+
     <div className="listing-layout">
 
       {/* ── Sidebar ── */}
       <aside className="listing-sidebar">
-
-        {/* Categories */}
-        <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-          <div style={{
-            padding: "12px 16px", borderBottom: "1px solid #f0f0f0",
-            fontSize: "13px", fontWeight: 700, color: "#333",
-          }}>
-            Categorías
-          </div>
-          <div>
-            <Link href={buildUrl({ category: undefined })} style={{ textDecoration: "none" }}>
-              <div style={{
-                padding: "9px 16px", fontSize: "13px", cursor: "pointer",
-                background: !category ? "#eff6ff" : "transparent",
-                color: !category ? "#2563eb" : "#444",
-                fontWeight: !category ? 700 : 400,
-                borderLeft: !category ? "3px solid #2563eb" : "3px solid transparent",
-              }}>
-                Todas las categorías
-              </div>
-            </Link>
-            {CATEGORIES.map((cat) => {
-              const id = slugToId[cat.slug];
-              const count = id ? (catCounts[id] ?? 0) : 0;
-              const active = category === cat.slug;
-              return (
-                <Link key={cat.slug} href={buildUrl({ category: cat.slug })} style={{ textDecoration: "none" }}>
-                  <div style={{
-                    padding: "9px 16px", fontSize: "13px", cursor: "pointer",
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    background: active ? "#eff6ff" : "transparent",
-                    color: active ? "#2563eb" : "#444",
-                    fontWeight: active ? 700 : 400,
-                    borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
-                  }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <CategoryIcon slug={cat.slug} size={18} />
-                      {cat.name}
-                    </span>
-                    {count > 0 && (
-                      <span style={{
-                        background: active ? "#dbeafe" : "#f1f5f9",
-                        color: active ? "#2563eb" : "#888",
-                        fontSize: "11px", fontWeight: 600,
-                        padding: "1px 6px", borderRadius: "20px",
-                      }}>{count}</span>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        <CategorySidebar
+          hideUpsell
+          categories={CATEGORIES.map(cat => ({
+            ...cat,
+            count: catCounts[slugToId[cat.slug] ?? -1] ?? 0,
+          }))}
+        />
 
         {/* Filters panel */}
         <FilterPanel
@@ -223,38 +207,29 @@ export default async function ListingsPage({
           totalCount={filteredData?.length ?? 0}
         />
 
-        {/* Publicar con IA */}
+        {/* Upsell card — below filters */}
         <div style={{
-          background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-          borderRadius: "12px", padding: "16px", marginTop: "4px",
-          display: "flex", flexDirection: "column", alignItems: "center",
-          gap: "10px", position: "relative", overflow: "hidden", width: "100%",
+          background: "linear-gradient(135deg, #fffbeb, #fef3c7)",
+          border: "1px solid #fde68a",
+          borderRadius: "14px",
+          padding: "16px",
         }}>
-          <div style={{ position: "absolute", width: "80px", height: "80px", background: "rgba(249,115,22,0.2)", borderRadius: "50%", top: "-20px", right: "-16px", filter: "blur(28px)" }} />
-          <div style={{ fontSize: "30px", lineHeight: 1 }}>📸</div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "14px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>Publicá con IA</div>
-            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
-              Sacá una foto y generamos<br />el aviso automáticamente
-            </div>
+          <div style={{ fontWeight: 800, fontSize: "13px", color: "#92400e", marginBottom: "4px" }}>
+            ⭐ Destacá tu aviso
           </div>
-          <Link href="/listings/new" style={{ width: "100%" }}>
-            <button style={{
-              width: "100%", background: "linear-gradient(135deg,#f97316,#fb923c)",
-              color: "#fff", border: "none", borderRadius: "8px",
-              padding: "10px 0", fontWeight: 800, fontSize: "13px",
-              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+          <div style={{ fontSize: "11px", color: "#b45309", lineHeight: 1.5, marginBottom: "10px" }}>
+            Aparecé primero y recibí 5× más consultas que un aviso normal.
+          </div>
+          <a href="/upgrade" style={{ textDecoration: "none" }}>
+            <div style={{
+              background: "linear-gradient(135deg, #f59e0b, #fbbf24)",
+              color: "#fff", borderRadius: "7px", padding: "8px 0",
+              fontWeight: 800, fontSize: "12px", textAlign: "center", cursor: "pointer",
             }}>
-              📸 Subir foto
-            </button>
-          </Link>
-          <div style={{ display: "flex", gap: "10px" }}>
-            {["✓ Gratis", "✓ 30 seg."].map(t => (
-              <span key={t} style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{t}</span>
-            ))}
-          </div>
+              Ver planes
+            </div>
+          </a>
         </div>
-
       </aside>
 
       {/* ── Main content ── */}

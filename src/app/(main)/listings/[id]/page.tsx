@@ -345,7 +345,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     name: listing.title,
     description: listing.description ?? listing.title,
     image: images.map((i) => i.url),
-    url: `https://comercia.com.ar/listings/${listing.id}`,
+    url: `https://comerxia.com.ar/listings/${listing.id}`,
     ...(listing.price ? {
       offers: {
         "@type": "Offer",

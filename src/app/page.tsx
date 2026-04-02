@@ -272,10 +272,10 @@ export default async function HomePage() {
           {/* Headline */}
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <h2 style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", margin: "0 0 6px" }}>
-              Vendé más fácil. Comprá con confianza.
+              Vendé con inteligencia. Comprá sin vueltas.
             </h2>
             <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-              Inteligencia artificial + comunidad local para comprar y vender más rápido.
+              El primer marketplace argentino donde la IA redacta tus avisos por vos.
             </p>
           </div>
 
@@ -307,26 +307,52 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Card 2 — Local */}
+            {/* Card 2 — Argentina */}
             <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
-              <div style={{ background: "linear-gradient(135deg,#eff6ff,#ecfeff)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
-                  <rect x="0" y="0" width="80" height="60" rx="4" fill="#e0f2fe" />
-                  <rect x="0" y="26" width="80" height="8" fill="#bae6fd" opacity="0.7"/>
-                  <rect x="34" y="0" width="8" height="60" fill="#bae6fd" opacity="0.7"/>
-                  <rect x="6" y="6" width="22" height="16" rx="2" fill="#fff" opacity="0.8"/>
-                  <rect x="50" y="6" width="24" height="16" rx="2" fill="#fff" opacity="0.8"/>
-                  <rect x="6" y="38" width="22" height="16" rx="2" fill="#fff" opacity="0.8"/>
-                  <rect x="50" y="38" width="24" height="16" rx="2" fill="#fff" opacity="0.8"/>
-                  <ellipse cx="38" cy="24" rx="6" ry="3" fill="rgba(37,99,235,0.2)"/>
-                  <path d="M38 8 C34 8 31 11 31 15 C31 20 38 26 38 26 C38 26 45 20 45 15 C45 11 42 8 38 8 Z" fill="#2563eb"/>
-                  <circle cx="38" cy="15" r="3" fill="#fff"/>
-                  <circle cx="38" cy="24" r="14" stroke="#3b82f6" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.4"/>
+              <div style={{ background: "linear-gradient(135deg,#eff6ff,#ecfeff)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: "92px" }}>
+                <svg width="70" height="84" viewBox="0 0 70 84" fill="none">
+                  {/* Sombra del pin */}
+                  <ellipse cx="35" cy="81" rx="10" ry="3" fill="rgba(0,0,0,0.15)"/>
+                  {/* Cuerpo del pin */}
+                  <path d="M 35,78 C 35,78 8,50 8,30 C 8,15 20,4 35,4 C 50,4 62,15 62,30 C 62,50 35,78 35,78 Z" fill="#1e293b"/>
+                  {/* Círculo interno blanco (borde) */}
+                  <circle cx="35" cy="30" r="22" fill="white"/>
+                  {/* Bandera Argentina — franja celeste superior */}
+                  <clipPath id="flagClip">
+                    <circle cx="35" cy="30" r="20"/>
+                  </clipPath>
+                  <g clipPath="url(#flagClip)">
+                    <rect x="15" y="10" width="40" height="40" fill="#74b9e0"/>
+                    {/* Franja blanca del medio */}
+                    <rect x="15" y="23" width="40" height="14" fill="#ffffff"/>
+                    {/* Sol de Mayo */}
+                    <circle cx="35" cy="30" r="4.5" fill="#F6B40E"/>
+                    {/* Rayos del sol — alternando rectos y ondulados */}
+                    {Array.from({ length: 16 }).map((_, i) => {
+                      const angle = (i * 360) / 16
+                      const rad = (angle * Math.PI) / 180
+                      const isWavy = i % 2 === 1
+                      const r1 = 5.5, r2 = isWavy ? 8.5 : 9.5
+                      const x1 = 35 + r1 * Math.cos(rad)
+                      const y1 = 30 + r1 * Math.sin(rad)
+                      const x2 = 35 + r2 * Math.cos(rad)
+                      const y2 = 30 + r2 * Math.sin(rad)
+                      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#F6B40E" strokeWidth={isWavy ? "1" : "1.5"} strokeLinecap="round"/>
+                    })}
+                    {/* Cara del sol */}
+                    <circle cx="35" cy="30" r="3.8" fill="#F6B40E"/>
+                    <circle cx="33.8" cy="29.2" r="0.5" fill="#c8860a"/>
+                    <circle cx="36.2" cy="29.2" r="0.5" fill="#c8860a"/>
+                    <path d="M 33.8,31 Q 35,32.2 36.2,31" stroke="#c8860a" strokeWidth="0.5" fill="none" strokeLinecap="round"/>
+                  </g>
+                  {/* Brillo del círculo */}
+                  <circle cx="35" cy="30" r="20" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
+                  <ellipse cx="29" cy="20" rx="6" ry="4" fill="rgba(255,255,255,0.18)" transform="rotate(-20 29 20)"/>
                 </svg>
               </div>
               <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Comprá cerca tuyo</span>
-                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Vendedores locales, entrega en mano, sin intermediarios.</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Encontrá lo que buscás, estés donde estés.</span>
+                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Conectamos vendedores y compradores de toda la Argentina de forma directa.</span>
               </div>
             </div>
 
@@ -347,8 +373,8 @@ export default async function HomePage() {
                 ))}
               </div>
               <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Sin publicidad</span>
-                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Sin anuncios que distraen. Solo avisos reales de personas.</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Sin publicidad invasiva</span>
+                <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Experiencia limpia. Sin ruidos, sin anuncios, sin distracciones.</span>
               </div>
             </div>
 

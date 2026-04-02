@@ -14,9 +14,10 @@ interface Category {
 
 interface CategorySidebarProps {
   categories: Category[];
+  hideUpsell?: boolean;
 }
 
-export function CategorySidebar({ categories }: CategorySidebarProps) {
+export function CategorySidebar({ categories, hideUpsell = false }: CategorySidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeSlug = searchParams.get("category") ?? "";
@@ -172,7 +173,7 @@ export function CategorySidebar({ categories }: CategorySidebarProps) {
       </div>
 
       {/* Featured upsell */}
-      <div
+      {!hideUpsell && <div
         style={{
           background: "linear-gradient(135deg, #fffbeb, #fef3c7)",
           border: "1px solid #fde68a",
@@ -216,7 +217,7 @@ export function CategorySidebar({ categories }: CategorySidebarProps) {
             Ver planes
           </div>
         </Link>
-      </div>
+      </div>}
     </div>
   );
 }
