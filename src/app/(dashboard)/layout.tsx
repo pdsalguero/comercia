@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { VerifyIdentityModal } from '@/components/auth/VerifyIdentityModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const [{ data: profile }, { count: unreadCount }, { count: listingsCount }, { count: favoritesCount }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('username, full_name, avatar_url, is_pro')
+      .select('username, full_name, avatar_url, is_pro, identity_verified')
       .eq('id', user.id)
       .single(),
     supabase
@@ -209,6 +210,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </div>
       <Footer />
+      <VerifyIdentityModal isVerified={!!profile?.identity_verified} />
     </div>
   )
 }

@@ -59,8 +59,9 @@ export default function ContactPage() {
             ¡Mensaje enviado con éxito!
           </h2>
           <p style={{ fontSize: "15px", color: "#64748b", lineHeight: 1.6, margin: "0 0 28px" }}>
-            Nos contactaremos con vos a la brevedad a través de{" "}
-            <strong style={{ color: "#0f172a" }}>{form.email}</strong>.
+            Te responderemos a la brevedad a{" "}
+            <strong style={{ color: "#0f172a" }}>{form.email}</strong>{" "}
+            desde <strong style={{ color: "#0f172a" }}>contacto@comerxia.com.ar</strong>.
           </p>
           <button
             onClick={() => { setForm({ name: "", email: "", phone: "", subject: SUBJECTS[0], message: "" }); setStatus("idle"); }}

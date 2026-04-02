@@ -8,11 +8,6 @@ const STORE_TYPES = [
   { value: "particular",   label: "Vendedor particular" },
   { value: "inmobiliaria", label: "Inmobiliaria" },
   { value: "automotora",   label: "Automotora / Concesionaria" },
-  { value: "tienda",       label: "Tienda general" },
-  { value: "electronica",  label: "Tienda de tecnología" },
-  { value: "ropa",         label: "Tienda de ropa" },
-  { value: "agencia",      label: "Agencia" },
-  { value: "servicios",    label: "Empresa de servicios" },
 ];
 
 function slugify(text: string) {

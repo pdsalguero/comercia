@@ -2,26 +2,30 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 type Tab = 'perfil' | 'verificacion' | 'cuenta'
 type VerifyStep = 'idle' | 'choose' | 'phone-input' | 'code'
 
 export default function SettingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
-  const [tab, setTab] = useState<Tab>('perfil')
+  const initialTab: Tab = searchParams.get('tab') === 'identity' ? 'verificacion' : 'perfil'
+  const [tab, setTab] = useState<Tab>(initialTab)
 
   // Profile
-  const [loading, setLoading]     = useState(false)
-  const [saved, setSaved]         = useState(false)
-  const [fullName, setFullName]   = useState('')
-  const [phone, setPhone]         = useState('')
-  const [showPhone, setShowPhone] = useState(true)
-  const [location, setLocation]   = useState('')
-  const [bio, setBio]             = useState('')
-  const [email, setEmail]         = useState('')
+  const [loading, setLoading]         = useState(false)
+  const [saved, setSaved]             = useState(false)
+  const [fullName, setFullName]       = useState('')
+  const [phone, setPhone]             = useState('')
+  const [showPhone, setShowPhone]     = useState(true)
+  const [location, setLocation]       = useState('')
+  const [bio, setBio]                 = useState('')
+  const [email, setEmail]             = useState('')
+  const [avatarUrl, setAvatarUrl]     = useState<string | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   // Identity verification
   const [identityVerified, setIdentityVerified]   = useState(false)
@@ -40,7 +44,7 @@ export default function SettingsPage() {
       setEmail(user.email ?? '')
       const { data } = await supabase
         .from('profiles')
-        .select('full_name, phone, location, bio, show_phone, identity_verified, identity_verified_method')
+        .select('full_name, phone, location, bio, show_phone, identity_verified, identity_verified_method, avatar_url')
         .eq('id', user.id)
         .single()
       if (data) {
@@ -48,6 +52,7 @@ export default function SettingsPage() {
         setPhone(data.phone ?? '')
         setLocation(data.location ?? '')
         setBio(data.bio ?? '')
+        setAvatarUrl((data as any).avatar_url ?? null)
         if (data.show_phone !== undefined) setShowPhone(data.show_phone !== false)
         setIdentityVerified(data.identity_verified ?? false)
         setIdentityMethod(data.identity_verified_method ?? null)
@@ -57,16 +62,37 @@ export default function SettingsPage() {
     load()
   }, [])
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarUploading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setAvatarUploading(false); return }
+    const ext = file.name.split('.').pop()
+    const path = `avatars/${user.id}.${ext}`
+    const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+    if (upErr) { alert(`Error al subir imagen: ${upErr.message}`); setAvatarUploading(false); return }
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+    const { error: dbErr } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
+    if (dbErr) { alert(`Error al guardar avatar: ${dbErr.message}`); setAvatarUploading(false); return }
+    setAvatarUrl(publicUrl)
+    setAvatarUploading(false)
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').update({
       full_name: fullName, phone, location, bio, show_phone: showPhone,
       updated_at: new Date().toISOString(),
     }).eq('id', user.id)
     setLoading(false)
+    if (error) {
+      alert(`Error al guardar: ${error.message}`)
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -170,6 +196,41 @@ export default function SettingsPage() {
               Cambios guardados correctamente
             </div>
           )}
+
+          {/* Avatar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{
+                width: '72px', height: '72px', borderRadius: '50%',
+                background: avatarUrl ? 'transparent' : '#3483fa',
+                overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '3px solid #e2e8f0',
+              }}>
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>{fullName?.[0]?.toUpperCase() ?? '?'}</span>
+                }
+              </div>
+              <label style={{
+                position: 'absolute', bottom: 0, right: 0,
+                width: '24px', height: '24px', borderRadius: '50%',
+                background: '#2563eb', border: '2px solid #fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+              </label>
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>Foto de perfil</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                {avatarUploading ? 'Subiendo...' : 'JPG, PNG o WEBP · Máx 2MB'}
+              </div>
+            </div>
+          </div>
 
           {/* Row 1: Email + Full name */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -340,13 +401,13 @@ export default function SettingsPage() {
                   : <>✅ Código enviado por SMS al número indicado.</>}
               </div>
               <div>
-                <label style={{ ...labelStyle, display: 'block', marginBottom: '8px' }}>Código de 6 dígitos</label>
+                <label style={{ ...labelStyle, display: 'block', marginBottom: '8px' }}>Ingresá el código que recibiste por email</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input type="text" value={otpCode}
-                    onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="123456" maxLength={6}
+                    onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="12345678" maxLength={8}
                     style={{ ...inputStyle, flex: 1, fontSize: '22px', letterSpacing: '0.4em', textAlign: 'center', fontWeight: 700 }} />
-                  <button onClick={handleConfirmOtp} disabled={verifyLoading || otpCode.length < 6}
+                  <button onClick={handleConfirmOtp} disabled={verifyLoading || otpCode.length < 5}
                     style={{ background: otpCode.length < 6 ? '#93c5fd' : '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '14px', cursor: otpCode.length < 6 ? 'not-allowed' : 'pointer', flexShrink: 0 }}>
                     {verifyLoading ? 'Verificando...' : 'Confirmar'}
                   </button>

@@ -143,7 +143,7 @@ async function getListing(id: string) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone")
+    .select("full_name, username, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone, identity_verified")
     .eq("id", data.user_id)
     .single();
 
@@ -218,7 +218,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   const attrs = (listing.attributes as Record<string, any>) ?? {};
   const currency = (listing as any).currency ?? "ARS";
-  const profile = (listing as any).profile as { full_name: string | null; avatar_url: string | null; created_at: string | null; is_store?: boolean; store_name?: string | null; store_slug?: string | null; store_type?: string | null; store_logo_url?: string | null; store_verified?: boolean } | null;
+  const profile = (listing as any).profile as { full_name: string | null; username: string | null; avatar_url: string | null; created_at: string | null; is_store?: boolean; store_name?: string | null; store_slug?: string | null; store_type?: string | null; store_logo_url?: string | null; store_verified?: boolean; identity_verified?: boolean } | null;
   const userId = (listing as any).user_id as string;
   const reviewCount = (listing as any).reviewCount as number;
   const avgRating = (listing as any).avgRating as number;
@@ -335,8 +335,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     ? `https://wa.me/${whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, vi tu publicación "${listing.title}" en ComerxIA y me interesa`)}`
     : null;
 
-  const sellerName = profile?.full_name ?? "Usuario";
-  const sellerInitial = sellerName[0]?.toUpperCase() ?? "?";
+  const sellerName = profile?.full_name || (profile?.username ? `@${profile.username}` : "Usuario");
+  const sellerInitial = (profile?.full_name?.[0] ?? profile?.username?.[0] ?? "?").toUpperCase();
 
   // Feature badges for bottom of right card
   const featureBadges = [
@@ -715,6 +715,32 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                           : "Tienda")
                         : `Vendedor particular${profile?.created_at ? ` · desde ${memberSince(profile.created_at)}` : ""}`}
                     </div>
+                    {(profile?.identity_verified || profile?.store_verified) && (
+                      <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", marginTop: "4px" }}>
+                        {profile.identity_verified && (
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: "3px",
+                            fontSize: "10px", fontWeight: 700,
+                            color: "#1d4ed8", background: "#dbeafe",
+                            borderRadius: "20px", padding: "2px 7px",
+                          }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Identidad verificada
+                          </span>
+                        )}
+                        {profile.store_verified && (
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: "3px",
+                            fontSize: "10px", fontWeight: 700,
+                            color: "#15803d", background: "#dcfce7",
+                            borderRadius: "20px", padding: "2px 7px",
+                          }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Tienda verificada
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {reviewCount > 0 && <div style={{ marginTop: "2px" }}><StarRating rating={avgRating} count={reviewCount} size={11} /></div>}
                   </div>
                   <Link

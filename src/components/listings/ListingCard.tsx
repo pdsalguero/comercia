@@ -70,10 +70,12 @@ export function ListingCard({
   const year = attributes?.year;
   const km = attributes?.mileage ?? attributes?.km;
   const hasVehicleMeta = year || km;
+  const isVehicle = !!attributes?.sub_category;
 
   // Generic meta: brand · model | storage / capacity / volume
-  const brand = !hasVehicleMeta && attributes?.brand ? String(attributes.brand) : null;
-  const model = !hasVehicleMeta && attributes?.model ? String(attributes.model) : null;
+  // For vehicles, brand/model is already in the title — don't duplicate
+  const brand = !hasVehicleMeta && !isVehicle && attributes?.brand ? String(attributes.brand) : null;
+  const model = !hasVehicleMeta && !isVehicle && attributes?.model ? String(attributes.model) : null;
   const subSpec = !hasVehicleMeta
     ? (attributes?.storage ?? attributes?.capacity ?? attributes?.volume ?? attributes?.size ?? null)
     : null;
