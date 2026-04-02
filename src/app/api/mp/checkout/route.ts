@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       throw mpErr;
     }
 
-    const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith("TEST-");
+    const isSandbox = process.env.MP_SANDBOX === "true";
     const checkoutUrl = isSandbox ? pref.sandbox_init_point : pref.init_point;
 
     if (!checkoutUrl) {
