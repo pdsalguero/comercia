@@ -23,9 +23,8 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
       {/* MercadoLibre-style: vertical thumbs on left + main image on right */}
       <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
 
-        {/* Vertical thumbnail strip */}
-        {images.length > 1 && (
-          <div className="gallery-thumbs" style={{
+        {/* Vertical thumbnail strip — siempre visible */}
+        <div className="gallery-thumbs" style={{
             display: "flex", flexDirection: "column", gap: "6px",
             width: "68px", flexShrink: 0,
             maxHeight: "420px", overflowY: "auto",
@@ -43,26 +42,39 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                   transition: "border-color 0.15s",
                 }}
               >
-                <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>
-        )}
 
         {/* Main image */}
         <div
           className="gallery-main"
           style={{
-            width: "100%", minWidth: 0, height: "420px", background: "#f8f9fa",
+            width: "100%", minWidth: 0, height: "420px",
             borderRadius: "8px", position: "relative",
             cursor: "zoom-in", overflow: "hidden",
           }}
           onClick={() => { setZoomed(false); setLightbox(true); }}
         >
+          {/* Fondo borroso con la misma imagen */}
+          <img
+            src={images[active].url}
+            aria-hidden
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", filter: "blur(18px) brightness(0.7)",
+              transform: "scale(1.08)",
+            }}
+          />
+          {/* Imagen principal centrada encima */}
           <img
             src={images[active].url}
             alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+            style={{
+              position: "relative", width: "100%", height: "100%",
+              objectFit: "contain", display: "block",
+            }}
           />
 
           {/* Prev arrow */}
