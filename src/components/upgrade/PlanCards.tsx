@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 const TIERS = [
   {
     key: "bronze",
-    name: "Estándar",
-    badge: "⭐ ESTÁNDAR",
+    name: "Esencial",
+    badge: "⭐ ESENCIAL",
     color: "#f97316",
     colorLight: "#fff7ed",
     colorBorder: "#fed7aa",
@@ -16,11 +16,11 @@ const TIERS = [
     description: "Dale más visibilidad a tu publicación dentro de su categoría.",
     features: [
       "Aparece antes que los anuncios gratuitos",
-      "Badge ⭐ Estándar",
+      "Badge ⭐ Esencial",
       "Borde naranja destacado",
     ],
     prices: { 7: 699, 15: 1299, 30: 2499 },
-    cta: "Activar Estándar",
+    cta: "Activar Esencial",
   },
   {
     key: "silver",
@@ -34,7 +34,7 @@ const TIERS = [
     description: "Mayor exposición en toda la categoría con diseño diferenciado.",
     popular: true,
     features: [
-      "Todo lo de Estándar",
+      "Todo lo de Esencial",
       "Badge 🚀 Destacado",
       "Posición preferencial",
     ],

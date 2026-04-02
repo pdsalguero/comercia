@@ -62,6 +62,7 @@ export function ListingListCard({
   return (
     <a href={`/listings/${id}`} style={{ textDecoration: "none", display: "block" }}>
       <div
+        className="listing-list-card"
         style={{
           display: "flex",
           alignItems: "center",
@@ -75,7 +76,7 @@ export function ListingListCard({
         onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
       >
         {/* Image */}
-        <div style={{
+        <div className="llc-img" style={{
           width: "140px",
           height: "110px",
           borderRadius: "8px",
@@ -144,7 +145,7 @@ export function ListingListCard({
           </div>
 
           {/* Meta: date + views */}
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "5px" }}>
+          <div className="llc-meta" style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "5px" }}>
             {created_at && (
               <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
                 📅 {timeAgo(created_at)}
@@ -159,7 +160,7 @@ export function ListingListCard({
         </div>
 
         {/* Price */}
-        <div style={{ flexShrink: 0, textAlign: "right" }}>
+        <div className="llc-price" style={{ flexShrink: 0, textAlign: "right" }}>
           {priceStr
             ? <span style={{ fontSize: "16px", fontWeight: 800, color: "#f97316" }}>{priceStr}</span>
             : <span style={{ fontSize: "14px", fontWeight: 600, color: "#6366f1" }}>A consultar</span>

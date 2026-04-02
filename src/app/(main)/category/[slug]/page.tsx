@@ -3001,8 +3001,9 @@ export default async function CategoryPage({
                 style={{ flex: 1, minWidth: 0 }}
               />
 
-              {/* Province selector — vehicles: shown in search bar */}
+              {/* Province selector — vehicles: shown in search bar (hidden on mobile, moved to filter drawer) */}
               {isVehicles && (
+                <div className="province-nav-desktop">
                 <ProvinceSelectNav
                   options={Object.entries(RE_LOCATIONS).map(([k, p]) => ({ value: k, label: p.label }))}
                   value={sp.v_province}
@@ -3017,7 +3018,32 @@ export default async function CategoryPage({
                     return base.toString();
                   })()}
                 />
+                </div>
               )}
+
+              {/* FilterPanel — mobile button */}
+              <FilterPanel
+                mode="mobile"
+                category={slug}
+                categoryId={cat.id}
+                currentFilters={{
+                  q: sp.q, order: sp.order,
+                  price_min: sp.price_min, price_max: sp.price_max,
+                  condition: sp.condition,
+                  sub_category: sp.sub_category || sp.type,
+                  moto_subtipo: sp.moto_subtipo,
+                  brand: sp.brand,
+                  fuel: sp.fuel, transmission: sp.transmission,
+                  year_from: sp.year_from, year_to: sp.year_to, km_max: sp.km_max,
+                  v_province: sp.v_province,
+                  re_sub: sp.re_sub || sp.re_type,
+                  operation: sp.operation || sp.re_operation,
+                  bedrooms: sp.bedrooms || sp.re_bedrooms,
+                  size: sp.size,
+                }}
+                totalCount={listings?.length ?? 0}
+                basePath={`/category/${slug}`}
+              />
 
               <OrderSelect
                 value={sp.order ?? ""}
@@ -3052,29 +3078,6 @@ export default async function CategoryPage({
                   </div>
                 </Link>
               </div>
-
-              {/* FilterPanel — mobile button */}
-              <FilterPanel
-                mode="mobile"
-                category={slug}
-                categoryId={cat.id}
-                hideCategoryFilters={isVehicles || isRealEstate}
-                currentFilters={{
-                  q: sp.q, order: sp.order,
-                  price_min: sp.price_min, price_max: sp.price_max,
-                  condition: sp.condition,
-                  sub_category: sp.sub_category || sp.type,
-                  brand: sp.brand,
-                  fuel: sp.fuel, transmission: sp.transmission,
-                  year_from: sp.year_from, year_to: sp.year_to, km_max: sp.km_max,
-                  re_sub: sp.re_sub || sp.re_type,
-                  operation: sp.operation || sp.re_operation,
-                  bedrooms: sp.bedrooms || sp.re_bedrooms,
-                  size: sp.size,
-                }}
-                totalCount={listings?.length ?? 0}
-                basePath={`/category/${slug}`}
-              />
             </div>
           </div>
 

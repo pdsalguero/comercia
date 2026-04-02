@@ -474,14 +474,15 @@ function FocusSel({
   );
 }
 
+const ENABLED_CAT_IDS = new Set([2, 3]); // Vehículos, Inmuebles
 const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 25, 9, 26, 10];
-const SORTED_CATS = [...CATEGORY_CONFIGS].sort(
-  (a, b) => {
+const SORTED_CATS = [...CATEGORY_CONFIGS]
+  .filter(c => ENABLED_CAT_IDS.has(c.id))
+  .sort((a, b) => {
     const ai = CAT_ORDER.indexOf(a.id);
     const bi = CAT_ORDER.indexOf(b.id);
     return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-  }
-);
+  });
 const SLUG_BY_ID: Record<number, string> = {
   1: "electronics", 2: "vehicles", 3: "real-estate",
   4: "clothing", 5: "home-garden", 6: "sports",
@@ -852,9 +853,11 @@ function resizeImage(file: File, maxDim: number, quality: number): Promise<File>
 export default function NewListingPage() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("form");
   const [analyzing, setAnalyzing] = useState(false);
+  const [unsupportedCategoryName, setUnsupportedCategoryName] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -1103,6 +1106,12 @@ export default function NewListingPage() {
       if (data.title) setTitle(data.title);
       if (data.description) setDescription(data.description);
       if (data.category_id) {
+        if (!ENABLED_CAT_IDS.has(data.category_id)) {
+          const catName = CATEGORY_CONFIGS.find(c => c.id === data.category_id)?.name ?? "esta categoría";
+          setUnsupportedCategoryName(catName);
+          setAnalyzing(false);
+          return;
+        }
         setCategoryId(data.category_id);
         fetchPrice(data.category_id);
       }
@@ -1390,7 +1399,7 @@ export default function NewListingPage() {
   //  which would unmount/remount inputs and lose focus)
   // ═══════════════════════════════════════════════════════════
   return (
-    <div style={{ fontFamily: "'Geist', 'DM Sans', -apple-system, sans-serif", marginTop: "-1rem" }}>
+    <div style={{ fontFamily: "'Geist', 'DM Sans', -apple-system, sans-serif", marginTop: "-1rem", overflowX: "hidden" }}>
 
       {/* ════ VALIDATION MODAL ════ */}
       {validationErrors && (
@@ -1538,10 +1547,14 @@ export default function NewListingPage() {
       <style>{`
         @keyframes floatIn { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
         .mobile-publish-bar { display: none; }
+        .camera-btn { display: none; }
         @media (max-width: 768px) {
           .mobile-publish-bar { display: flex; }
-          .new-listing-grid { grid-template-columns: 1fr !important; }
+          .camera-btn { display: inline-block; }
+          .new-listing-grid { grid-template-columns: 1fr !important; padding: 12px 12px 72px !important; max-width: 100% !important; overflow-x: hidden !important; }
+          .new-listing-grid > div { min-width: 0 !important; max-width: 100% !important; }
           .new-listing-sidebar { display: none !important; }
+          footer { display: none !important; }
         }
       `}</style>
       {/* ════ MOBILE STICKY PUBLISH BAR ════ */}
@@ -1585,6 +1598,7 @@ export default function NewListingPage() {
       {/* ════ FORM ════ */}
       {step === "form" && (
         <div
+          className="new-listing-grid"
           style={{
             maxWidth: "920px",
             margin: "0 auto",
@@ -1596,7 +1610,7 @@ export default function NewListingPage() {
           }}
         >
           {/* ── LEFT COLUMN ── */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             {/* ░░ 01 PHOTOS ░░ */}
             <div style={T.card}>
               <div style={T.cardHead}>
@@ -1619,8 +1633,50 @@ export default function NewListingPage() {
                 />
               </div>
               <div style={T.cardBody}>
+                {/* ── Unsupported category ── */}
+                {unsupportedCategoryName && (
+                  <div style={{ textAlign: "center", padding: "32px 20px" }}>
+                    {/* Icon */}
+                    <div style={{
+                      width: 56, height: 56, borderRadius: "16px",
+                      background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto 16px",
+                    }}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4M12 16h.01"/>
+                      </svg>
+                    </div>
+                    <div style={{ fontSize: "15px", fontWeight: 700, color: C.slate900, marginBottom: "8px" }}>
+                      Todavía no llegamos a esa categoría
+                    </div>
+                    <div style={{ fontSize: "13px", color: C.slate500, marginBottom: "24px", lineHeight: 1.6 }}>
+                      Nuestra IA identificó tu producto como <strong style={{ color: C.slate700 }}>{unsupportedCategoryName}</strong>.
+                      Por ahora ComerxIA funciona con <strong style={{ color: C.slate700 }}>Vehículos</strong> e <strong style={{ color: C.slate700 }}>Inmuebles</strong> —
+                      pero ya estamos trabajando para sumar más. ¡Gracias por la paciencia!
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUnsupportedCategoryName(null);
+                        setPhotos([]);
+                        setPreviews([]);
+                        setAiData(null);
+                      }}
+                      style={{
+                        background: C.blue, color: "#fff", border: "none",
+                        borderRadius: "8px", padding: "10px 22px",
+                        fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                      }}
+                    >
+                      Publicar con otra foto
+                    </button>
+                  </div>
+                )}
+
                 {/* ── Analyzing spinner ── */}
-                {analyzing && (
+                {!unsupportedCategoryName && analyzing && (
                   <div style={{ textAlign: "center", padding: "28px 16px" }}>
                     <div style={{
                       width: "40px", height: "40px", margin: "0 auto 12px",
@@ -1639,7 +1695,7 @@ export default function NewListingPage() {
                 )}
 
                 {/* ── Drop zone (no photos) ── */}
-                {!analyzing && photos.length === 0 && (
+                {!unsupportedCategoryName && !analyzing && photos.length === 0 && (
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}
@@ -1687,20 +1743,36 @@ export default function NewListingPage() {
                       Arrastrá o seleccioná desde tu dispositivo
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
-                      style={{
-                        background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                        color: "#fff", border: "none",
-                        borderRadius: "10px", padding: "11px 32px",
-                        fontSize: "13px", fontWeight: 700, cursor: "pointer",
-                        boxShadow: "0 4px 16px rgba(99,102,241,.5)",
-                        letterSpacing: "0.2px",
-                      }}
-                    >
-                      📂 Elegir fotos
-                    </button>
+                    <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" as const }}>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+                        style={{
+                          background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                          color: "#fff", border: "none",
+                          borderRadius: "10px", padding: "11px 28px",
+                          fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                          boxShadow: "0 4px 16px rgba(99,102,241,.5)",
+                          letterSpacing: "0.2px",
+                        }}
+                      >
+                        📂 Elegir fotos
+                      </button>
+                      <button
+                        type="button"
+                        className="camera-btn"
+                        onClick={(e) => { e.stopPropagation(); cameraRef.current?.click(); }}
+                        style={{
+                          background: "rgba(255,255,255,0.12)",
+                          color: "#fff", border: "1.5px solid rgba(255,255,255,0.25)",
+                          borderRadius: "10px", padding: "11px 28px",
+                          fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                          letterSpacing: "0.2px",
+                        }}
+                      >
+                        📷 Tomar foto
+                      </button>
+                    </div>
 
                     {/* Feature pills */}
                     <div style={{ display: "flex", gap: "6px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" as const }}>
@@ -1712,7 +1784,7 @@ export default function NewListingPage() {
                 )}
 
                 {/* ── Photo grid ── */}
-                {!analyzing && photos.length > 0 && (
+                {!unsupportedCategoryName && !analyzing && photos.length > 0 && (
                   <>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "10px" }}>
                       {previews.map((src, i) => (
@@ -1829,6 +1901,14 @@ export default function NewListingPage() {
                   type="file"
                   multiple
                   accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => addPhotos(Array.from(e.target.files ?? []))}
+                />
+                <input
+                  ref={cameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
                   style={{ display: "none" }}
                   onChange={(e) => addPhotos(Array.from(e.target.files ?? []))}
                 />

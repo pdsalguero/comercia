@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { RE_LOCATIONS } from "@/lib/re-locations";
+import { MOTO_SUBTIPOS } from "@/data/modelos-motos";
 
 export interface FilterValues {
   condition?: string;
@@ -22,7 +24,10 @@ export interface FilterValues {
   order?: string;
   location?: string;
   category?: string;
+  v_province?: string;
+  moto_subtipo?: string;
 }
+
 
 interface Props {
   category?: string;
@@ -82,7 +87,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     filters.condition, filters.brand, filters.fuel, filters.transmission,
     filters.year_from, filters.year_to, filters.km_max, filters.sub_category,
     filters.re_sub, filters.operation, filters.bedrooms,
-    filters.size, filters.price_min, filters.price_max,
+    filters.size, filters.price_min, filters.price_max, filters.moto_subtipo,
   ].filter(Boolean).length;
 
   function applyFilters(f: FilterValues) {
@@ -90,7 +95,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     const keys: (keyof FilterValues)[] = [
       "q", "category", "condition", "price_min", "price_max", "order", "location",
       "brand", "fuel", "transmission", "year_from", "year_to", "km_max", "sub_category",
-      "re_sub", "operation", "bedrooms", "size",
+      "re_sub", "operation", "bedrooms", "size", "v_province", "moto_subtipo",
     ];
     for (const k of keys) {
       const v = f[k];
@@ -190,7 +195,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
               <div style={sectionLabel}>Tipo de vehículo</div>
               <PillGroup
                 value={filters.sub_category as any}
-                onChange={v => setFilters(f => ({ ...f, sub_category: v }))}
+                onChange={v => setFilters(f => ({ ...f, sub_category: v, moto_subtipo: undefined }))}
                 options={[
                   { value: "" as any, label: "Todos" },
                   { value: "auto" as any, label: "Autos" },
@@ -201,6 +206,21 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                 ]}
               />
             </div>
+
+            {/* Tipo de moto — shown only when Motos selected */}
+            {filters.sub_category === "moto" && (
+              <div>
+                <div style={subLabel}>Tipo de moto</div>
+                <select
+                  value={filters.moto_subtipo ?? ""}
+                  onChange={e => setFilters(f => ({ ...f, moto_subtipo: e.target.value || undefined }))}
+                  style={selectStyle}
+                >
+                  <option value="">Todos los tipos</option>
+                  {MOTO_SUBTIPOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+            )}
 
             {/* Marca */}
             {availableBrands.length > 0 && (
@@ -267,6 +287,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                 ]}
               />
             </div>
+
           </div>
         )}
 

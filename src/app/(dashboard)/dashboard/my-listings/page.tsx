@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 import { DeleteButton } from './DeleteButton'
 import { ListingsGrid } from '@/components/dashboard/ListingCardActions'
+import { MyListingsSearch } from '@/components/dashboard/MyListingsSearch'
 import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
 
 async function toggleStatus(formData: FormData) {
@@ -66,9 +67,9 @@ const STATUS_BG: Record<string, string> = {
 export default async function MyListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; q?: string; status_filter?: string }>;
 }) {
-  const { view } = await searchParams;
+  const { view, q = '', status_filter = '' } = await searchParams;
   const isGrid = view === 'grid';
 
   const supabase = await createClient()
@@ -102,8 +103,16 @@ export default async function MyListingsPage({
     if (m.listing_id) msgCountMap[m.listing_id] = (msgCountMap[m.listing_id] ?? 0) + 1
   }
 
+  // Filter by search params
+  const filteredListings = (listings ?? []).filter(l => {
+    if (status_filter && l.status !== status_filter) return false
+    if (q && !l.title.toLowerCase().includes(q.toLowerCase())) return false
+    return true
+  })
+  const filteredTotal = filteredListings.length
+
   // Map to UserListing for the shared grid component
-  const userListings: UserListing[] = (listings ?? []).map(l => {
+  const userListings: UserListing[] = filteredListings.map(l => {
     const images = l.listing_images as { url: string; position: number }[] | null
     const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null
     return {
@@ -113,7 +122,7 @@ export default async function MyListingsPage({
       status: l.status,
       view_count: l.view_count ?? 0,
       created_at: l.created_at,
-      destacado_activo: ((l as any).destacado_activo ?? false) || !!l.featured_level,
+      destacado_activo: ((l as any).destacado_activo ?? false) || ['bronze', 'silver', 'gold'].includes(l.featured_level ?? ''),
       destacado_hasta: (l as any).destacado_hasta ?? (l as any).featured_until ?? null,
       destacado_tipo: (l as any).destacado_tipo ?? l.featured_level ?? null,
       cover_url: cover,
@@ -140,24 +149,25 @@ export default async function MyListingsPage({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', margin: 0 }}>Mis avisos</h1>
           <p style={{ fontSize: '13px', color: '#94a3b8', margin: '2px 0 0' }}>
             {active} activo{active !== 1 ? 's' : ''} · {total} en total
+            {(q || status_filter) && filteredTotal !== total && ` · ${filteredTotal} resultado${filteredTotal !== 1 ? 's' : ''}`}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Grid / List toggle */}
-          <div style={{ display: 'flex', border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-            <Link href="/my-listings" style={{ textDecoration: 'none' }}>
+          {/* Grid / List toggle — hidden on mobile */}
+          <div className="my-listings-view-toggle" style={{ display: 'flex', border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+            <Link href="/dashboard/my-listings" style={{ textDecoration: 'none' }}>
               <div title="Ver en lista" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: !isGrid ? '#6366f1' : '#fff', color: !isGrid ? '#fff' : '#94a3b8' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="3" y="5" width="18" height="2" rx="1"/><rect x="3" y="11" width="18" height="2" rx="1"/><rect x="3" y="17" width="18" height="2" rx="1"/>
                 </svg>
               </div>
             </Link>
-            <Link href="/my-listings?view=grid" style={{ textDecoration: 'none' }}>
+            <Link href="/dashboard/my-listings?view=grid" style={{ textDecoration: 'none' }}>
               <div title="Ver en grilla" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: isGrid ? '#6366f1' : '#fff', color: isGrid ? '#fff' : '#94a3b8' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -180,17 +190,31 @@ export default async function MyListingsPage({
         </div>
       </div>
 
-      {/* Grid view — mismo componente que el dashboard */}
-      {isGrid && (
+      {/* Search + filter */}
+      <MyListingsSearch q={q} statusFilter={status_filter} />
+
+      {/* Mobile: always list view */}
+      <div className="my-listings-mobile-grid" style={{ display: 'none' }}>
         <ListingsGrid
           listings={userListings}
           onToggleStatus={handleToggle}
           onDelete={handleDelete}
         />
+      </div>
+
+      {/* Grid view — mismo componente que el dashboard */}
+      {isGrid && (
+        <div className="my-listings-desktop-only">
+          <ListingsGrid
+            listings={userListings}
+            onToggleStatus={handleToggle}
+            onDelete={handleDelete}
+          />
+        </div>
       )}
 
       {/* Table */}
-      {!isGrid && <div style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+      {!isGrid && <div className="my-listings-desktop-only" style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
 
         {/* Column headers */}
         {total > 0 && (
@@ -213,27 +237,29 @@ export default async function MyListingsPage({
           </div>
         )}
 
-        {!listings || listings.length === 0 ? (
+        {filteredListings.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '56px 32px', color: '#94a3b8' }}>
-            <div style={{ fontSize: '52px', marginBottom: '14px' }}>📭</div>
+            <div style={{ fontSize: '52px', marginBottom: '14px' }}>{total === 0 ? '📭' : '🔍'}</div>
             <p style={{ fontSize: '15px', fontWeight: 600, color: '#64748b', margin: '0 0 6px' }}>
-              Todavía no publicaste ningún aviso
+              {total === 0 ? 'Todavía no publicaste ningún aviso' : 'No se encontraron resultados'}
             </p>
             <p style={{ fontSize: '13px', margin: '0 0 20px' }}>
-              Publicá tu primer aviso en segundos con ayuda de IA
+              {total === 0 ? 'Publicá tu primer aviso en segundos con ayuda de IA' : 'Probá con otro término o filtro'}
             </p>
-            <Link href="/listings/new">
-              <button style={{
-                background: '#3483fa', color: '#fff', border: 'none',
-                borderRadius: '8px', padding: '11px 24px',
-                fontWeight: 700, fontSize: '14px', cursor: 'pointer',
-              }}>
-                📸 Publicar con IA
-              </button>
-            </Link>
+            {total === 0 && (
+              <Link href="/listings/new">
+                <button style={{
+                  background: '#3483fa', color: '#fff', border: 'none',
+                  borderRadius: '8px', padding: '11px 24px',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                }}>
+                  📸 Publicar con IA
+                </button>
+              </Link>
+            )}
           </div>
         ) : (
-          listings.map((listing, i) => {
+          filteredListings.map((listing, i) => {
             const images = listing.listing_images as { url: string; position: number }[] | null
             const cover = images?.slice().sort((a, b) => a.position - b.position)[0]?.url ?? null
             const canToggle = listing.status === 'active' || listing.status === 'paused'
@@ -248,7 +274,7 @@ export default async function MyListingsPage({
                   alignItems: 'center',
                   gap: '0',
                   padding: '14px 20px',
-                  borderBottom: i < listings.length - 1 ? '1px solid #f1f5f9' : 'none',
+                  borderBottom: i < filteredListings.length - 1 ? '1px solid #f1f5f9' : 'none',
                   transition: 'background 0.1s',
                 }}
                 className="hover:bg-slate-50"
@@ -285,7 +311,7 @@ export default async function MyListingsPage({
                         background: listing.featured_level === 'gold' ? '#fef3c7' : listing.featured_level === 'silver' ? '#ede9fe' : '#fff7ed',
                         color: listing.featured_level === 'gold' ? '#92400e' : listing.featured_level === 'silver' ? '#5b21b6' : '#9a3412',
                       }}>
-                        {listing.featured_level === 'gold' ? '👑 Premium' : listing.featured_level === 'silver' ? '🚀 Destacado' : '⭐ Estándar'}
+                        {listing.featured_level === 'gold' ? '👑 Premium' : listing.featured_level === 'silver' ? '🚀 Destacado' : '⭐ Esencial'}
                       </span>
                     )}
                     <span style={{ fontSize: '11px', color: '#94a3b8' }}>

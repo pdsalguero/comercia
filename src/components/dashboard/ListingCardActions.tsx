@@ -7,39 +7,50 @@ import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
 
 // ─── Destacar Modal ────────────────────────────────────────────────────────────
 
+// Planes consistentes con /upgrade (PlanCards.tsx)
 const PLANS = [
   {
-    key: 'bronze_7',
-    label: 'Bronze',
-    days: 7,
-    price: 1500,
-    emoji: '🥉',
-    color: '#b45309',
-    bg: '#fef3c7',
-    perks: ['2x más visibilidad', 'Badge en el aviso'],
+    key: 'bronze_30',
+    label: 'Esencial',
+    badge: '⭐ ESTÁNDAR',
+    days: 30,
+    price: 2499,
+    color: '#f97316',
+    bg: '#fff7ed',
+    border: '#fed7aa',
+    perks: ['Aparece antes que gratuitos', 'Badge ⭐ Esencial'],
   },
   {
-    key: 'silver_15',
-    label: 'Silver',
-    days: 15,
-    price: 2800,
-    emoji: '🥈',
-    color: '#475569',
-    bg: '#f1f5f9',
-    perks: ['3x más visibilidad', 'Posición prioritaria', 'Badge destacado'],
+    key: 'silver_30',
+    label: 'Destacado',
+    badge: '🚀 DESTACADO',
+    days: 30,
+    price: 4199,
+    color: '#6366f1',
+    bg: '#eef2ff',
+    border: '#c7d2fe',
+    perks: ['Posición preferencial', 'Badge 🚀 Destacado'],
+    recommended: true,
   },
   {
     key: 'gold_30',
-    label: 'Gold',
+    label: 'Premium',
+    badge: '👑 PREMIUM',
     days: 30,
-    price: 4500,
-    emoji: '🥇',
-    color: '#92400e',
-    bg: '#fff7ed',
-    perks: ['5x más visibilidad', 'Top de resultados', 'Badge oro', 'Estadísticas avanzadas'],
-    recommended: true,
+    price: 6999,
+    color: '#d97706',
+    bg: '#fffbeb',
+    border: '#fde68a',
+    perks: ['Aparece en la home', 'Badge 👑 Premium'],
   },
 ]
+
+// Mapeo interno (bronze/silver/gold) → nombre de UI
+const TIER_LABEL: Record<string, string> = {
+  bronze:   '⭐ Esencial',
+  silver:   '🚀 Destacado',
+  gold:     '👑 Premium',
+}
 
 function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: () => void }) {
   return (
@@ -77,44 +88,41 @@ function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: ()
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {PLANS.map(plan => (
             <div
               key={plan.key}
               style={{
-                border: plan.recommended ? '2px solid #FF8C00' : '1px solid #e2e8f0',
-                borderRadius: '12px', padding: '16px',
-                background: plan.recommended ? '#fff7ed' : '#fff',
+                border: `2px solid ${plan.recommended ? plan.color : plan.border}`,
+                borderRadius: '12px', padding: '14px 16px',
+                background: plan.bg,
                 position: 'relative',
               }}
             >
               {plan.recommended && (
                 <span style={{
                   position: 'absolute', top: '-10px', right: '16px',
-                  background: '#FF8C00', color: '#fff',
+                  background: plan.color, color: '#fff',
                   fontSize: '11px', fontWeight: 700,
                   padding: '2px 10px', borderRadius: '20px',
                 }}>
-                  MÁS POPULAR
+                  MÁS ELEGIDO
                 </span>
               )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '24px' }}>{plan.emoji}</span>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: plan.color }}>
-                      {plan.label} · {plan.days} días
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                      {plan.perks.join(' · ')}
-                    </div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: plan.color }}>
+                    {plan.badge} · {plan.days} días
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    {plan.perks.join(' · ')}
                   </div>
                 </div>
-                <Link href={`/upgrade?listing=${listingId}&plan=${plan.key}`} onClick={onClose}>
+                <Link href={`/upgrade?listing_id=${listingId}`} onClick={onClose}>
                   <button style={{
-                    background: plan.recommended ? '#FF8C00' : '#1E5BA8',
+                    background: plan.color,
                     color: '#fff', border: 'none',
-                    borderRadius: '8px', padding: '8px 16px',
+                    borderRadius: '8px', padding: '8px 14px',
                     fontWeight: 700, fontSize: '13px', cursor: 'pointer',
                     whiteSpace: 'nowrap',
                   }}>
@@ -125,6 +133,12 @@ function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: ()
             </div>
           ))}
         </div>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#94a3b8', margin: '12px 0 0' }}>
+          Ver todas las duraciones (7, 15, 30 días) en{' '}
+          <Link href={`/upgrade?listing_id=${listingId}`} onClick={onClose} style={{ color: '#1E5BA8', fontWeight: 600 }}>
+            la página de planes
+          </Link>
+        </p>
       </div>
     </div>
   )
@@ -138,12 +152,14 @@ function MoreMenu({
   onClose,
   onToggleStatus,
   onDelete,
+  anchor,
 }: {
   listingId: string
   status: string
   onClose: () => void
   onToggleStatus: () => void
   onDelete: () => void
+  anchor: DOMRect | null
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -170,15 +186,20 @@ function MoreMenu({
     { label: '🗑 Eliminar', onClick: () => { onDelete(); onClose() }, danger: true },
   ]
 
+  const top = anchor ? anchor.top - 4 : 0
+  const right = anchor ? window.innerWidth - anchor.right : 0
+
   return (
     <div
       ref={ref}
       style={{
-        position: 'absolute', right: 0, bottom: '100%', marginBottom: '4px',
+        position: 'fixed',
+        top, right,
+        transform: 'translateY(-100%)',
         background: '#fff', borderRadius: '10px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.14)',
         border: '1px solid #e2e8f0',
-        minWidth: '180px', zIndex: 100, overflow: 'hidden',
+        minWidth: '180px', zIndex: 1000, overflow: 'hidden',
       }}
     >
       {items.map((item, i) => (
@@ -215,6 +236,7 @@ interface ListingCardProps {
 
 export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -247,13 +269,12 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
   }
 
   return (
-    // div raíz = item directo del grid → height 100% funciona correctamente
-    <div style={{ height: '100%' }}>
+    <div className="dlc-wrapper" style={{ height: '100%' }}>
       {showModal && (
         <DestacadoModal listingId={listing.id} onClose={() => setShowModal(false)} />
       )}
 
-      <div style={{
+      <div className="dlc-card hover:shadow-md" style={{
         background: '#fff',
         borderRadius: '12px',
         overflow: 'hidden',
@@ -264,9 +285,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
         opacity: loading ? 0.6 : 1,
         transition: 'opacity 0.2s, box-shadow 0.2s',
         position: 'relative',
-      }}
-        className="hover:shadow-md"
-      >
+      }}>
         {/* Destacado badge */}
         {listing.destacado_activo && (
           <div style={{
@@ -275,12 +294,12 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
             fontSize: '10px', fontWeight: 700,
             padding: '2px 8px', borderRadius: '20px',
           }}>
-            {listing.destacado_tipo?.toUpperCase() ?? 'DESTACADO'}
+            {TIER_LABEL[listing.destacado_tipo ?? ''] ?? '⭐ Esencial'}
           </div>
         )}
 
         {/* Image */}
-        <div style={{ height: '140px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
+        <div className="dlc-image" style={{ height: '140px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
           {listing.cover_url
             ? <img src={listing.cover_url} alt={listing.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : (
@@ -292,7 +311,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
         </div>
 
         {/* Content */}
-        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+        <div className="dlc-content" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
 
           {/* Title + price */}
           <div>
@@ -311,7 +330,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
           </div>
 
           {/* Stats row — grid de 3 columnas centradas */}
-          <div style={{
+          <div className="dlc-stats" style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
             gap: '4px',
             background: '#f8fafc', borderRadius: '8px',
@@ -371,7 +390,10 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
 
               <div style={{ position: 'relative' }}>
                 <button
-                  onClick={() => setShowMenu(v => !v)}
+                  onClick={(e) => {
+                    setMenuAnchor(e.currentTarget.getBoundingClientRect())
+                    setShowMenu(v => !v)
+                  }}
                   style={{
                     height: '32px', width: '36px',
                     border: '1px solid #e2e8f0', borderRadius: '8px',
@@ -390,6 +412,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                     onClose={() => setShowMenu(false)}
                     onToggleStatus={handleToggle}
                     onDelete={handleDelete}
+                    anchor={menuAnchor}
                   />
                 )}
               </div>
@@ -397,6 +420,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
 
             {/* Row 2 — Destacar full width */}
             <button
+              className="dlc-destacar-btn"
               onClick={() => !listing.destacado_activo && setShowModal(true)}
               disabled={listing.destacado_activo}
               style={{
@@ -453,7 +477,7 @@ export function ListingsGrid({ listings, onToggleStatus, onDelete }: ListingsGri
   }
 
   return (
-    <div style={{
+    <div className="dashboard-listings-grid" style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
       gap: '16px',

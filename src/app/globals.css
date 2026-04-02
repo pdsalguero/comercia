@@ -595,24 +595,193 @@ details.sf > summary::marker { display: none; }
     gap: 8px !important;
   }
 
-  /* Search input fills row 1 */
+  /* Search input fills its own full row */
   .category-search-bar > *:first-child {
-    flex: 1 1 0% !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
     min-width: 0 !important;
+    order: 0 !important;
   }
 
   /* Sort select fills full width on row 2 */
   .category-search-bar .sort-select {
-    width: 100% !important;
-    order: 3 !important;
+    flex: 1 1 0% !important;
+    order: 2 !important;
   }
 
   .category-search-bar .sort-select select {
     width: 100% !important;
   }
 
-  /* Grid/list toggle stays on row 1 next to search */
-  .category-search-bar > *:last-child {
+  /* Province nav: full-width row between search and controls */
+  .province-nav-desktop {
+    display: block !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    order: 1 !important;
+  }
+
+  .province-nav-desktop > div,
+  .province-nav-desktop select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Grid/list toggle + filter btn stay on row 3 next to sort */
+  .category-search-bar > *:not(:first-child):not(.province-nav-desktop) {
     flex-shrink: 0 !important;
+    order: 2 !important;
+  }
+
+  /* ── List view card — mobile compact layout ── */
+  .listing-list-card {
+    gap: 10px !important;
+    padding: 10px 12px !important;
+    align-items: flex-start !important;
+  }
+
+  .listing-list-card .llc-img {
+    width: 90px !important;
+    height: 80px !important;
+  }
+
+  .listing-list-card .llc-meta {
+    display: none !important;
+  }
+
+  .listing-list-card .llc-price span {
+    font-size: 14px !important;
+  }
+
+  /* ── Dashboard mobile ── */
+  .dashboard-wrapper {
+    padding: 12px 8px !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-sidebar {
+    display: none !important;
+  }
+
+  .dashboard-mobile-nav {
+    display: block !important;
+  }
+
+  .dashboard-hero {
+    padding: 16px !important;
+    border-radius: '10px' !important;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 17px !important;
+  }
+
+  .dashboard-hero p {
+    font-size: 12px !important;
+  }
+
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .dashboard-kpi-card {
+    padding: 12px 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .dashboard-kpi-card .kpi-icon {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .dashboard-kpi-card .kpi-value {
+    font-size: 22px !important;
+  }
+
+  .dashboard-kpi-card .kpi-label {
+    font-size: 11px !important;
+    margin-top: 3px !important;
+  }
+
+  .dashboard-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Dashboard listings: grid → list on mobile ── */
+  .dashboard-listings-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .dlc-wrapper {
+    height: auto !important;
+  }
+
+  .dlc-card {
+    flex-direction: row !important;
+    border-radius: 10px !important;
+    height: auto !important;
+    min-height: 90px !important;
+  }
+
+  .dlc-image {
+    width: 100px !important;
+    height: auto !important;
+    min-height: 90px !important;
+    flex-shrink: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .dlc-content {
+    padding: 10px 12px !important;
+    gap: 5px !important;
+  }
+
+  /* Hide secondary info on mobile list view */
+  .dlc-stats,
+  .dlc-destacar-btn {
+    display: none !important;
+  }
+
+  /* Dashboard: listings summary two columns → single column */
+  .dashboard-summary-cols {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-summary-cols > div:first-child {
+    border-right: none !important;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  /* Store profile header — description truncated on mobile */
+  .store-header-desc {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  /* Prevent summary card from overflowing viewport */
+  .dashboard-summary-card {
+    overflow: hidden !important;
+    max-width: 100% !important;
+  }
+
+  /* My listings page: show mobile grid, hide desktop table/grid */
+  .my-listings-mobile-grid {
+    display: block !important;
+  }
+
+  .my-listings-desktop-only {
+    display: none !important;
+  }
+
+  /* My listings: hide view toggle on mobile */
+  .my-listings-view-toggle {
+    display: none !important;
   }
 }

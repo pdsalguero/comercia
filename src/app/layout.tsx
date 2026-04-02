@@ -37,8 +37,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={inter.variable}>
       <body style={{ fontFamily: "var(--font-inter), 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>{children}</body>
-      {/* GA4 solo se carga en producción; en dev next/third-parties lo omite automáticamente */}
-      <GoogleAnalytics gaId="G-GQSJBS2HWF" />
+      {process.env.NODE_ENV === "production" && <GoogleAnalytics gaId="G-GQSJBS2HWF" />}
     </html>
   );
 }

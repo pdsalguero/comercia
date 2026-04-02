@@ -246,124 +246,113 @@ export default async function TiendaPage({
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 16px" }}>
-      {/* ── Store header — ML style ── */}
-      <div style={{ background: "#fff", borderRadius: "14px", overflow: "hidden", marginBottom: "20px", border: "1px solid #e8edf2", boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+      {/* ── Store header ── */}
+      <div style={{ background: "#fff", borderRadius: "16px", overflow: "hidden", marginBottom: "20px", border: "1px solid #e8edf2", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
 
-        {/* Thin banner */}
+        {/* Banner */}
         <div style={{
-          height: "56px",
+          height: "100px", position: "relative",
           background: profile.store_banner_url
             ? `url(${profile.store_banner_url}) center/cover`
-            : "linear-gradient(120deg,#1e3a5f 0%,#3b82f6 55%,#6366f1 100%)",
-        }} />
+            : "linear-gradient(120deg,#0f172a 0%,#1E5BA8 55%,#6366f1 100%)",
+        }}>
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.35) 100%)" }} />
+        </div>
 
-        {/* Main content row */}
-        <div style={{ padding: "0 20px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+        {/* Body */}
+        <div style={{ padding: "0 20px 20px" }}>
 
-          {/* Left: logo + info */}
-          <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-
-            {/* Logo — overlapping banner */}
-            <div style={{ position: "relative", flexShrink: 0 }}>
+          {/* Logo */}
+          <div style={{ position: "relative", display: "inline-block", marginTop: "-36px", marginBottom: "12px" }}>
+            <div style={{
+              width: "72px", height: "72px", borderRadius: "16px",
+              border: "3px solid #fff", overflow: "hidden",
+              background: "#e2e8f0", boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "30px", fontWeight: 800, color: "#1e293b",
+            }}>
+              {profile.store_logo_url
+                ? <img src={profile.store_logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : storeName[0]?.toUpperCase() ?? "🏪"
+              }
+            </div>
+            {(profile.identity_verified || profile.store_verified) && (
               <div style={{
-                width: "68px", height: "68px",
-                borderRadius: "12px",
-                border: "3px solid #fff",
-                overflow: "hidden", background: "#e2e8f0",
-                marginTop: "-28px",
+                position: "absolute", bottom: "-2px", right: "-2px",
+                width: "20px", height: "20px", borderRadius: "50%",
+                background: profile.identity_verified ? "#2563eb" : "#16a34a",
+                border: "2.5px solid #fff",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
-                fontSize: "28px",
               }}>
-                {profile.store_logo_url
-                  ? <img src={profile.store_logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : storeName[0]?.toUpperCase() ?? "🏪"
-                }
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
-              {/* Verified dot */}
-              {(profile.identity_verified || profile.store_verified) && (
-                <div style={{
-                  position: "absolute", bottom: "0", right: "0",
-                  width: "18px", height: "18px", borderRadius: "50%",
-                  background: profile.identity_verified ? "#2563eb" : "#16a34a", border: "2px solid #fff",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
+            )}
+          </div>
+
+          {/* Name + badges */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
+            <h1 style={{ fontSize: "19px", fontWeight: 800, color: "#1e293b", margin: 0, lineHeight: 1.2 }}>
+              {storeName}
+            </h1>
+            <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.4px" }}>
+              TIENDA
+            </span>
+            {profile.store_verified && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Verificada
+              </span>
+            )}
+            {profile.identity_verified && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                ID Verificado
+              </span>
+            )}
+          </div>
+
+          {/* Stats strip */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0", marginBottom: "10px", background: "#f8fafc", borderRadius: "10px", overflow: "hidden", border: "1px solid #f1f5f9" }}>
+            <div style={{ flex: 1, textAlign: "center", padding: "8px 6px", borderRight: "1px solid #f1f5f9" }}>
+              <div style={{ fontSize: "15px", fontWeight: 800, color: "#1e293b" }}>{totalListings}</div>
+              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>publicaciones</div>
+            </div>
+            <div style={{ flex: 1, textAlign: "center", padding: "8px 6px", borderRight: "1px solid #f1f5f9" }}>
+              {reviewCount > 0 ? (
+                <>
+                  <div style={{ fontSize: "15px", fontWeight: 800, color: "#f59e0b" }}>{avgRating.toFixed(1)} ★</div>
+                  <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>{reviewCount} reseñas</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: "15px", fontWeight: 800, color: "#cbd5e1" }}>—</div>
+                  <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>sin reseñas</div>
+                </>
               )}
             </div>
-
-            {/* Text info */}
-            <div style={{ paddingTop: "10px" }}>
-              {/* Line 1: name + TIENDA badge */}
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                <h1 style={{ fontSize: "18px", fontWeight: 800, color: "#1e293b", margin: 0, lineHeight: 1.2 }}>
-                  {storeName}
-                </h1>
-                <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.3px" }}>
-                  TIENDA
-                </span>
-              </div>
-
-              {/* Line 2: verified badges + member since */}
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "3px", flexWrap: "wrap" }}>
-                {profile.identity_verified && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    Vendedor Identificado
-                  </span>
-                )}
-                {profile.store_verified && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    Tienda verificada
-                  </span>
-                )}
-                {memberSince && (
-                  <span style={{ fontSize: "12px", color: "#94a3b8" }}>
-                    Miembro desde {memberSince}
-                  </span>
-                )}
-              </div>
-
-              {/* Line 3: rating + publications + type */}
-              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "8px", flexWrap: "wrap" }}>
-                {reviewCount > 0 ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <StarRating rating={avgRating} size={14} />
-                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#f59e0b" }}>{avgRating.toFixed(1)}</span>
-                    <span style={{ fontSize: "12px", color: "#94a3b8" }}>({reviewCount} {reviewCount === 1 ? "calificación" : "calificaciones"})</span>
-                  </div>
-                ) : (
-                  <span style={{ fontSize: "12px", color: "#94a3b8" }}>Sin calificaciones aún</span>
-                )}
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748b" }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                  {totalListings} publicaciones
-                </span>
-                <span style={{ fontSize: "12px", color: "#94a3b8" }}>{storeTypeLabel}</span>
-              </div>
-
-              {/* Description */}
-              {profile.store_description && (
-                <p style={{ fontSize: "13px", color: "#64748b", margin: "8px 0 0", lineHeight: 1.5, maxWidth: "500px" }}>
-                  {profile.store_description}
-                </p>
-              )}
+            <div style={{ flex: 1, textAlign: "center", padding: "8px 6px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#475569", lineHeight: 1.2 }}>{storeTypeLabel}</div>
+              {memberSince && <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>desde {new Date(profile.created_at).getFullYear()}</div>}
             </div>
           </div>
 
-          {/* Right: action buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "stretch", flexShrink: 0, paddingTop: "12px", minWidth: "168px" }}>
+          {/* Description */}
+          {profile.store_description && (
+            <p className="store-header-desc" style={{ fontSize: "13px", color: "#64748b", margin: "0 0 12px", lineHeight: 1.6 }}>
+              {profile.store_description}
+            </p>
+          )}
+
+          {/* Action buttons */}
+          <div style={{ display: "flex", gap: "10px", marginTop: profile.store_description ? "0" : "4px" }}>
             {profile.store_whatsapp ? (
-              <a href={`https://wa.me/${profile.store_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <a href={`https://wa.me/${profile.store_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flex: 1 }}>
                 <button style={{
                   width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                  padding: "10px 18px", borderRadius: "8px", border: "none",
+                  padding: "11px 18px", borderRadius: "10px", border: "none",
                   background: "#00a650", color: "#fff",
                   fontSize: "14px", fontWeight: 700, cursor: "pointer",
-                  boxShadow: "0 2px 8px rgba(0,166,80,0.3)",
-                  fontFamily: "inherit",
+                  boxShadow: "0 2px 10px rgba(0,166,80,0.3)", fontFamily: "inherit",
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.998-1.412A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
                   Contactar
@@ -371,23 +360,23 @@ export default async function TiendaPage({
               </a>
             ) : (
               <button disabled style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                padding: "10px 18px", borderRadius: "8px",
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
+                padding: "11px 18px", borderRadius: "10px",
                 border: "1.5px solid #e2e8f0", background: "#f8fafc",
-                fontSize: "14px", fontWeight: 600, color: "#cbd5e1", cursor: "not-allowed",
-                fontFamily: "inherit",
+                fontSize: "14px", fontWeight: 600, color: "#cbd5e1", cursor: "not-allowed", fontFamily: "inherit",
               }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.25 }}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.998-1.412A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
-                Contactar
+                Sin contacto
               </button>
             )}
             {canReview && (
-              <ReviewForm
-                sellerId={userId}
-                existingRating={existingReview?.rating}
-                existingComment={existingReview?.comment ?? undefined}
-                onSubmit={handleReview}
-              />
+              <div style={{ flex: 1 }}>
+                <ReviewForm
+                  sellerId={userId}
+                  existingRating={existingReview?.rating}
+                  existingComment={existingReview?.comment ?? undefined}
+                  onSubmit={handleReview}
+                />
+              </div>
             )}
           </div>
         </div>

@@ -204,11 +204,9 @@ export default async function TiendasPage() {
                 display: "flex", alignItems: "center", gap: "10px",
                 marginBottom: "16px", paddingBottom: "10px",
                 borderBottom: `3px solid ${color}22`,
+                flexWrap: "wrap",
               }}>
-                <div style={{
-                  width: "4px", height: "20px", borderRadius: "2px",
-                  background: color,
-                }} />
+                <div style={{ width: "4px", height: "20px", borderRadius: "2px", background: color, flexShrink: 0 }} />
                 <span style={{ fontSize: "17px", fontWeight: 800, color: "#0f172a" }}>
                   {catLabel}
                 </span>
@@ -222,9 +220,9 @@ export default async function TiendasPage() {
                 {catSlug !== NO_CAT && (
                   <Link
                     href={`/category/${catSlug}`}
-                    style={{ marginLeft: "auto", fontSize: "12px", color, textDecoration: "none", fontWeight: 600 }}
+                    style={{ marginLeft: "auto", fontSize: "12px", color, textDecoration: "none", fontWeight: 600, whiteSpace: "nowrap" }}
                   >
-                    Ver todos los artículos →
+                    Ver artículos →
                   </Link>
                 )}
               </div>
@@ -232,7 +230,7 @@ export default async function TiendasPage() {
               {/* Store cards */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                 gap: "16px",
               }}>
                 {catStores.map((store) => {
@@ -397,7 +395,7 @@ export default async function TiendasPage() {
         background: "linear-gradient(135deg, #eff6ff, #dbeafe)",
         border: "1px solid #bfdbfe", borderRadius: "14px",
         padding: "20px 24px", display: "flex", alignItems: "center",
-        justifyContent: "space-between", gap: "16px",
+        justifyContent: "space-between", gap: "16px", flexWrap: "wrap",
       }}>
         <div>
           <div style={{ fontSize: "16px", fontWeight: 800, color: "#1e3a8a", marginBottom: "4px" }}>
