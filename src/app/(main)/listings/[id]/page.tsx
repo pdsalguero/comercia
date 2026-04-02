@@ -184,10 +184,17 @@ export async function generateMetadata(
     openGraph: {
       title: `${listing.title} — ${priceStr}`,
       description: desc,
-      ...(firstImage ? { images: [{ url: firstImage, width: 800, height: 600 }] } : {}),
+      url: `https://comerxia.com.ar/listings/${id}`,
+      ...(firstImage ? { images: [{ url: firstImage, width: 800, height: 600, alt: listing.title }] } : {}),
       type: "website",
     },
-    alternates: { canonical: `/listings/${id}` },
+    twitter: {
+      card: firstImage ? "summary_large_image" : "summary",
+      title: `${listing.title} — ${priceStr}`,
+      description: desc,
+      ...(firstImage ? { images: [firstImage] } : {}),
+    },
+    alternates: { canonical: `https://comerxia.com.ar/listings/${id}` },
   };
 }
 

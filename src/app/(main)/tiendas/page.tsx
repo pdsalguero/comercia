@@ -1,5 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Tiendas — Comprá a vendedores verificados en Argentina",
+  description: "Encontrá tiendas verificadas en ComerxIA. Vendedores confiables de toda Argentina con catálogos completos de productos nuevos y usados.",
+  keywords: ["tiendas online argentina", "vendedores verificados", "tiendas clasificados", "comprar tienda argentina"],
+  alternates: { canonical: "https://comerxia.com.ar/tiendas" },
+  openGraph: {
+    title: "Tiendas — ComerxIA",
+    description: "Vendedores verificados de toda Argentina.",
+    url: "https://comerxia.com.ar/tiendas",
+    type: "website",
+  },
+  twitter: { card: "summary", title: "Tiendas — ComerxIA", description: "Vendedores verificados de Argentina." },
+};
 
 export const dynamic = "force-dynamic";
 

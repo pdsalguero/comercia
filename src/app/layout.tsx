@@ -5,28 +5,46 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+const BASE = "https://comerxia.com.ar";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE),
   title: {
-    default: "ComerxIA — Comprá y vendé",
+    default: "ComerxIA — Comprá y vendé en Argentina con IA",
     template: "%s | ComerxIA",
   },
   description:
-    "El marketplace inteligente. Publicá en 30 segundos con IA.",
+    "El marketplace inteligente de Argentina. Publicá tu aviso en 30 segundos con inteligencia artificial. Autos, motos, inmuebles, electrónica y más.",
   keywords: [
-    "clasificados",
-    "comprar",
-    "vender",
-    "usado",
-    "marketplace",
+    "clasificados argentina",
+    "comprar usado argentina",
+    "vender online argentina",
+    "marketplace argentina",
+    "avisos clasificados",
+    "comprar moto argentina",
+    "vender auto argentina",
+    "inmuebles argentina",
+    "clasificados san juan",
+    "marketplace inteligente",
+    "publicar aviso gratis",
   ],
   openGraph: {
-    title: "ComerxIA",
-    description: "El marketplace inteligente.",
-    url: "https://comerxia.com.ar",
+    title: "ComerxIA — El marketplace inteligente de Argentina",
+    description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
+    url: BASE,
     siteName: "ComerxIA",
     locale: "es_AR",
     type: "website",
+    images: [{ url: `${BASE}/og-image.jpg`, width: 1200, height: 630, alt: "ComerxIA marketplace" }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "ComerxIA — El marketplace inteligente de Argentina",
+    description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
+    images: [`${BASE}/og-image.jpg`],
+  },
+  alternates: { canonical: BASE },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 
 export default function RootLayout({

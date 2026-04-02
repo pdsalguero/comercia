@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ListingsGrid } from "@/components/listings/ListingsGrid";
 import { ListingsViewProvider } from "@/components/listings/ListingsViewContext";
@@ -27,6 +28,20 @@ const CATEGORIES = [
   { name: "Otros",                     slug: "other",         icon: "📦",  active: false },
 ];
 
+
+export const metadata: Metadata = {
+  title: "Todos los avisos — Comprar y vender en Argentina",
+  description: "Encontrá los mejores avisos clasificados de Argentina. Autos, motos, inmuebles, electrónica, ropa y mucho más. Comprá y vendé con ComerxIA.",
+  keywords: ["avisos clasificados argentina", "comprar usado", "vender online", "clasificados gratis argentina"],
+  alternates: { canonical: "https://comerxia.com.ar/listings" },
+  openGraph: {
+    title: "Todos los avisos — ComerxIA",
+    description: "Encontrá los mejores avisos clasificados de Argentina.",
+    url: "https://comerxia.com.ar/listings",
+    type: "website",
+  },
+  twitter: { card: "summary", title: "Todos los avisos — ComerxIA", description: "Clasificados de Argentina." },
+};
 
 export default async function ListingsPage({
   searchParams,

@@ -375,13 +375,20 @@ export async function generateMetadata(
   const meta = CATEGORY_META[slug];
   if (!meta) return { title: "Categoría" };
   return {
-    title: `${meta.name}`,
-    description: `Comprá y vendé ${meta.name.toLowerCase()}. Los mejores avisos clasificados en ComerxIA.`,
-    alternates: { canonical: `/category/${slug}` },
+    title: `${meta.name} en Argentina — Avisos clasificados`,
+    description: `Comprá y vendé ${meta.name.toLowerCase()} en Argentina. Los mejores avisos clasificados en ComerxIA, el marketplace con inteligencia artificial.`,
+    keywords: [`${meta.name.toLowerCase()} argentina`, `comprar ${meta.name.toLowerCase()}`, `vender ${meta.name.toLowerCase()}`, "clasificados argentina"],
+    alternates: { canonical: `https://comerxia.com.ar/category/${slug}` },
     openGraph: {
-      title: `${meta.name} | ComerxIA`,
+      title: `${meta.name} en Argentina | ComerxIA`,
       description: `Encontrá ${meta.name.toLowerCase()} en ComerxIA. Marketplace con IA.`,
+      url: `https://comerxia.com.ar/category/${slug}`,
       type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: `${meta.name} en Argentina | ComerxIA`,
+      description: `Comprá y vendé ${meta.name.toLowerCase()} en Argentina.`,
     },
   };
 }

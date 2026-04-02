@@ -95,12 +95,19 @@ export async function generateMetadata(
   return {
     title: `${name} — Tienda Virtual`,
     description: desc,
-    alternates: { canonical: `/tienda/${slug}` },
+    alternates: { canonical: `https://comerxia.com.ar/tienda/${slug}` },
     openGraph: {
       title: `${name} | ComerxIA`,
       description: desc,
-      ...(p.store_logo_url ? { images: [{ url: p.store_logo_url }] } : {}),
+      url: `https://comerxia.com.ar/tienda/${slug}`,
+      ...(p.store_logo_url ? { images: [{ url: p.store_logo_url, alt: name }] } : {}),
       type: "website",
+    },
+    twitter: {
+      card: p.store_logo_url ? "summary_large_image" : "summary",
+      title: `${name} | ComerxIA`,
+      description: desc,
+      ...(p.store_logo_url ? { images: [p.store_logo_url] } : {}),
     },
   };
 }
