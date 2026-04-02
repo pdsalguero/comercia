@@ -21,8 +21,20 @@ const CURRENCIES = [
 ];
 
 
-const FUELS = ["Nafta","Diésel","GNC","Nafta + GNC","Eléctrico","Híbrido","GLP"];
-const TRANSMISIONS = ["Manual","Automática","CVT"];
+const FUELS = [
+  { value: "nafta",      label: "Nafta" },
+  { value: "diesel",     label: "Diésel" },
+  { value: "gnc",        label: "GNC" },
+  { value: "nafta+gnc",  label: "Nafta + GNC" },
+  { value: "electrico",  label: "Eléctrico" },
+  { value: "hibrido",    label: "Híbrido" },
+  { value: "glp",        label: "GLP" },
+];
+const TRANSMISIONS = [
+  { value: "manual",     label: "Manual" },
+  { value: "automatica", label: "Automática" },
+  { value: "cvt",        label: "CVT" },
+];
 
 interface Image { id: string; url: string; position: number }
 
@@ -66,7 +78,6 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showExtraVehicle, setShowExtraVehicle] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const catConfig = getCategoryConfig(listing.category_id);
@@ -132,14 +143,77 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+  const actionButtons = (
+    <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+      <button type="button" onClick={() => router.back()} style={{
+        background: "#f1f5f9", color: "#475569",
+        border: "1px solid #e2e8f0", borderRadius: "8px",
+        padding: "11px 20px", fontSize: "14px", fontWeight: 700, cursor: "pointer",
+      }}>
+        Cancelar
+      </button>
+      <button type="submit" disabled={pending} style={{
+        background: pending ? "#93c5fd" : "#3483fa",
+        color: "#fff", border: "none", borderRadius: "8px",
+        padding: "11px 28px", fontSize: "14px",
+        fontWeight: 700, cursor: pending ? "not-allowed" : "pointer",
+        minWidth: "140px",
+      }}>
+        {pending ? "Guardando..." : "Guardar cambios"}
+      </button>
+    </div>
+  );
+
   return (
     <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+      {actionButtons}
 
       {error && (
         <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 16px", fontSize: "13px", color: "#dc2626" }}>
           ⚠️ {error}
         </div>
       )}
+
+      {/* ── Photos ── */}
+      <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+        <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", fontSize: "13px", fontWeight: 700, color: "#334155" }}>
+          🖼️ Fotos ({images.length})
+        </div>
+        <div style={{ padding: "16px 20px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
+          {images.map(img => (
+            <div key={img.id} style={{ position: "relative", width: "100px", height: "100px", flexShrink: 0 }}>
+              <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px", border: "1px solid #e2e8f0" }} />
+              <button type="button" onClick={() => handleDeleteImage(img)} disabled={deletingId === img.id} style={{
+                position: "absolute", top: "4px", right: "4px",
+                width: "22px", height: "22px",
+                background: deletingId === img.id ? "#9ca3af" : "#dc2626",
+                color: "#fff", border: "none", borderRadius: "50%",
+                fontSize: "12px", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {deletingId === img.id ? "…" : "×"}
+              </button>
+            </div>
+          ))}
+          <div onClick={() => !uploading && fileInputRef.current?.click()} style={{
+            width: "100px", height: "100px", flexShrink: 0,
+            border: "2px dashed #cbd5e1", borderRadius: "8px",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: "4px",
+            cursor: uploading ? "not-allowed" : "pointer",
+            background: uploading ? "#f8fafc" : "#fafbfc",
+            color: "#94a3b8", fontSize: "11px", fontWeight: 600,
+          }}>
+            {uploading ? (
+              <span style={{ width: "20px", height: "20px", border: "2px solid #cbd5e1", borderTopColor: "#3483fa", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+            ) : (
+              <><span style={{ fontSize: "22px", lineHeight: 1 }}>+</span><span>Agregar</span></>
+            )}
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleUploadFiles} />
+        </div>
+      </div>
 
       {/* ── Core fields ── */}
       <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
@@ -148,20 +222,14 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
         </div>
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
-          <div>
-            <label style={lbl}>Título *</label>
-            <input name="title" defaultValue={listing.title} required style={inp} placeholder="Título del aviso..." />
-          </div>
-
-          <div>
-            <label style={lbl}>Descripción</label>
-            <textarea name="description" defaultValue={listing.description ?? ""} rows={4} style={{ ...inp, resize: "vertical" }} placeholder="Describí tu producto con detalle..." />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 140px 120px", gap: "12px", alignItems: "start" }}>
+            <div>
+              <label style={lbl}>Título *</label>
+              <input name="title" defaultValue={listing.title} required style={inp} placeholder="Título del aviso..." />
+            </div>
             <div>
               <label style={lbl}>Precio *</label>
-              <input name="price" type="number" defaultValue={listing.price ?? ""} required min={0} style={inp} placeholder="0" />
+              <input name="price" type="text" inputMode="numeric" defaultValue={listing.price ?? ""} required style={inp} placeholder="0" onChange={e => { e.target.value = e.target.value.replace(/[^0-9]/g, '') }} />
             </div>
             <div>
               <label style={lbl}>Moneda</label>
@@ -169,6 +237,11 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 {CURRENCIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label style={lbl}>Descripción</label>
+            <textarea name="description" defaultValue={listing.description ?? ""} rows={4} style={{ ...inp, resize: "vertical" }} placeholder="Describí tu producto con detalle..." />
           </div>
 
           {/* Condition + zone for non-vehicle */}
@@ -275,7 +348,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
               <label style={lbl}>Combustible</label>
               <select value={attrs.fuel ?? ""} onChange={e => setAttr("fuel", e.target.value)} style={sel}>
                 <option value="">Seleccionar...</option>
-                {FUELS.map(f => <option key={f} value={f.toLowerCase()}>{f}</option>)}
+                {FUELS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
             </div>
 
@@ -284,7 +357,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
               <label style={lbl}>Transmisión</label>
               <select value={attrs.transmission ?? ""} onChange={e => setAttr("transmission", e.target.value)} style={sel}>
                 <option value="">Seleccionar...</option>
-                {TRANSMISIONS.map(t => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                {TRANSMISIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
 
@@ -360,37 +433,28 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
               </div>
             </div>
 
-            {/* Datos adicionales */}
+            {/* Datos adicionales — pills siempre visibles */}
             <div style={{ gridColumn: "span 2" }}>
-              <button type="button" onClick={() => setShowExtraVehicle(v => !v)} style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0",
-                background: showExtraVehicle ? "#eff6ff" : "#fff",
-                color: showExtraVehicle ? "#2563eb" : "#64748b",
-                fontWeight: 600, fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
-              }}>
-                <span>Datos adicionales</span>
-                <span>{showExtraVehicle ? "▲" : "▼"}</span>
-              </button>
-
-              {showExtraVehicle && (
-                <div style={{ marginTop: "10px", padding: "14px", borderRadius: "10px", border: "1px solid #f1f5f9", background: "#fafafa", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-                  {[
-                    ["financing","Financiamiento"],
-                    ["negotiable_price","Precio negociable"],
-                    ["first_owner","Único dueño"],
-                    ["accepts_trade","Acepta permuta"],
-                    ["has_gnc","Con GNC"],
-                    ["has_alarm","Con alarma"],
-                    ["has_service","Con service"],
-                  ].map(([k, l]) => (
-                    <label key={k} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: attrs[k] ? "#334155" : "#94a3b8", fontWeight: attrs[k] ? 600 : 400, cursor: "pointer" }}>
-                      <input type="checkbox" checked={!!attrs[k]} onChange={e => setAttr(k, e.target.checked)} style={{ accentColor: "#2563eb" }} />
-                      {l}
-                    </label>
-                  ))}
-                </div>
-              )}
+              <label style={lbl}>Datos adicionales</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {[
+                  ["financing","💳 Financiamiento"],
+                  ["negotiable_price","💬 Precio negociable"],
+                  ["first_owner","🔑 Único dueño"],
+                  ["accepts_trade","🔄 Acepta permuta"],
+                  ["has_gnc","⛽ Con GNC"],
+                  ["has_alarm","🔒 Con alarma"],
+                  ["has_service","🔧 Con service"],
+                ].map(([k, l]) => (
+                  <button key={k} type="button" onClick={() => setAttr(k, !attrs[k])} style={{
+                    padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 600,
+                    border: `1.5px solid ${attrs[k] ? "#2563eb" : "#e2e8f0"}`,
+                    background: attrs[k] ? "#eff6ff" : "#fff",
+                    color: attrs[k] ? "#2563eb" : "#94a3b8",
+                    cursor: "pointer", fontFamily: "inherit", transition: "all .1s",
+                  }}>{l}</button>
+                ))}
+              </div>
             </div>
 
           </div>
@@ -472,67 +536,8 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
         </div>
       )}
 
-      {/* ── Photos ── */}
-      <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", fontSize: "13px", fontWeight: 700, color: "#334155" }}>
-          🖼️ Fotos ({images.length})
-        </div>
-        <div style={{ padding: "16px 20px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
-          {images.map(img => (
-            <div key={img.id} style={{ position: "relative", width: "100px", height: "100px", flexShrink: 0 }}>
-              <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px", border: "1px solid #e2e8f0" }} />
-              <button type="button" onClick={() => handleDeleteImage(img)} disabled={deletingId === img.id} style={{
-                position: "absolute", top: "4px", right: "4px",
-                width: "22px", height: "22px",
-                background: deletingId === img.id ? "#9ca3af" : "#dc2626",
-                color: "#fff", border: "none", borderRadius: "50%",
-                fontSize: "12px", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                {deletingId === img.id ? "…" : "×"}
-              </button>
-            </div>
-          ))}
-
-          <div onClick={() => !uploading && fileInputRef.current?.click()} style={{
-            width: "100px", height: "100px", flexShrink: 0,
-            border: "2px dashed #cbd5e1", borderRadius: "8px",
-            display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", gap: "4px",
-            cursor: uploading ? "not-allowed" : "pointer",
-            background: uploading ? "#f8fafc" : "#fafbfc",
-            color: "#94a3b8", fontSize: "11px", fontWeight: 600,
-          }}>
-            {uploading ? (
-              <span style={{ width: "20px", height: "20px", border: "2px solid #cbd5e1", borderTopColor: "#3483fa", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
-            ) : (
-              <><span style={{ fontSize: "22px", lineHeight: 1 }}>+</span><span>Agregar</span></>
-            )}
-          </div>
-
-          <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleUploadFiles} />
-        </div>
-      </div>
-
-      {/* ── Actions ── */}
-      <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-        <button type="button" onClick={() => router.back()} style={{
-          background: "#f1f5f9", color: "#475569",
-          border: "1px solid #e2e8f0", borderRadius: "8px",
-          padding: "11px 20px", fontSize: "14px", fontWeight: 700, cursor: "pointer",
-        }}>
-          Cancelar
-        </button>
-        <button type="submit" disabled={pending} style={{
-          background: pending ? "#93c5fd" : "#3483fa",
-          color: "#fff", border: "none", borderRadius: "8px",
-          padding: "11px 28px", fontSize: "14px",
-          fontWeight: 700, cursor: pending ? "not-allowed" : "pointer",
-          minWidth: "140px",
-        }}>
-          {pending ? "Guardando..." : "Guardar cambios"}
-        </button>
-      </div>
+      {/* ── Actions (bottom) ── */}
+      {actionButtons}
     </form>
   );
 }

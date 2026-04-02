@@ -12,7 +12,7 @@ async function saveListing(id: string, formData: FormData): Promise<{ error?: st
 
   const title       = formData.get("title") as string;
   const description = formData.get("description") as string;
-  const price       = Number(formData.get("price"));
+  const price       = Number(String(formData.get("price") ?? "0").replace(/[^0-9]/g, ""));
   const currency    = formData.get("currency") as string;
   const condition   = formData.get("condition") as string;
   const neighborhood = formData.get("neighborhood") as string;
