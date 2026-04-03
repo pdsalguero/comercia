@@ -63,7 +63,7 @@ const SELLER_BENEFITS = [
 const BUYER_BENEFITS = [
   "Búsqueda inteligente con IA",
   "Avisos verificados y actualizados",
-  "Filtros avanzados por zona, precio y características",
+  "Filtros avanzados por localidad, precio y características",
   "Contacto directo con el vendedor",
   "Calificá a los vendedores y comprá con confianza",
   "Sin intermediarios",

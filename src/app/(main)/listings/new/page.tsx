@@ -995,7 +995,7 @@ export default function NewListingPage() {
     { ok: title.length > 5, label: "Título" },
     { ok: categoryId > 0, label: "Categoría" },
     { ok: isPets || isServices || !!condition, label: "Estado" },
-    { ok: !!zone, label: "Zona" },
+    { ok: !!zone, label: "Localidad" },
     { ok: description.length > 20, label: "Descripción" },
   ];
   const passed = checks.filter((c) => c.ok).length;

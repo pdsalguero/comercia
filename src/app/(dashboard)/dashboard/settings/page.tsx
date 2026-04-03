@@ -215,7 +215,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Row 1: Email + Full name */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Email" hint="No se puede cambiar">
               <input type="email" value={email} disabled
                 style={{ ...inputStyle, background: '#f8fafc', color: '#94a3b8', cursor: 'not-allowed' }} />
@@ -227,7 +227,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Row 2: Phone + Location */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Phone with toggle */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -248,7 +248,7 @@ export default function SettingsPage() {
                 placeholder="Ej: 2645115818"
                 style={{ ...inputStyle, opacity: showPhone ? 1 : 0.5 }} />
             </div>
-            <Field label="Barrio / Zona">
+            <Field label="Localidad">
               <input type="text" value={location} onChange={e => setLocation(e.target.value)}
                 placeholder="Ej: Rivadavia, Capital" style={inputStyle} />
             </Field>

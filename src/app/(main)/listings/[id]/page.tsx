@@ -273,7 +273,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     ["Orientación",    attrs.orientation],
     ["Calefacción",    attrs.heating],
     ["Expensas",       attrs.expenses      ? `${currency === "USD" ? "U$D" : "$"} ${Number(attrs.expenses).toLocaleString("es-AR")}` : null],
-    ["Zona",           attrs.zone],
+    ["Localidad",      attrs.zone],
     ["Vendedor",       attrs.seller_type   ? (attrs.seller_type === "owner" ? "Dueño directo" : "Inmobiliaria") : null],
   ].filter(([, v]) => v) as [string, string][];
 

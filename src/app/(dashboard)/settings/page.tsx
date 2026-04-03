@@ -87,7 +87,7 @@ export default function SettingsPage() {
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="264-XXX-XXXX" style={inputStyle} />
           </div>
           <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#555', display: 'block', marginBottom: '6px' }}>Barrio / Zona</label>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: '#555', display: 'block', marginBottom: '6px' }}>Localidad</label>
             <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Ej: Rivadavia, Capital" style={inputStyle} />
           </div>
           <div>

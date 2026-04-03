@@ -341,7 +341,7 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
       },
       {
         key: "zone",
-        label: "Departamento / Zona",
+        label: "Departamento / Localidad",
         type: "select",
         required: true,
         options: ZONAS_SJ,

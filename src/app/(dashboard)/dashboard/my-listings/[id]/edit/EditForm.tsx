@@ -255,7 +255,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 </select>
               </div>
               <div>
-                <label style={lbl}>Zona / Barrio</label>
+                <label style={lbl}>Localidad</label>
                 <input name="neighborhood" defaultValue={listing.neighborhood ?? ""} style={inp} placeholder="Ej: Rivadavia, Capital..." />
               </div>
             </div>
