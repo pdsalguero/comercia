@@ -185,7 +185,7 @@ export default async function MyListingsPage({
           <ListingsGrid
             listings={userListings}
             onToggleStatus={handleToggle}
-            onDelete={handleDelete}
+            onDelete={handleDeleteById}
           />
         </div>
       )}

@@ -1,0 +1,20 @@
+# Dependencias y builds
+node_modules/
+dist/
+.next/
+out/
+
+# Cobertura y reportes
+coverage/
+*.lcov
+
+# Logs y bloqueos
+*.log
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Otros
+.git/
+.env*
