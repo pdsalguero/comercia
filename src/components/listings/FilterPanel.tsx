@@ -26,6 +26,7 @@ export interface FilterValues {
   category?: string;
   v_province?: string;
   moto_subtipo?: string;
+  re_zone?: string;
 }
 
 
