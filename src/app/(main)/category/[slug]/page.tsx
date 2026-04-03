@@ -2565,9 +2565,9 @@ export default async function CategoryPage({
                 Tipo de propiedad
               </div>
               {RE_PROPERTY_TYPES.filter(t => (reTypeCounts[t.value] ?? 0) > 0).map((t) => {
-                const active = sp.re_type === t.value;
+                const active = sp.re_type === t.value || sp.re_sub === t.value;
                 return (
-                  <Link key={t.value} href={buildUrl({ re_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
+                  <Link key={t.value} href={buildUrl({ re_type: active ? undefined : t.value, re_sub: undefined })} style={{ textDecoration: "none" }}>
                     <div style={{
                       padding: "9px 16px", fontSize: "13px", cursor: "pointer",
                       display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -3106,6 +3106,20 @@ export default async function CategoryPage({
                   operation: sp.operation || sp.re_operation,
                   bedrooms: sp.bedrooms || sp.re_bedrooms,
                   size: sp.size,
+                  re_bathrooms: sp.re_bathrooms,
+                  m2_min: sp.m2_min,
+                  m2_max: sp.m2_max,
+                  re_seller: sp.re_seller,
+                  garage: (sp as any).garage,
+                  pool: (sp as any).pool,
+                  elevator: (sp as any).elevator,
+                  furnished: (sp as any).furnished,
+                  pets_allowed: (sp as any).pets_allowed,
+                  air_conditioning: (sp as any).air_conditioning,
+                  grill: (sp as any).grill,
+                  security: (sp as any).security,
+                  private_complex: (sp as any).private_complex,
+                  credit_eligible: (sp as any).credit_eligible,
                 }}
                 totalCount={listings?.length ?? 0}
                 basePath={`/category/${slug}`}

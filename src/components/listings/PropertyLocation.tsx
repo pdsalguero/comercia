@@ -83,10 +83,9 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // OSM embed URL: small bounding box around the point
-  const delta = 0.006;
-  const mapUrl = lat && lng
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - delta},${lat - delta},${lng + delta},${lat + delta}&layer=mapnik&marker=${lat},${lng}`
+  const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+  const staticMapUrl = lat && lng
+    ? `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+3483fa(${lng},${lat})/${lng},${lat},15,0/640x220@2x?access_token=${TOKEN}`
     : null;
 
   return (
@@ -148,31 +147,22 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
         )}
       </div>
 
-      {/* Map */}
-      {mapUrl ? (
+      {/* Map preview */}
+      {staticMapUrl ? (
         <div style={{ borderRadius: "10px", overflow: "hidden", border: "1.5px solid #e2e8f0" }}>
-          <iframe
-            src={mapUrl}
-            width="100%"
-            height="220"
-            style={{ border: "none", display: "block" }}
-            loading="lazy"
-            title="Ubicación del inmueble"
+          <img
+            src={staticMapUrl}
+            alt="Ubicación seleccionada"
+            width={640}
+            height={220}
+            style={{ width: "100%", height: "220px", objectFit: "cover", display: "block" }}
           />
           <div style={{
             padding: "7px 12px", background: "#f8fafc",
             fontSize: "11px", color: "#94a3b8",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
+            display: "flex", alignItems: "center", gap: "4px",
           }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {lat?.toFixed(5)}, {lng?.toFixed(5)}</span>
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#3b82f6", textDecoration: "none", fontSize: "11px" }}
-            >
-              Ver mapa completo →
-            </a>
+            <PinIcon size={10} /> {lat?.toFixed(5)}, {lng?.toFixed(5)}
           </div>
         </div>
       ) : (

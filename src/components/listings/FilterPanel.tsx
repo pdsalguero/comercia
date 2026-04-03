@@ -27,6 +27,21 @@ export interface FilterValues {
   v_province?: string;
   moto_subtipo?: string;
   re_zone?: string;
+  // real-estate extras
+  re_bathrooms?: string;
+  m2_min?: string;
+  m2_max?: string;
+  re_seller?: string;
+  garage?: string;
+  pool?: string;
+  elevator?: string;
+  furnished?: string;
+  pets_allowed?: string;
+  air_conditioning?: string;
+  grill?: string;
+  security?: string;
+  private_complex?: string;
+  credit_eligible?: string;
 }
 
 
@@ -89,6 +104,10 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     filters.year_from, filters.year_to, filters.km_max, filters.sub_category,
     filters.re_sub, filters.operation, filters.bedrooms,
     filters.size, filters.price_min, filters.price_max, filters.moto_subtipo,
+    filters.re_bathrooms, filters.re_seller,
+    filters.garage, filters.pool, filters.elevator, filters.furnished,
+    filters.pets_allowed, filters.air_conditioning, filters.grill,
+    filters.security, filters.private_complex, filters.credit_eligible,
   ].filter(Boolean).length;
 
   function applyFilters(f: FilterValues) {
@@ -97,6 +116,9 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
       "q", "category", "condition", "price_min", "price_max", "order", "location",
       "brand", "fuel", "transmission", "year_from", "year_to", "km_max", "sub_category",
       "re_sub", "operation", "bedrooms", "size", "v_province", "moto_subtipo",
+      "re_bathrooms", "m2_min", "m2_max", "re_seller",
+      "garage", "pool", "elevator", "furnished", "pets_allowed",
+      "air_conditioning", "grill", "security", "private_complex", "credit_eligible",
     ];
     for (const k of keys) {
       const v = f[k];
@@ -305,8 +327,9 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
               { value: "casa", label: "Casa" },
               { value: "departamento", label: "Departamento" },
               { value: "terreno", label: "Terreno / Lote" },
+              { value: "finca", label: "Finca / Campo" },
               { value: "local", label: "Local / Oficina" },
-              { value: "galpon", label: "Galpón" },
+              { value: "galpon", label: "Galpón / Depósito" },
               { value: "cochera", label: "Cochera" },
             ]} />
             <SelectFilter label="Dormitorios" field="bedrooms" options={[
@@ -314,7 +337,69 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
               { value: "1", label: "1 dormitorio" },
               { value: "2", label: "2 dormitorios" },
               { value: "3", label: "3 dormitorios" },
-              { value: "4", label: "4+ dormitorios" },
+              { value: "4", label: "4 dormitorios" },
+              { value: "5+", label: "5+" },
+            ]} />
+            <SelectFilter label="Baños" field="re_bathrooms" options={[
+              { value: "1", label: "1 baño" },
+              { value: "2", label: "2 baños" },
+              { value: "3", label: "3 baños" },
+              { value: "4+", label: "4+" },
+            ]} />
+            <div>
+              <div style={subLabel}>Superficie (m²)</div>
+              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                <input
+                  type="number" placeholder="Mín." value={filters.m2_min ?? ""}
+                  onChange={e => setFilters(f => ({ ...f, m2_min: e.target.value || undefined }))}
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <span style={{ color: "#94a3b8", fontSize: "12px" }}>—</span>
+                <input
+                  type="number" placeholder="Máx." value={filters.m2_max ?? ""}
+                  onChange={e => setFilters(f => ({ ...f, m2_max: e.target.value || undefined }))}
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+              </div>
+            </div>
+            <div>
+              <div style={subLabel}>Características</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {[
+                  { key: "garage" as keyof FilterValues, label: "Cochera" },
+                  { key: "pool" as keyof FilterValues, label: "Pileta" },
+                  { key: "elevator" as keyof FilterValues, label: "Ascensor" },
+                  { key: "furnished" as keyof FilterValues, label: "Amoblado" },
+                  { key: "pets_allowed" as keyof FilterValues, label: "Mascotas" },
+                  { key: "air_conditioning" as keyof FilterValues, label: "A/A" },
+                  { key: "grill" as keyof FilterValues, label: "Parrilla" },
+                  { key: "security" as keyof FilterValues, label: "Seguridad 24hs" },
+                  { key: "private_complex" as keyof FilterValues, label: "Barrio privado" },
+                  { key: "credit_eligible" as keyof FilterValues, label: "Apto crédito" },
+                ].map(feat => {
+                  const active = filters[feat.key] === "1";
+                  return (
+                    <button
+                      key={feat.key}
+                      type="button"
+                      onClick={() => setFilters(f => ({ ...f, [feat.key]: active ? undefined : "1" }))}
+                      style={{
+                        padding: "5px 10px", borderRadius: "20px", fontSize: "12px",
+                        border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`,
+                        background: active ? "#eff6ff" : "#fff",
+                        color: active ? "#2563eb" : "#475569",
+                        fontWeight: active ? 700 : 400, cursor: "pointer",
+                      }}
+                    >
+                      {active ? "✓ " : ""}{feat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <SelectFilter label="Publicado por" field="re_seller" options={[
+              { value: "particular", label: "Dueño directo" },
+              { value: "inmobiliaria", label: "Inmobiliaria" },
             ]} />
           </div>
         )}

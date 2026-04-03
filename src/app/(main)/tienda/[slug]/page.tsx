@@ -270,7 +270,7 @@ export default async function TiendaPage({
         <div className="store-header-body" style={{ padding: "0 20px 20px", display: "flex", gap: "14px", alignItems: "flex-start" }}>
 
           {/* Logo */}
-          <div className="store-header-logo" style={{ position: "relative", flexShrink: 0, marginTop: "-36px" }}>
+          <div className="store-header-logo" style={{ position: "relative", flexShrink: 0, marginTop: "-36px", width: "72px", height: "72px" }}>
             <div style={{
               width: "72px", height: "72px", borderRadius: "16px",
               border: "3px solid #fff", overflow: "hidden",
@@ -284,12 +284,12 @@ export default async function TiendaPage({
               }
             </div>
             {(profile.identity_verified || profile.store_verified) && (
-              <div style={{
+              <div className="hidden sm:flex" style={{
                 position: "absolute", bottom: "-2px", right: "-2px",
                 width: "20px", height: "20px", borderRadius: "50%",
                 background: profile.identity_verified ? "#2563eb" : "#16a34a",
                 border: "2.5px solid #fff",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                alignItems: "center", justifyContent: "center",
               }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
@@ -577,11 +577,11 @@ export default async function TiendaPage({
               <form method="GET" action={base}>
                 {Object.entries(sp).map(([k, v]) => v && k !== "price_min" && k !== "price_max" ? <input key={k} type="hidden" name={k} value={v} /> : null)}
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Precio</div>
-                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo" style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", boxSizing: "border-box" as const }} />
-                  <span style={{ color: "#94a3b8" }}>–</span>
-                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo" style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", boxSizing: "border-box" as const }} />
-                  <button type="submit" style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 12px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>OK</button>
+                <div style={{ display: "flex", gap: "6px", alignItems: "center", width: "100%", minWidth: 0 }}>
+                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mín" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
+                  <span style={{ color: "#94a3b8", flexShrink: 0 }}>–</span>
+                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máx" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
+                  <button type="submit" style={{ flexShrink: 0, background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 12px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>OK</button>
                 </div>
               </form>
 

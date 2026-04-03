@@ -13,6 +13,7 @@ import { ContactButton } from "@/components/listings/ContactButton";
 import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
+import { PropertyMap } from "@/components/map/PropertyMap";
 
 const CONDITION_LABELS: Record<string, string> = {
   new: "Nuevo / A estrenar",
@@ -291,12 +292,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     [attrs.security,        "Seguridad 24hs"],
   ].filter(([v]) => v).map(([, label]) => label as string);
 
-  const mapUrl = listing.category_id === 3 && attrs.lat && attrs.lng
-    ? (() => {
-        const delta = 0.006;
-        return `https://www.openstreetmap.org/export/embed.html?bbox=${attrs.lng - delta},${attrs.lat - delta},${attrs.lng + delta},${attrs.lat + delta}&layer=mapnik&marker=${attrs.lat},${attrs.lng}`;
-      })()
-    : null;
+  const hasMap = listing.category_id === 3 && attrs.lat && attrs.lng;
 
   // Determine specs + boolTags for the detail tabs
   const isVehicle = listing.category_id === 2;
@@ -476,7 +472,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {isRealEstate && attrs.sub_category && (
                 <>
                   {sep}
-                  <Link href={`/category/${catSlug}?type=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
+                  <Link href={`/category/${catSlug}?re_sub=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
                     {RE_SUBCAT[attrs.sub_category] ?? String(attrs.sub_category)}
                   </Link>
                 </>
@@ -554,24 +550,17 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             )}
 
             {/* Map */}
-            {mapUrl && (
+            {hasMap && (
               <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.07)" }}>
                 <div style={{ padding: "16px 20px 12px", fontWeight: 700, fontSize: "15px", color: "#1e293b" }}>
                   Ubicación
                 </div>
-                <iframe
-                  src={mapUrl}
-                  width="100%"
-                  height="260"
-                  style={{ border: "none", display: "block" }}
-                  loading="lazy"
-                  title="Ubicación del inmueble"
+                <PropertyMap
+                  lat={Number(attrs.lat)}
+                  lng={Number(attrs.lng)}
+                  address={attrs.address_str}
                 />
-                {attrs.address_str && (
-                  <div style={{ padding: "10px 20px", fontSize: "12px", color: "#64748b", borderTop: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: "4px" }}>
-                    <PinIcon size={11} /> {attrs.address_str}
-                  </div>
-                )}
+
               </div>
             )}
           </div>
