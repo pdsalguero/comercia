@@ -263,7 +263,7 @@ async function DolarCard() {
   if (!dolar) return null
 
   const fecha = dolar.fechaActualizacion
-    ? new Date(dolar.fechaActualizacion).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+    ? new Date(dolar.fechaActualizacion).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
     : null
 
   return (
