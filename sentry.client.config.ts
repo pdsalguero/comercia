@@ -18,4 +18,5 @@ Sentry.init({
     /^chrome-extension:/,
     /^safari-extension:/,
   ],
+  enabled: process.env.NODE_ENV === "production",
 });

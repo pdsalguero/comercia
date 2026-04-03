@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 type Tab = 'perfil' | 'verificacion' | 'cuenta'
-type VerifyStep = 'idle' | 'choose' | 'phone-input' | 'code'
+type VerifyStep = 'idle' | 'code'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -31,8 +31,6 @@ export default function SettingsPage() {
   const [identityVerified, setIdentityVerified]   = useState(false)
   const [identityMethod, setIdentityMethod]       = useState<string | null>(null)
   const [verifyStep, setVerifyStep]               = useState<VerifyStep>('idle')
-  const [verifyMethod, setVerifyMethod]           = useState<'email' | 'phone' | null>(null)
-  const [phoneForVerify, setPhoneForVerify]       = useState('')
   const [otpCode, setOtpCode]                     = useState('')
   const [verifyLoading, setVerifyLoading]         = useState(false)
   const [verifyError, setVerifyError]             = useState('')
@@ -56,7 +54,6 @@ export default function SettingsPage() {
         if (data.show_phone !== undefined) setShowPhone(data.show_phone !== false)
         setIdentityVerified(data.identity_verified ?? false)
         setIdentityMethod(data.identity_verified_method ?? null)
-        setPhoneForVerify(data.phone ?? '')
       }
     }
     load()
@@ -77,6 +74,7 @@ export default function SettingsPage() {
     if (dbErr) { alert(`Error al guardar avatar: ${dbErr.message}`); setAvatarUploading(false); return }
     setAvatarUrl(publicUrl)
     setAvatarUploading(false)
+    router.refresh()
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -103,49 +101,33 @@ export default function SettingsPage() {
     router.refresh()
   }
 
-  async function handleSendOtp(method: 'email' | 'phone') {
+  async function handleSendOtp() {
     setVerifyLoading(true)
     setVerifyError('')
     setOtpCode('')
-    if (method === 'email') {
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
-      if (error) setVerifyError('No se pudo enviar el código. Intentá más tarde.')
-      else { setVerifyMethod('email'); setVerifyStep('code') }
-    } else {
-      if (!phoneForVerify.trim()) { setVerifyError('Ingresá un número de teléfono.'); setVerifyLoading(false); return }
-      const normalized = phoneForVerify.startsWith('+') ? phoneForVerify : `+54${phoneForVerify.replace(/^0/, '')}`
-      const { error } = await supabase.auth.signInWithOtp({ phone: normalized, options: { shouldCreateUser: false } })
-      if (error) setVerifyError('No se pudo enviar el SMS. Verificá el número e incluí código de país.')
-      else { setVerifyMethod('phone'); setVerifyStep('code') }
-    }
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
+    if (error) setVerifyError('No se pudo enviar el código. Intentá más tarde.')
+    else setVerifyStep('code')
     setVerifyLoading(false)
   }
 
   async function handleConfirmOtp() {
     setVerifyLoading(true)
     setVerifyError('')
-    let err: string | null = null
-    if (verifyMethod === 'email') {
-      const { error } = await supabase.auth.verifyOtp({ email, token: otpCode, type: 'email' })
-      if (error) err = 'Código incorrecto o expirado.'
-    } else {
-      const normalized = phoneForVerify.startsWith('+') ? phoneForVerify : `+54${phoneForVerify.replace(/^0/, '')}`
-      const { error } = await supabase.auth.verifyOtp({ phone: normalized, token: otpCode, type: 'sms' })
-      if (error) err = 'Código incorrecto o expirado.'
-    }
-    if (err) {
-      setVerifyError(err)
+    const { error } = await supabase.auth.verifyOtp({ email, token: otpCode, type: 'email' })
+    if (error) {
+      setVerifyError('Código incorrecto o expirado.')
     } else {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         await supabase.from('profiles').update({
           identity_verified: true,
-          identity_verified_method: verifyMethod,
+          identity_verified_method: 'email',
           identity_verified_at: new Date().toISOString(),
         }).eq('id', user.id)
       }
       setIdentityVerified(true)
-      setIdentityMethod(verifyMethod)
+      setIdentityMethod('email')
       setVerifyStep('idle')
       setOtpCode('')
     }
@@ -306,7 +288,7 @@ export default function SettingsPage() {
               )}
             </div>
             <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-              Verificá tu identidad por email o teléfono. Tu perfil mostrará el badge y generarás más confianza con los compradores.
+              Verificá tu identidad por correo electrónico. Tu perfil mostrará el badge y generarás más confianza con los compradores.
             </p>
           </div>
 
@@ -340,65 +322,18 @@ export default function SettingsPage() {
                 ))}
               </div>
               <div>
-                <button onClick={() => setVerifyStep('choose')}
-                  style={{ background: 'linear-gradient(135deg,#2563eb,#6366f1)', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
-                  Verificar mi identidad →
+                <button onClick={handleSendOtp} disabled={verifyLoading}
+                  style={{ background: verifyLoading ? '#93c5fd' : 'linear-gradient(135deg,#2563eb,#6366f1)', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '14px', cursor: verifyLoading ? 'not-allowed' : 'pointer' }}>
+                  {verifyLoading ? 'Enviando...' : 'Verificar mi identidad →'}
                 </button>
+                {verifyError && <ErrorMsg>{verifyError}</ErrorMsg>}
               </div>
-            </div>
-          ) : verifyStep === 'choose' ? (
-            /* Choose method */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>¿Cómo querés verificarte?</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <button onClick={() => handleSendOtp('email')} disabled={verifyLoading}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '20px 16px', border: '2px solid #e2e8f0', borderRadius: '12px', background: '#fff', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                  className="hover:border-blue-400"
-                >
-                  <span style={{ fontSize: '32px' }}>📧</span>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Por correo electrónico</div>
-                  <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', lineHeight: 1.4 }}>
-                    Enviamos un código a<br /><strong style={{ color: '#475569' }}>{email}</strong>
-                  </div>
-                  {verifyLoading && <span style={{ fontSize: '11px', color: '#6366f1' }}>Enviando...</span>}
-                </button>
-                <button onClick={() => setVerifyStep('phone-input')} disabled={verifyLoading}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '20px 16px', border: '2px solid #e2e8f0', borderRadius: '12px', background: '#fff', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                  className="hover:border-blue-400"
-                >
-                  <span style={{ fontSize: '32px' }}>📱</span>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Por teléfono (SMS)</div>
-                  <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', lineHeight: 1.4 }}>
-                    Enviamos un código por<br />mensaje de texto
-                  </div>
-                </button>
-              </div>
-              {verifyError && <ErrorMsg>{verifyError}</ErrorMsg>}
-              <button onClick={() => { setVerifyStep('idle'); setVerifyError('') }} style={linkBtnStyle}>← Cancelar</button>
-            </div>
-          ) : verifyStep === 'phone-input' ? (
-            /* Phone input */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '420px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>Ingresá tu número de teléfono</div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="tel" value={phoneForVerify} onChange={e => setPhoneForVerify(e.target.value)}
-                  placeholder="+54 264 511 5818" style={{ ...inputStyle, flex: 1 }} />
-                <button onClick={() => handleSendOtp('phone')} disabled={verifyLoading}
-                  style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: verifyLoading ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: verifyLoading ? 0.7 : 1 }}>
-                  {verifyLoading ? 'Enviando...' : 'Enviar SMS'}
-                </button>
-              </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>Incluí el código de país: +54 para Argentina</div>
-              {verifyError && <ErrorMsg>{verifyError}</ErrorMsg>}
-              <button onClick={() => { setVerifyStep('choose'); setVerifyError('') }} style={linkBtnStyle}>← Volver</button>
             </div>
           ) : verifyStep === 'code' ? (
             /* Enter code */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '420px' }}>
               <div style={{ padding: '12px 16px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0', fontSize: '13px', color: '#15803d' }}>
-                {verifyMethod === 'email'
-                  ? <>✅ Código enviado a <strong>{email}</strong>. Revisá tu bandeja de entrada.</>
-                  : <>✅ Código enviado por SMS al número indicado.</>}
+                ✅ Código enviado a <strong>{email}</strong>. Revisá tu bandeja de entrada.
               </div>
               <div>
                 <label style={{ ...labelStyle, display: 'block', marginBottom: '8px' }}>Ingresá el código que recibiste por email</label>
@@ -415,9 +350,8 @@ export default function SettingsPage() {
               </div>
               {verifyError && <ErrorMsg>{verifyError}</ErrorMsg>}
               <div style={{ display: 'flex', gap: '16px' }}>
-                <button onClick={() => verifyMethod === 'email' ? handleSendOtp('email') : handleSendOtp('phone')}
-                  disabled={verifyLoading} style={linkBtnStyle}>Reenviar código</button>
-                <button onClick={() => { setVerifyStep('choose'); setVerifyError(''); setOtpCode('') }} style={linkBtnStyle}>← Volver</button>
+                <button onClick={handleSendOtp} disabled={verifyLoading} style={linkBtnStyle}>Reenviar código</button>
+                <button onClick={() => { setVerifyStep('idle'); setVerifyError(''); setOtpCode('') }} style={linkBtnStyle}>← Cancelar</button>
               </div>
             </div>
           ) : null}

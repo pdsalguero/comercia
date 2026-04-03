@@ -105,6 +105,15 @@ const STORE_TYPE_LABELS: Record<string, string> = {
   servicios:    "Empresa de servicios",
 };
 
+// Maps store_type → forced category slug (overrides main_cat from listings)
+const STORE_TYPE_CAT: Record<string, string> = {
+  inmobiliaria: "real-estate",
+  automotora:   "vehicles",
+  electronica:  "electronics",
+  ropa:         "clothing",
+  servicios:    "services",
+};
+
 export default async function TiendasPage() {
   const supabase = await createClient();
 
@@ -168,7 +177,10 @@ export default async function TiendasPage() {
         catMap[cat.slug].count++;
       }
     }
-    const mainCat = Object.values(catMap).sort((a, b) => b.count - a.count)[0] ?? null;
+    const catFromType = store.store_type && STORE_TYPE_CAT[store.store_type]
+      ? { slug: STORE_TYPE_CAT[store.store_type], name: CAT_LABEL[STORE_TYPE_CAT[store.store_type]] ?? store.store_type, count: 0 }
+      : null;
+    const mainCat = catFromType ?? Object.values(catMap).sort((a, b) => b.count - a.count)[0] ?? null;
     // Pick a sample image: banner > logo > first listing image
     const sampleImg = store.store_banner_url
       || (sl.find((l) => (l as any).listing_images?.length)?.listing_images as { url: string }[] | null)?.[0]?.url
@@ -249,9 +261,11 @@ export default async function TiendasPage() {
                 gap: "16px",
               }}>
                 {catStores.map((store) => {
-                  const btnColor = store.main_cat ? (CAT_COLOR[store.main_cat.slug] ?? "#6366f1") : "#6366f1";
-                  const btnLabel = store.main_cat ? (CAT_VERB[store.main_cat.slug] ?? "Ver artículos") : "Ver tienda";
-                  const unit = store.main_cat ? (CAT_UNIT[store.main_cat.slug] ?? "artículos") : "artículos";
+                  const forcedSlug = store.store_type ? STORE_TYPE_CAT[store.store_type] : undefined;
+                  const effectiveSlug = forcedSlug ?? store.main_cat?.slug;
+                  const btnColor = effectiveSlug ? (CAT_COLOR[effectiveSlug] ?? "#6366f1") : "#6366f1";
+                  const btnLabel = effectiveSlug ? (CAT_VERB[effectiveSlug] ?? "Ver artículos") : "Ver tienda";
+                  const unit = effectiveSlug ? (CAT_UNIT[effectiveSlug] ?? "artículos") : "artículos";
                   const typeLabel = STORE_TYPE_LABELS[store.store_type ?? ""] ?? "Tienda virtual";
 
                   return (

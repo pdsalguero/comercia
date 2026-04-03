@@ -30,11 +30,14 @@ export function DeleteButton({ id, title, onDelete }: Props) {
           color: "#dc2626",
           border: "1px solid #fecaca",
           borderRadius: "6px",
-          padding: "5px 10px",
+          padding: "5px 9px",
           fontSize: "12px",
           cursor: "pointer",
           fontWeight: 600,
+          transition: "background 0.15s, border-color 0.15s",
         }}
+        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#dc2626'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#dc2626' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fff'; (e.currentTarget as HTMLButtonElement).style.color = '#dc2626'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#fecaca' }}
       >
         Eliminar
       </button>

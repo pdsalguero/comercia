@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Salesforce DX
 .sfdx/
+.env.local
+.env.*.local
+settings.local.json 

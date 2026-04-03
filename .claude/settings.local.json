@@ -1,21 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls -la c:marketplacecomerciatailwind.config.* c:marketplacecomercianext.config.* c:marketplacecomerciapostcss.config.*)",
-      "Bash(node -e \":*)",
+      "Bash(ls -la c:/marketplace/comercia/tailwind.config.*)",
       "Bash(npx tsc --noEmit)",
       "Bash(npx tsx scripts/seed.ts)",
       "Bash(npx tsx scripts/create-users.ts)",
-      "Bash(npx tsx scripts/seed-users.ts)",
-      "Bash(npx tsx scripts/create-favorites-table.ts)",
-      "Bash(curl -s -X POST \"https://hbeswalibpblqkrdqczh.supabase.co/rest/v1/rpc/exec_sql\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZXN3YWxpYnBibHFrcmRxY3poIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYzNzgzOSwiZXhwIjoyMDg4MjEzODM5fQ.N7NFhS6hSfOpReke3Sg4DNnf2w2ni286JvVjReI0qiA\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZXN3YWxpYnBibHFrcmRxY3poIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYzNzgzOSwiZXhwIjoyMDg4MjEzODM5fQ.N7NFhS6hSfOpReke3Sg4DNnf2w2ni286JvVjReI0qiA\" -H \"Content-Type: application/json\" -d '{\"\"query\"\":\"\"SELECT 1\"\"}')",
-      "Bash(npx supabase --version)",
-      "Bash(npx supabase db execute --help)",
-      "Bash(npx supabase link --project-ref hbeswalibpblqkrdqczh)",
-      "Bash(curl -s \"https://hbeswalibpblqkrdqczh.supabase.co/rest/v1/rpc/version\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZXN3YWxpYnBibHFrcmRxY3poIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYzNzgzOSwiZXhwIjoyMDg4MjEzODM5fQ.N7NFhS6hSfOpReke3Sg4DNnf2w2ni286JvVjReI0qiA\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZXN3YWxpYnBibHFrcmRxY3poIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYzNzgzOSwiZXhwIjoyMDg4MjEzODM5fQ.N7NFhS6hSfOpReke3Sg4DNnf2w2ni286JvVjReI0qiA\")",
-      "WebFetch(domain:www.mercadolibre.com.ar)",
-      "Bash(find c:/marketplace/comercia -name *.sql -o -name seed* -o -name schema*)",
-      "Bash(git add:*)"
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(find c:/marketplace/comercia -name *.sql)"
     ]
   }
 }

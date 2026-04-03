@@ -893,7 +893,10 @@ export default function NewListingPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+      if (!user) {
+        router.replace("/login?redirect=/listings/new");
+        return;
+      }
       supabase
         .from("profiles")
         .select("is_store")
@@ -2903,15 +2906,6 @@ export default function NewListingPage() {
                 </div>
 
 
-                {/* Category price reference */}
-                {!isVehicle && priceData && priceData.count >= 3 && (
-                  <div style={{ marginTop: "12px", padding: "10px 14px", background: C.blue50, borderRadius: "10px", border: `1px solid ${C.blue100}` }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue, marginBottom: "3px" }}>Referencia en esta categoría</div>
-                    <div style={{ fontSize: "12px", color: C.slate600 }}>
-                      Promedio: <strong>${priceData.avg.toLocaleString("es-AR")}</strong> · Rango: ${priceData.min.toLocaleString("es-AR")} – ${priceData.max.toLocaleString("es-AR")}
-                    </div>
-                  </div>
-                )}
 
                 {/* Precio a consultar — opción prominente */}
                 <div style={{ marginTop: "14px", borderTop: `1px solid ${C.slate100}`, paddingTop: "14px" }}>

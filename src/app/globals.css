@@ -150,6 +150,7 @@ details.sf > summary::marker { display: none; }
 
 .filter-panel-desktop { display: block; }
 .filter-btn-mobile    { display: none !important; }
+.store-mobile-filters { display: none; }
 
 /* ── Tablet breakpoint: ≤1024px ── */
 @media (max-width: 1024px) {
@@ -244,18 +245,18 @@ details.sf > summary::marker { display: none; }
     width: 100% !important;
   }
 
+  .listing-detail .detail-left-col {
+    order: 2 !important;
+    width: 100% !important;
+  }
+
   .listing-detail .detail-right-col,
   .listing-detail .detail-sticky {
-    order: 2 !important;
+    order: 3 !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     position: static !important;
-  }
-
-  .listing-detail .detail-left-col {
-    order: 3 !important;
-    width: 100% !important;
   }
 
   .gallery-main {
@@ -453,9 +454,22 @@ details.sf > summary::marker { display: none; }
   }
   .gallery-thumbs { display: none !important; }
 
+  /* Store mobile filters: show on mobile, hide on desktop */
+  .store-mobile-filters { display: block !important; }
+
+  /* Store header: compact on mobile */
+  .store-header-card { margin-bottom: 12px !important; border-radius: "10px" !important; }
+  .store-header-banner { height: 56px !important; }
+  .store-header-body { padding: 0 12px 12px !important; gap: 10px !important; }
+  .store-header-logo { margin-top: -28px !important; }
+  .store-header-logo > div { width: 52px !important; height: 52px !important; font-size: 22px !important; }
+  .store-header-logo > div > div { width: 16px !important; height: 16px !important; }
+
   /* Store header info row: stack on mobile */
   .store-header-row { flex-direction: column !important; align-items: flex-start !important; }
   .store-header-actions { width: 100% !important; }
+  .store-header-stats { flex-direction: row !important; margin-top: 0 !important; gap: 8px !important; }
+  .store-header-stats > div { flex: 1; }
 
   /* Related items carousel: 160px cards */
   .related-card { width: 160px !important; }
@@ -627,6 +641,19 @@ details.sf > summary::marker { display: none; }
     max-width: 100% !important;
   }
 
+  /* RE province row: stack both selects vertically on mobile */
+  .re-province-row {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+  .re-province-row > div {
+    width: 100% !important;
+  }
+  .re-province-row select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   /* Grid/list toggle + filter btn stay on row 3 next to sort */
   .category-search-bar > *:not(:first-child):not(.province-nav-desktop) {
     flex-shrink: 0 !important;
@@ -668,6 +695,10 @@ details.sf > summary::marker { display: none; }
 
   .dashboard-mobile-nav {
     display: block !important;
+  }
+
+  .msg-listing-pill {
+    display: none !important;
   }
 
   .dashboard-hero {
@@ -760,9 +791,11 @@ details.sf > summary::marker { display: none; }
   /* Store profile header — description truncated on mobile */
   .store-header-desc {
     display: -webkit-box !important;
-    -webkit-line-clamp: 3 !important;
+    -webkit-line-clamp: 2 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
+    font-size: 12px !important;
+    margin-bottom: 8px !important;
   }
 
   /* Prevent summary card from overflowing viewport */
@@ -785,3 +818,19 @@ details.sf > summary::marker { display: none; }
     display: none !important;
   }
 }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Sidebar collapsible sections */
+details.sidebar-section > summary { list-style: none; }
+details.sidebar-section > summary::-webkit-details-marker { display: none; }
+details.sidebar-section[open] > summary svg { transform: rotate(180deg); }
+details.sidebar-section > summary svg { transition: transform 0.2s; }
+
+/* Generic sidebar details chevron rotation */
+.listing-sidebar details[open] > summary svg { transform: rotate(180deg); }
+.listing-sidebar details > summary svg { transition: transform 0.2s; }
+.listing-sidebar details > summary::-webkit-details-marker { display: none; }

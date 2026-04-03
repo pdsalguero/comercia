@@ -76,9 +76,10 @@ export function ListingCard({
   // For vehicles, brand/model is already in the title — don't duplicate
   const brand = !hasVehicleMeta && !isVehicle && attributes?.brand ? String(attributes.brand) : null;
   const model = !hasVehicleMeta && !isVehicle && attributes?.model ? String(attributes.model) : null;
-  const subSpec = !hasVehicleMeta
+  const subSpecRaw = !hasVehicleMeta
     ? (attributes?.storage ?? attributes?.capacity ?? attributes?.volume ?? attributes?.size ?? null)
     : null;
+  const subSpec = typeof subSpecRaw === "boolean" || subSpecRaw === null ? null : subSpecRaw;
   const brandModelLine = brand || model ? [brand, model].filter(Boolean).join(" · ") : null;
 
   // Show province if zone is known, otherwise fall back to neighborhood (extract province if "locality, province")

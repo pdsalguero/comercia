@@ -4,14 +4,17 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useRef } from 'react'
 
 const STATUSES = [
-  { value: '',        label: 'Todos' },
-  { value: 'active',  label: 'Activos' },
-  { value: 'paused',  label: 'Pausados' },
-  { value: 'expired', label: 'Vencidos' },
-  { value: 'sold',    label: 'Vendidos' },
+  { value: '',       label: 'Todos' },
+  { value: 'active', label: 'Activos' },
+  { value: 'paused', label: 'Pausados' },
 ]
 
-export function MyListingsSearch({ q, statusFilter }: { q: string; statusFilter: string }) {
+export function MyListingsSearch({ q, statusFilter, statusCounts = {}, total = 0 }: {
+  q: string
+  statusFilter: string
+  statusCounts?: Record<string, number>
+  total?: number
+}) {
   const router = useRouter()
   const pathname = usePathname()
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -58,26 +61,44 @@ export function MyListingsSearch({ q, statusFilter }: { q: string; statusFilter:
 
       {/* Status filter tabs */}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-        {STATUSES.map(s => (
-          <button
-            key={s.value}
-            onClick={() => navigate(undefined, s.value)}
-            style={{
-              padding: '5px 14px',
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: '1.5px solid',
-              borderColor: statusFilter === s.value ? '#6366f1' : '#e2e8f0',
-              background: statusFilter === s.value ? '#6366f1' : '#fff',
-              color: statusFilter === s.value ? '#fff' : '#64748b',
-              transition: 'all 0.15s',
-            }}
-          >
-            {s.label}
-          </button>
-        ))}
+        {STATUSES.map(s => {
+          const count = s.value === '' ? total : (statusCounts[s.value] ?? 0)
+          const isActive = statusFilter === s.value
+          return (
+            <button
+              key={s.value}
+              onClick={() => navigate(undefined, s.value)}
+              style={{
+                padding: '5px 12px',
+                borderRadius: '20px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: '1.5px solid',
+                borderColor: isActive ? '#6366f1' : '#e2e8f0',
+                background: isActive ? '#6366f1' : '#fff',
+                color: isActive ? '#fff' : '#64748b',
+                transition: 'all 0.15s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              {s.label}
+              {count > 0 && (
+                <span style={{
+                  background: isActive ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
+                  color: isActive ? '#fff' : '#475569',
+                  fontSize: '11px', fontWeight: 700,
+                  padding: '0 6px', borderRadius: '20px',
+                  lineHeight: '18px', minWidth: '18px', textAlign: 'center',
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

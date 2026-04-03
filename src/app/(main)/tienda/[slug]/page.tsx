@@ -254,10 +254,10 @@ export default async function TiendaPage({
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 16px" }}>
       {/* ── Store header ── */}
-      <div style={{ background: "#fff", borderRadius: "16px", overflow: "hidden", marginBottom: "20px", border: "1px solid #e8edf2", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+      <div className="store-header-card" style={{ background: "#fff", borderRadius: "16px", overflow: "hidden", marginBottom: "20px", border: "1px solid #e8edf2", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
 
         {/* Banner */}
-        <div style={{
+        <div className="store-header-banner" style={{
           height: "100px", position: "relative",
           background: profile.store_banner_url
             ? `url(${profile.store_banner_url}) center/cover`
@@ -267,10 +267,10 @@ export default async function TiendaPage({
         </div>
 
         {/* Body */}
-        <div style={{ padding: "0 20px 20px" }}>
+        <div className="store-header-body" style={{ padding: "0 20px 20px", display: "flex", gap: "14px", alignItems: "flex-start" }}>
 
           {/* Logo */}
-          <div style={{ position: "relative", display: "inline-block", marginTop: "-36px", marginBottom: "12px" }}>
+          <div className="store-header-logo" style={{ position: "relative", flexShrink: 0, marginTop: "-36px" }}>
             <div style={{
               width: "72px", height: "72px", borderRadius: "16px",
               border: "3px solid #fff", overflow: "hidden",
@@ -296,96 +296,100 @@ export default async function TiendaPage({
             )}
           </div>
 
-          {/* Name + badges */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
-            <h1 style={{ fontSize: "19px", fontWeight: 800, color: "#1e293b", margin: 0, lineHeight: 1.2 }}>
-              {storeName}
-            </h1>
-            <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.4px" }}>
-              TIENDA
-            </span>
-            {profile.store_verified && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Verificada
-              </span>
-            )}
-            {profile.identity_verified && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ID Verificado
-              </span>
-            )}
-          </div>
+          {/* Content */}
+          <div style={{ flex: 1, minWidth: 0, paddingTop: "6px" }}>
 
-          {/* Stats strip */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0", marginBottom: "10px", background: "#f8fafc", borderRadius: "10px", overflow: "hidden", border: "1px solid #f1f5f9" }}>
-            <div style={{ flex: 1, textAlign: "center", padding: "8px 6px", borderRight: "1px solid #f1f5f9" }}>
-              <div style={{ fontSize: "15px", fontWeight: 800, color: "#1e293b" }}>{totalListings}</div>
-              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>publicaciones</div>
-            </div>
-            <div style={{ flex: 1, textAlign: "center", padding: "8px 6px", borderRight: "1px solid #f1f5f9" }}>
-              {reviewCount > 0 ? (
-                <>
-                  <div style={{ fontSize: "15px", fontWeight: 800, color: "#f59e0b" }}>{avgRating.toFixed(1)} ★</div>
-                  <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>{reviewCount} reseñas</div>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontSize: "15px", fontWeight: 800, color: "#cbd5e1" }}>—</div>
-                  <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>sin reseñas</div>
-                </>
+            {/* Name + badges */}
+            <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap", marginBottom: "5px" }}>
+              <h1 style={{ fontSize: "18px", fontWeight: 800, color: "#1e293b", margin: 0, lineHeight: 1.2 }}>
+                {storeName}
+              </h1>
+              <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.4px" }}>
+                TIENDA
+              </span>
+              {profile.store_verified && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Verificada
+                </span>
+              )}
+              {profile.identity_verified && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  ID Verificado
+                </span>
               )}
             </div>
-            <div style={{ flex: 1, textAlign: "center", padding: "8px 6px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#475569", lineHeight: 1.2 }}>{storeTypeLabel}</div>
-              {memberSince && <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "1px" }}>desde {new Date(profile.created_at).getFullYear()}</div>}
+
+            {/* Stats row */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                {totalListings} publicaciones
+              </span>
+              {reviewCount > 0 ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#92400e", background: "#fef3c7", borderRadius: "20px", padding: "3px 10px", border: "1px solid #fde68a" }}>
+                  ★ {avgRating.toFixed(1)} · {reviewCount} reseñas
+                </span>
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#94a3b8", background: "#f8fafc", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
+                  sin reseñas
+                </span>
+              )}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "3px 10px", border: "1px solid #bfdbfe" }}>
+                {storeTypeLabel}
+              </span>
+              {memberSince && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
+                  Miembro desde {new Date(profile.created_at).getFullYear()}
+                </span>
+              )}
             </div>
-          </div>
 
-          {/* Description */}
-          {profile.store_description && (
-            <p className="store-header-desc" style={{ fontSize: "13px", color: "#64748b", margin: "0 0 12px", lineHeight: 1.6 }}>
-              {profile.store_description}
-            </p>
-          )}
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", gap: "10px", marginTop: profile.store_description ? "0" : "4px" }}>
-            {profile.store_whatsapp ? (
-              <a href={`https://wa.me/${profile.store_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flex: 1 }}>
-                <button style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                  padding: "11px 18px", borderRadius: "10px", border: "none",
-                  background: "#00a650", color: "#fff",
-                  fontSize: "14px", fontWeight: 700, cursor: "pointer",
-                  boxShadow: "0 2px 10px rgba(0,166,80,0.3)", fontFamily: "inherit",
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.998-1.412A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
-                  Contactar
-                </button>
-              </a>
-            ) : (
-              <button disabled style={{
-                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                padding: "11px 18px", borderRadius: "10px",
-                border: "1.5px solid #e2e8f0", background: "#f8fafc",
-                fontSize: "14px", fontWeight: 600, color: "#cbd5e1", cursor: "not-allowed", fontFamily: "inherit",
-              }}>
-                Sin contacto
-              </button>
+            {/* Description */}
+            {profile.store_description && (
+              <p className="store-header-desc" style={{ fontSize: "13px", color: "#64748b", margin: "0 0 12px", lineHeight: 1.55, maxWidth: "560px" }}>
+                {profile.store_description}
+              </p>
             )}
-            {canReview && (
-              <div style={{ flex: 1 }}>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {profile.store_whatsapp ? (
+                <a href={`https://wa.me/${profile.store_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                  <button style={{
+                    display: "inline-flex", alignItems: "center", gap: "6px",
+                    padding: "8px 18px", borderRadius: "8px", border: "none",
+                    background: "#00a650", color: "#fff",
+                    fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(0,166,80,0.25)", fontFamily: "inherit",
+                    whiteSpace: "nowrap",
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.998-1.412A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+                    Contactar
+                  </button>
+                </a>
+              ) : (
+                <button disabled style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  padding: "8px 18px", borderRadius: "8px",
+                  border: "1.5px solid #e2e8f0", background: "#f8fafc",
+                  fontSize: "13px", fontWeight: 600, color: "#cbd5e1", cursor: "not-allowed", fontFamily: "inherit",
+                }}>
+                  Sin contacto
+                </button>
+              )}
+              {canReview && (
                 <ReviewForm
                   sellerId={userId}
                   existingRating={existingReview?.rating}
                   existingComment={existingReview?.comment ?? undefined}
                   onSubmit={handleReview}
                 />
-              </div>
-            )}
+              )}
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -500,6 +504,96 @@ export default async function TiendaPage({
 
         {/* Main */}
         <div style={{ flex: 1, minWidth: 0 }}>
+
+          {/* Mobile filter bar — hidden on desktop, shown on mobile */}
+          <details className="store-mobile-filters" style={{ background: "#fff", borderRadius: "10px", border: "1px solid #f0f0f0", marginBottom: "10px" }}>
+            <summary style={{ padding: "10px 16px", fontSize: "13px", fontWeight: 700, color: "#334155", listStyle: "none", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+                Filtros
+                {hasFilters && <span style={{ background: "#f97316", color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 10, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>}
+              </span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "14px", borderTop: "1px solid #f0f0f0" }}>
+
+              {/* Categories */}
+              {categories.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Categoría</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    <Link href={buildUrl(base, sp, { cat: undefined })} style={{ textDecoration: "none" }}>
+                      <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${!sp.cat ? "#2563eb" : "#e2e8f0"}`, background: !sp.cat ? "#eff6ff" : "#fff", color: !sp.cat ? "#2563eb" : "#475569", fontWeight: !sp.cat ? 700 : 400 }}>Todas</span>
+                    </Link>
+                    {categories.map(cat => {
+                      const active = sp.cat === String(cat.id);
+                      return (
+                        <Link key={cat.id} href={buildUrl(base, sp, { cat: active ? undefined : String(cat.id) })} style={{ textDecoration: "none" }}>
+                          <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`, background: active ? "#eff6ff" : "#fff", color: active ? "#2563eb" : "#475569", fontWeight: active ? 700 : 400 }}>{CATEGORY_NAMES[cat.slug] ?? cat.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Tipos */}
+              {tipos.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Tipo</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
+                      <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${!sp.tipo ? "#2563eb" : "#e2e8f0"}`, background: !sp.tipo ? "#eff6ff" : "#fff", color: !sp.tipo ? "#2563eb" : "#475569", fontWeight: !sp.tipo ? 700 : 400 }}>Todos</span>
+                    </Link>
+                    {tipos.map(([tipo, count]) => {
+                      const active = sp.tipo === tipo;
+                      const label = tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/-/g, " ");
+                      return (
+                        <Link key={tipo} href={buildUrl(base, sp, { tipo: active ? undefined : tipo })} style={{ textDecoration: "none" }}>
+                          <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`, background: active ? "#eff6ff" : "#fff", color: active ? "#2563eb" : "#475569", fontWeight: active ? 700 : 400 }}>{label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Condition */}
+              <div>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Condición</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  {[{ value: "", label: "Todos" }, { value: "new", label: "Nuevo" }, { value: "like_new", label: "Como nuevo" }, { value: "used", label: "Usado" }].map(opt => {
+                    const active = (sp.condition ?? "") === opt.value;
+                    return (
+                      <Link key={opt.value} href={buildUrl(base, sp, { condition: opt.value || undefined })} style={{ textDecoration: "none" }}>
+                        <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`, background: active ? "#eff6ff" : "#fff", color: active ? "#2563eb" : "#475569", fontWeight: active ? 700 : 400 }}>{opt.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Price */}
+              <form method="GET" action={base}>
+                {Object.entries(sp).map(([k, v]) => v && k !== "price_min" && k !== "price_max" ? <input key={k} type="hidden" name={k} value={v} /> : null)}
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Precio</div>
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo" style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", boxSizing: "border-box" as const }} />
+                  <span style={{ color: "#94a3b8" }}>–</span>
+                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo" style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", boxSizing: "border-box" as const }} />
+                  <button type="submit" style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 12px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>OK</button>
+                </div>
+              </form>
+
+              {hasFilters && (
+                <Link href={base} style={{ textDecoration: "none" }}>
+                  <span style={{ fontSize: "13px", color: "#dc2626", fontWeight: 600 }}>✕ Limpiar filtros</span>
+                </Link>
+              )}
+
+            </div>
+          </details>
+
           {/* Controls bar */}
           <div style={{ background: "#fff", borderRadius: "10px", padding: "10px 16px", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px", border: "1px solid #f0f0f0" }}>
 
@@ -609,7 +703,7 @@ export default async function TiendaPage({
                           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                         }
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
                         <div style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {l.title}
                         </div>
@@ -627,7 +721,7 @@ export default async function TiendaPage({
                             </span>
                           )}
                           {l.neighborhood && (
-                            <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                            <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                               <PinIcon size={10} /> {l.neighborhood}
                             </span>
                           )}

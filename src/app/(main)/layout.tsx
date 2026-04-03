@@ -1,6 +1,5 @@
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
-import { PublishFAB } from '@/components/ui/PublishFAB'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +17,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         {children}
       </main>
       <Footer />
-      <PublishFAB />
     </div>
   )
 }

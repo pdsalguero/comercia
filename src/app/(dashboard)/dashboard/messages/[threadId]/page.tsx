@@ -150,7 +150,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
 
         {/* Listing pill */}
         {listing && (
-          <Link href={`/listings/${listing.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+          <Link href={`/listings/${listing.id}`} className="msg-listing-pill" style={{ textDecoration: "none", flexShrink: 0 }}>
             <div style={{
               display: "flex", alignItems: "center", gap: "8px",
               background: "#f8fafc", border: "1px solid #e2e8f0",

@@ -99,8 +99,10 @@ export function ContactButton({ listingId, listingTitle, sellerId, sellerName, d
           style={{
             position: "fixed", inset: 0, zIndex: 1000,
             background: "rgba(0,0,0,0.45)",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex", alignItems: "flex-start", justifyContent: "center",
             padding: "16px",
+            overflowY: "auto",
+            paddingTop: "max(16px, 5dvh)",
           }}
           onClick={handleClose}
         >
@@ -109,6 +111,8 @@ export function ContactButton({ listingId, listingTitle, sellerId, sellerName, d
               background: "#fff", borderRadius: "14px", width: "100%", maxWidth: "440px",
               boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
               overflow: "hidden",
+              maxHeight: "calc(100dvh - 32px)",
+              display: "flex", flexDirection: "column",
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -128,7 +132,7 @@ export function ContactButton({ listingId, listingTitle, sellerId, sellerName, d
             </div>
 
             {/* Body */}
-            <div style={{ padding: "18px 20px" }}>
+            <div style={{ padding: "18px 20px", overflowY: "auto", flex: 1 }}>
               {sent ? (
                 <div style={{ textAlign: "center", padding: "20px 0" }}>
                   <div style={{ fontSize: "40px", marginBottom: "10px" }}>✅</div>

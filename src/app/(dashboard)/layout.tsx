@@ -62,8 +62,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   background: '#3483fa', color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '24px', fontWeight: 800,
+                  overflow: 'hidden', flexShrink: 0,
                 }}>
-                  {profile?.full_name?.[0]?.toUpperCase() ?? '?'}
+                  {profile?.avatar_url
+                    ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : (profile?.full_name?.[0]?.toUpperCase() ?? profile?.username?.[0]?.toUpperCase() ?? '?')
+                  }
                 </div>
                 {(unreadCount ?? 0) > 0 && (
                   <span style={{
@@ -166,22 +170,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </aside>
 
           {/* Main content */}
-          <main style={{ minWidth: 0, overflow: 'hidden' }}>
+          <main style={{ minWidth: 0 }}>
             {/* Mobile nav — visible only on mobile */}
             <nav className="dashboard-mobile-nav" style={{ display: 'none' }}>
               <div style={{
                 background: '#fff', borderRadius: '10px', marginBottom: '12px',
-                overflowX: 'auto', whiteSpace: 'nowrap',
                 border: '1px solid #e2e8f0',
-                display: 'flex',
-                scrollbarWidth: 'none' as any,
+                display: 'flex', flexWrap: 'wrap',
               }}>
                 {navItems.map(item => (
                   <Link key={item.href} href={item.href} style={{ textDecoration: 'none', flexShrink: 0 }}>
                     <div style={{
-                      padding: '10px 16px', fontSize: '13px',
+                      padding: '9px 12px', fontSize: '12px',
                       color: '#475569', fontWeight: 600,
-                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
                     }}
                     className="hover:text-indigo-600"
                     >

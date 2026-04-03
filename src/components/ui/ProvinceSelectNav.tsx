@@ -19,9 +19,11 @@ interface Props {
   basePath: string;
   /** Serialized URLSearchParams string without province/zone params */
   baseSearch: string;
+  /** Placeholder shown when nothing selected (default: "Todo el país") */
+  placeholder?: string;
 }
 
-export function ProvinceSelectNav({ options, value, paramName, clearParam, basePath, baseSearch }: Props) {
+export function ProvinceSelectNav({ options, value, paramName, clearParam, basePath, baseSearch, placeholder = "Todo el país" }: Props) {
   const router = useRouter();
 
   function handleChange(province: string) {
@@ -70,7 +72,7 @@ export function ProvinceSelectNav({ options, value, paramName, clearParam, baseP
           maxWidth: "155px",
         }}
       >
-        <option value="">Todo el país</option>
+        <option value="">{placeholder}</option>
         {options.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}

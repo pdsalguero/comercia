@@ -1,14 +1,162 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export function GallerySection({ images, title }: { images: { url: string }[]; title: string }) {
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
-  const [zoomed, setZoomed] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
 
-  const prev = () => setActive((i) => (i - 1 + images.length) % images.length);
-  const next = () => setActive((i) => (i + 1) % images.length);
+  // Refs for touch tracking (avoid stale closures)
+  const scaleRef = useRef(1);
+  const translateRef = useRef({ x: 0, y: 0 });
+  const touchRef = useRef({
+    startX: 0,
+    startY: 0,
+    lastX: 0,
+    lastY: 0,
+    initialDistance: 0,
+    initialScale: 1,
+    initialTranslate: { x: 0, y: 0 },
+    isPinching: false,
+    startTime: 0,
+    lastTapTime: 0,
+  });
+  const imageWrapperRef = useRef<HTMLDivElement>(null);
+
+  const resetTransform = () => {
+    scaleRef.current = 1;
+    translateRef.current = { x: 0, y: 0 };
+    setScale(1);
+    setTranslate({ x: 0, y: 0 });
+  };
+
+  const prev = () => {
+    setActive((i) => (i - 1 + images.length) % images.length);
+    resetTransform();
+  };
+  const next = () => {
+    setActive((i) => (i + 1) % images.length);
+    resetTransform();
+  };
+  const closeLightbox = () => {
+    setLightbox(false);
+    resetTransform();
+  };
+
+  const getDistance = (t1: Touch, t2: Touch) => {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  // Attach touch handlers with passive:false so we can preventDefault
+  useEffect(() => {
+    const el = imageWrapperRef.current;
+    if (!el || !lightbox) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = touchRef.current;
+      t.startTime = Date.now();
+
+      if (e.touches.length === 2) {
+        t.isPinching = true;
+        t.initialDistance = getDistance(e.touches[0], e.touches[1]);
+        t.initialScale = scaleRef.current;
+        t.initialTranslate = { ...translateRef.current };
+        t.startX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        t.startY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      } else {
+        t.isPinching = false;
+        t.startX = e.touches[0].clientX;
+        t.startY = e.touches[0].clientY;
+        t.lastX = e.touches[0].clientX;
+        t.lastY = e.touches[0].clientY;
+        t.initialTranslate = { ...translateRef.current };
+        t.initialScale = scaleRef.current;
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault(); // prevent page scroll while panning/pinching
+      const t = touchRef.current;
+
+      if (e.touches.length === 2 && t.isPinching) {
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const newScale = Math.max(1, Math.min(6, t.initialScale * (currentDistance / t.initialDistance)));
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const newTranslate = {
+          x: t.initialTranslate.x + (midX - t.startX),
+          y: t.initialTranslate.y + (midY - t.startY),
+        };
+        scaleRef.current = newScale;
+        translateRef.current = newTranslate;
+        setScale(newScale);
+        setTranslate({ ...newTranslate });
+      } else if (e.touches.length === 1 && !t.isPinching) {
+        t.lastX = e.touches[0].clientX;
+        t.lastY = e.touches[0].clientY;
+        if (scaleRef.current > 1) {
+          const newTranslate = {
+            x: t.initialTranslate.x + (e.touches[0].clientX - t.startX),
+            y: t.initialTranslate.y + (e.touches[0].clientY - t.startY),
+          };
+          translateRef.current = newTranslate;
+          setTranslate({ ...newTranslate });
+        }
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const t = touchRef.current;
+      const now = Date.now();
+
+      if (t.isPinching) {
+        t.isPinching = false;
+        if (scaleRef.current < 1.15) resetTransform();
+        return;
+      }
+
+      // Double tap → toggle zoom
+      if (now - t.lastTapTime < 300) {
+        t.lastTapTime = 0;
+        if (scaleRef.current > 1) {
+          resetTransform();
+        } else {
+          scaleRef.current = 2.5;
+          translateRef.current = { x: 0, y: 0 };
+          setScale(2.5);
+          setTranslate({ x: 0, y: 0 });
+        }
+        return;
+      }
+      t.lastTapTime = now;
+
+      // Swipe to navigate (only when not zoomed)
+      if (scaleRef.current <= 1) {
+        const dx = t.lastX - t.startX;
+        const dy = Math.abs(t.lastY - t.startY);
+        const duration = now - t.startTime;
+        if (Math.abs(dx) > 50 && dy < 100 && duration < 500) {
+          if (dx < 0) next();
+          else prev();
+        }
+      }
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightbox, images.length]);
 
   if (images.length === 0) {
     return (
@@ -55,7 +203,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             borderRadius: "8px", position: "relative",
             cursor: "zoom-in", overflow: "hidden",
           }}
-          onClick={() => { setZoomed(false); setLightbox(true); }}
+          onClick={() => { setLightbox(true); }}
         >
           {/* Fondo borroso con la misma imagen */}
           <img
@@ -129,7 +277,6 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
       {/* Lightbox */}
       {lightbox && (
         <div
-          onClick={() => { if (zoomed) setZoomed(false); else setLightbox(false); }}
           style={{
             position: "fixed", inset: 0, zIndex: 1000,
             background: "rgba(0,0,0,.92)",
@@ -138,9 +285,9 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
         >
           {/* Close */}
           <button
-            onClick={(e) => { e.stopPropagation(); setLightbox(false); setZoomed(false); }}
+            onClick={closeLightbox}
             style={{
-              position: "absolute", top: "16px", right: "20px",
+              position: "absolute", top: "16px", right: "20px", zIndex: 10,
               background: "rgba(255,255,255,.15)", border: "none", color: "#fff",
               fontSize: "28px", cursor: "pointer", borderRadius: "50%",
               width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center",
@@ -149,12 +296,12 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             ×
           </button>
 
-          {/* Prev */}
-          {images.length > 1 && (
+          {/* Prev — only show when not zoomed */}
+          {images.length > 1 && scale <= 1 && (
             <button
-              onClick={(e) => { e.stopPropagation(); prev(); setZoomed(false); }}
+              onClick={(e) => { e.stopPropagation(); prev(); }}
               style={{
-                position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)",
+                position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", zIndex: 10,
                 background: "#fff", border: "none", cursor: "pointer", borderRadius: "50%",
                 width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 2px 10px rgba(0,0,0,.3)",
@@ -166,29 +313,45 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             </button>
           )}
 
-          {/* Image */}
-          <img
-            src={images[active].url}
-            alt={title}
-            onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
+          {/* Touch/image area — full screen, handles all gestures */}
+          <div
+            ref={imageWrapperRef}
             style={{
-              maxWidth: zoomed ? "none" : "90vw",
-              maxHeight: zoomed ? "none" : "90vh",
-              width: zoomed ? "auto" : undefined,
-              objectFit: "contain",
-              cursor: zoomed ? "zoom-out" : "zoom-in",
-              transform: zoomed ? "scale(1.8)" : "scale(1)",
-              transition: "transform .25s ease",
-              borderRadius: "4px",
+              position: "absolute", inset: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              touchAction: "none", // let our handlers manage all touch
+              cursor: scale > 1 ? "grab" : "zoom-in",
             }}
-          />
-
-          {/* Next */}
-          {images.length > 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); next(); setZoomed(false); }}
+            onClick={(e) => {
+              // Close only if not zoomed and click was not on a button
+              if (scale <= 1 && e.target === e.currentTarget) closeLightbox();
+            }}
+          >
+            <img
+              src={images[active].url}
+              alt={title}
+              draggable={false}
               style={{
-                position: "absolute", right: "16px", top: "50%", transform: "translateY(-50%)",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                objectFit: "contain",
+                borderRadius: "4px",
+                userSelect: "none",
+                transformOrigin: "center center",
+                transform: `scale(${scale}) translate(${translate.x / scale}px, ${translate.y / scale}px)`,
+                transition: scale === 1 ? "transform .2s ease" : "none",
+                willChange: "transform",
+              }}
+            />
+          </div>
+
+          {/* Next — only show when not zoomed */}
+          {images.length > 1 && scale <= 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); next(); }}
+              style={{
+                position: "absolute", right: "16px", top: "50%", transform: "translateY(-50%)", zIndex: 10,
                 background: "#fff", border: "none", cursor: "pointer", borderRadius: "50%",
                 width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 2px 10px rgba(0,0,0,.3)",
@@ -200,17 +363,17 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             </button>
           )}
 
-          {/* Thumbnail strip in lightbox */}
-          {images.length > 1 && (
+          {/* Thumbnail strip in lightbox — only when not zoomed */}
+          {images.length > 1 && scale <= 1 && (
             <div style={{
-              position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)",
+              position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)", zIndex: 10,
               display: "flex", gap: "8px", padding: "8px 12px",
               background: "rgba(0,0,0,.4)", borderRadius: "10px",
             }}>
               {images.map((img, i) => (
                 <button
                   key={i}
-                  onClick={(e) => { e.stopPropagation(); setActive(i); setZoomed(false); }}
+                  onClick={(e) => { e.stopPropagation(); setActive(i); resetTransform(); }}
                   style={{
                     width: "44px", height: "44px", padding: 0,
                     border: "2px solid", borderColor: i === active ? "#fff" : "transparent",
@@ -225,12 +388,25 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
 
           {/* Counter */}
           <div style={{
-            position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)",
+            position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)", zIndex: 10,
             background: "rgba(255,255,255,.15)", color: "#fff",
             fontSize: "13px", fontWeight: 600, padding: "4px 14px", borderRadius: "20px",
+            pointerEvents: "none",
           }}>
             {active + 1} / {images.length}
           </div>
+
+          {/* Zoom hint — only when not zoomed, on touch devices */}
+          {scale <= 1 && (
+            <div style={{
+              position: "absolute", bottom: images.length > 1 ? "80px" : "16px",
+              left: "50%", transform: "translateX(-50%)", zIndex: 10,
+              color: "rgba(255,255,255,.5)", fontSize: "11px",
+              pointerEvents: "none", whiteSpace: "nowrap",
+            }}>
+              Pellizca para hacer zoom · Doble toque para acercar
+            </div>
+          )}
         </div>
       )}
     </>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const INPUT = {
@@ -27,6 +27,7 @@ const LABEL = {
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
@@ -46,7 +47,8 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/')
+    const redirect = searchParams.get('redirect')
+    router.push(redirect ?? '/')
     router.refresh()
   }
 

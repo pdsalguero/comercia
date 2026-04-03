@@ -593,12 +593,7 @@ export default async function CategoryPage({
     const reBed = sp.bedrooms || sp.re_bedrooms;
     if (reSub) query = query.eq("attributes->>sub_category" as any, reSub);
     if (reOp)  query = query.eq("attributes->>operation" as any, reOp);
-    if (sp.re_zone) {
-      query = query.eq("attributes->>zone" as any, sp.re_zone);
-    } else if (sp.re_province && RE_LOCATIONS[sp.re_province]) {
-      const provinceZones = RE_LOCATIONS[sp.re_province].zones.map(z => z.value);
-      query = query.in("attributes->>zone" as any, provinceZones);
-    }
+    // re_zone and re_province are handled JS-side to also match listings stored via neighborhood string
     if (reBed) query = query.eq("attributes->>bedrooms" as any, reBed);
     if (sp.re_bathrooms) query = query.eq("attributes->>bathrooms" as any, sp.re_bathrooms);
     if (sp.re_seller) query = query.eq("attributes->>seller_type" as any, sp.re_seller);
@@ -662,6 +657,21 @@ export default async function CategoryPage({
       const zone = (a.zone as string | undefined) ?? "";
       const nb = ((l.neighborhood as string | undefined) ?? "").toLowerCase();
       if (!provinceZones.has(zone) && !nb.includes(provinceName)) return false;
+    }
+    // Real-estate province/zone filter — checks attributes.zone slug OR neighborhood string
+    if (isRealEstate && (sp.re_province || sp.re_zone)) {
+      const zoneSlug = (a.zone as string | undefined) ?? "";
+      const nb = ((l.neighborhood as string | undefined) ?? "").toLowerCase();
+      if (sp.re_zone) {
+        // Match exact zone: attributes.zone === slug OR neighborhood contains zone label
+        const zoneLabel = (sp.re_province ? (RE_LOCATIONS[sp.re_province]?.zones.find(z => z.value === sp.re_zone)?.label ?? sp.re_zone) : sp.re_zone).toLowerCase();
+        if (zoneSlug !== sp.re_zone && !nb.includes(zoneLabel)) return false;
+      } else if (sp.re_province && RE_LOCATIONS[sp.re_province]) {
+        // Match any zone in province: attributes.zone in province zones OR neighborhood contains province name
+        const provinceZones = new Set(RE_LOCATIONS[sp.re_province].zones.map(z => z.value));
+        const provinceName = RE_LOCATIONS[sp.re_province].label.toLowerCase();
+        if (!provinceZones.has(zoneSlug) && !nb.includes(provinceName)) return false;
+      }
     }
     // General FilterPanel filters
     if (sp.size && a.size !== sp.size) return false;
@@ -1088,7 +1098,7 @@ export default async function CategoryPage({
   }
 
   return (
-    <div className="category-page-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px 0" }}>
+    <div className="category-page-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "16px 16px 48px" }}>
     <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
 
 
@@ -2600,64 +2610,70 @@ export default async function CategoryPage({
             </div>
           )}
 
-          {/* Province + Locality */}
+          {/* Precio */}
           {isRealEstate && (
-            <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              {Object.entries(sp).map(([k, v]) =>
-                v && k !== "re_province" && k !== "re_zone" ? <input key={k} type="hidden" name={k} value={v} /> : null
-              )}
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Ubicación
-              </div>
-              <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                <div>
-                  <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.4px" }}>Provincia</div>
-                  <select
-                    name="re_province"
-                    defaultValue={sp.re_province ?? ""}
-                    style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", background: "#fff" }}
-                  >
-                    <option value="">Todas las provincias</option>
-                    {Object.entries(RE_LOCATIONS).map(([key, prov]) => (
-                      <option key={key} value={key}>{prov.label}</option>
-                    ))}
-                  </select>
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                Precio
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <form method="GET" action={`/category/${slug}`} style={{ padding: "10px 16px", borderTop: "1px solid #f0f0f0" }}>
+                {Object.entries(sp).map(([k, v]) =>
+                  v && k !== "price_min" && k !== "price_max" ? <input key={k} type="hidden" name={k} value={v} /> : null
+                )}
+                <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
+                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
                 </div>
-                {(() => {
-                  const provKey = sp.re_province ?? "san-juan";
-                  const zones = RE_LOCATIONS[provKey]?.zones ?? RE_LOCATIONS["san-juan"].zones;
-                  return (
-                    <div>
-                      <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.4px" }}>
-                        Localidad
-                      </div>
-                      <select
-                        name="re_zone"
-                        defaultValue={sp.re_zone ?? ""}
-                        style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", background: "#fff" }}
-                      >
-                        <option value="">Todas las localidades</option>
-                        {zones.map(z => (
-                          <option key={z.value} value={z.value}>{z.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                })()}
                 <button type="submit" style={{ width: "100%", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
                   Aplicar
                 </button>
+              </form>
+            </details>
+          )}
+
+          {/* Condición */}
+          {isRealEstate && (
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                Condición
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <div style={{ borderTop: "1px solid #f0f0f0" }}>
+                {[
+                  { value: "new", label: "Nueva" },
+                  { value: "very_good", label: "Muy buena" },
+                  { value: "good", label: "Buena" },
+                ].map(c => {
+                  const active = sp.condition === c.value;
+                  return (
+                    <Link key={c.value} href={buildUrl({ condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        padding: "9px 16px", fontSize: "13px", cursor: "pointer",
+                        background: active ? "#eff6ff" : "transparent",
+                        color: active ? "#2563eb" : "#444",
+                        fontWeight: active ? 700 : 400,
+                        borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                      }}>
+                        {c.label}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-            </form>
+            </details>
           )}
 
           {/* Bedrooms */}
           {isRealEstate && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 Dormitorios
-              </div>
-              <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px", borderTop: "1px solid #f0f0f0" }}>
                 {RE_BEDROOMS.map(b => {
                   const active = sp.re_bedrooms === b.value;
                   return (
@@ -2669,16 +2685,17 @@ export default async function CategoryPage({
                   );
                 })}
               </div>
-            </div>
+            </details>
           )}
 
           {/* Bathrooms */}
           {isRealEstate && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 Baños
-              </div>
-              <div style={{ padding: "10px 16px", display: "flex", gap: "6px" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <div style={{ padding: "10px 16px", display: "flex", gap: "6px", borderTop: "1px solid #f0f0f0" }}>
                 {["1", "2", "3", "4+"].map(b => {
                   const active = sp.re_bathrooms === b;
                   return (
@@ -2690,39 +2707,41 @@ export default async function CategoryPage({
                   );
                 })}
               </div>
-            </div>
+            </details>
           )}
 
           {/* m2 range */}
           {isRealEstate && (
-            <form method="GET" action={`/category/${slug}`} style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              {Object.entries(sp).map(([k, v]) =>
-                v && k !== "m2_min" && k !== "m2_max" ? <input key={k} type="hidden" name={k} value={v} /> : null
-              )}
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 Superficie (m²)
-              </div>
-              <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
-                <input name="m2_min" type="number" defaultValue={sp.m2_min} placeholder="Mín."
-                  style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
-                <input name="m2_max" type="number" defaultValue={sp.m2_max} placeholder="Máx."
-                  style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
-              </div>
-              <div style={{ padding: "0 16px 12px" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <form method="GET" action={`/category/${slug}`} style={{ padding: "10px 16px", borderTop: "1px solid #f0f0f0" }}>
+                {Object.entries(sp).map(([k, v]) =>
+                  v && k !== "m2_min" && k !== "m2_max" ? <input key={k} type="hidden" name={k} value={v} /> : null
+                )}
+                <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                  <input name="m2_min" type="number" defaultValue={sp.m2_min} placeholder="Mín."
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
+                  <input name="m2_max" type="number" defaultValue={sp.m2_max} placeholder="Máx."
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
+                </div>
                 <button type="submit" style={{ width: "100%", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
                   Aplicar
                 </button>
-              </div>
-            </form>
+              </form>
+            </details>
           )}
 
           {/* Features */}
           {isRealEstate && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 Características
-              </div>
-              <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px", borderTop: "1px solid #f0f0f0" }}>
                 {RE_FEATURES.map(f => {
                   const active = (sp as any)[f.key] === "1";
                   return (
@@ -2734,26 +2753,29 @@ export default async function CategoryPage({
                   );
                 })}
               </div>
-            </div>
+            </details>
           )}
 
           {/* Seller type (real estate) */}
           {isRealEstate && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            <details style={{ background: "#fff", borderRadius: "10px", overflow: "hidden" }}>
+              <summary style={{ padding: "11px 16px", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 Publicado por
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <div style={{ borderTop: "1px solid #f0f0f0" }}>
+                {[{ value: "particular", label: "Dueño directo" }, { value: "inmobiliaria", label: "Inmobiliaria" }].map(s => {
+                  const active = sp.re_seller === s.value;
+                  return (
+                    <Link key={s.value} href={buildUrl({ re_seller: active ? undefined : s.value })} style={{ textDecoration: "none" }}>
+                      <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
+                        {s.label}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-              {[{ value: "particular", label: "Dueño directo" }, { value: "inmobiliaria", label: "Inmobiliaria" }].map(s => {
-                const active = sp.re_seller === s.value;
-                return (
-                  <Link key={s.value} href={buildUrl({ re_seller: active ? undefined : s.value })} style={{ textDecoration: "none" }}>
-                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
-                      {s.label}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            </details>
           )}
 
           {/* Provincia (phones) */}
@@ -2932,8 +2954,8 @@ export default async function CategoryPage({
             </Link>
           )}
 
-          {/* FilterPanel — desktop (not for vehicles: they have dedicated sidebar sections) */}
-          {!isVehicles && <FilterPanel
+          {/* FilterPanel — desktop (not for vehicles or real-estate: they have dedicated sidebar sections) */}
+          {!isVehicles && !isRealEstate && <FilterPanel
             mode="desktop"
             category={slug}
             categoryId={cat.id}
@@ -3008,23 +3030,59 @@ export default async function CategoryPage({
                 style={{ flex: 1, minWidth: 0 }}
               />
 
-              {/* Province selector — vehicles: shown in search bar (hidden on mobile, moved to filter drawer) */}
+              {/* Province selector — vehicles */}
               {isVehicles && (
                 <div className="province-nav-desktop">
-                <ProvinceSelectNav
-                  options={Object.entries(RE_LOCATIONS).map(([k, p]) => ({ value: k, label: p.label }))}
-                  value={sp.v_province}
-                  paramName="v_province"
-                  clearParam="v_zone"
-                  basePath={`/category/${slug}`}
-                  baseSearch={(() => {
-                    const base = new URLSearchParams();
-                    for (const [k, v] of Object.entries(sp)) {
-                      if (v && k !== "v_province" && k !== "v_zone") base.set(k, v);
-                    }
-                    return base.toString();
-                  })()}
-                />
+                  <ProvinceSelectNav
+                    options={Object.entries(RE_LOCATIONS).map(([k, p]) => ({ value: k, label: p.label }))}
+                    value={sp.v_province}
+                    paramName="v_province"
+                    clearParam="v_zone"
+                    basePath={`/category/${slug}`}
+                    baseSearch={(() => {
+                      const base = new URLSearchParams();
+                      for (const [k, v] of Object.entries(sp)) {
+                        if (v && k !== "v_province" && k !== "v_zone") base.set(k, v);
+                      }
+                      return base.toString();
+                    })()}
+                  />
+                </div>
+              )}
+
+              {/* Province + Zone selectors — real-estate */}
+              {isRealEstate && (
+                <div className="province-nav-desktop re-province-row" style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  <ProvinceSelectNav
+                    options={Object.entries(RE_LOCATIONS).map(([k, p]) => ({ value: k, label: p.label }))}
+                    value={sp.re_province}
+                    paramName="re_province"
+                    clearParam="re_zone"
+                    basePath={`/category/${slug}`}
+                    baseSearch={(() => {
+                      const base = new URLSearchParams();
+                      for (const [k, v] of Object.entries(sp)) {
+                        if (v && k !== "re_province" && k !== "re_zone") base.set(k, v);
+                      }
+                      return base.toString();
+                    })()}
+                  />
+                  {sp.re_province && RE_LOCATIONS[sp.re_province]?.zones.length > 0 && (
+                    <ProvinceSelectNav
+                      options={[...RE_LOCATIONS[sp.re_province].zones].sort((a, b) => a.label.localeCompare(b.label, "es"))}
+                      value={sp.re_zone}
+                      paramName="re_zone"
+                      placeholder="Todas las localidades"
+                      basePath={`/category/${slug}`}
+                      baseSearch={(() => {
+                        const base = new URLSearchParams();
+                        for (const [k, v] of Object.entries(sp)) {
+                          if (v && k !== "re_zone") base.set(k, v);
+                        }
+                        return base.toString();
+                      })()}
+                    />
+                  )}
                 </div>
               )}
 
@@ -3044,6 +3102,8 @@ export default async function CategoryPage({
                   year_from: sp.year_from, year_to: sp.year_to, km_max: sp.km_max,
                   v_province: sp.v_province,
                   re_sub: sp.re_sub || sp.re_type,
+                  re_province: sp.re_province,
+                  re_zone: sp.re_zone,
                   operation: sp.operation || sp.re_operation,
                   bedrooms: sp.bedrooms || sp.re_bedrooms,
                   size: sp.size,
@@ -3159,12 +3219,12 @@ export default async function CategoryPage({
               {sp.year_to && <Chip label={`Hasta ${sp.year_to}`} href={buildUrl({ year_to: undefined })} />}
               {sp.km_max && <Chip label={`Hasta ${Number(sp.km_max).toLocaleString("es-AR")} km`} href={buildUrl({ km_max: undefined })} />}
               {sp.seller_type && <Chip label={sp.seller_type === "particular" ? "Particular" : "Concesionaria"} href={buildUrl({ seller_type: undefined })} />}
-              {sp.v_province && <Chip label={RE_LOCATIONS[sp.v_province]?.label ?? sp.v_province} href={buildUrl({ v_province: undefined, v_zone: undefined })} />}
-              {sp.v_zone && <Chip label={RE_LOCATIONS[sp.v_province ?? ""]?.zones.find(z => z.value === sp.v_zone)?.label ?? sp.v_zone} href={buildUrl({ v_zone: undefined })} />}
+              {isVehicles && sp.v_province && <Chip label={RE_LOCATIONS[sp.v_province]?.label ?? sp.v_province} href={buildUrl({ v_province: undefined, v_zone: undefined })} />}
+              {isVehicles && sp.v_zone && <Chip label={RE_LOCATIONS[sp.v_province ?? ""]?.zones.find(z => z.value === sp.v_zone)?.label ?? sp.v_zone} href={buildUrl({ v_zone: undefined })} />}
               {sp.re_type && <Chip label={RE_PROPERTY_TYPES.find(t => t.value === sp.re_type)?.label ?? sp.re_type!} href={buildUrl({ re_type: undefined })} />}
               {sp.re_operation && <Chip label={RE_OPERATIONS.find(o => o.value === sp.re_operation)?.label ?? sp.re_operation!} href={buildUrl({ re_operation: undefined })} />}
-              {sp.re_province && <Chip label={RE_LOCATIONS[sp.re_province]?.label ?? sp.re_province} href={buildUrl({ re_province: undefined, re_zone: undefined })} />}
-              {sp.re_zone && <Chip label={ALL_RE_ZONES.find(z => z.value === sp.re_zone)?.label ?? sp.re_zone!} href={buildUrl({ re_zone: undefined })} />}
+              {isRealEstate && sp.re_province && <Chip label={RE_LOCATIONS[sp.re_province]?.label ?? sp.re_province} href={buildUrl({ re_province: undefined, re_zone: undefined })} />}
+              {isRealEstate && sp.re_zone && <Chip label={ALL_RE_ZONES.find(z => z.value === sp.re_zone)?.label ?? sp.re_zone!} href={buildUrl({ re_zone: undefined })} />}
               {sp.re_bedrooms && <Chip label={`${sp.re_bedrooms === "monoambiente" ? "Monoambiente" : `${sp.re_bedrooms} dorm.`}`} href={buildUrl({ re_bedrooms: undefined })} />}
               {sp.re_bathrooms && <Chip label={`${sp.re_bathrooms} baño(s)`} href={buildUrl({ re_bathrooms: undefined })} />}
               {sp.m2_min && <Chip label={`Desde ${sp.m2_min} m²`} href={buildUrl({ m2_min: undefined })} />}
