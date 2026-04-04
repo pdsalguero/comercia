@@ -54,7 +54,7 @@ export default function RegisterPage() {
     setError('')
 
     const supabase = createClient()
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName, username } },
@@ -68,7 +68,14 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/dashboard')
+    // Si no hay sesión, el email requiere confirmación
+    if (!data.session) {
+      setError('Revisá tu email para confirmar la cuenta.')
+      setLoading(false)
+      return
+    }
+
+    router.push('/')
   }
 
   const strength = password.length === 0 ? 0 : password.length < 8 ? 1 : password.length < 10 ? 2 : password.length < 12 ? 3 : 4
