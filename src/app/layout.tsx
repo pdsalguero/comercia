@@ -10,11 +10,11 @@ const BASE = "https://comerxia.com.ar";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: {
-    default: "ComerxIA — Comprá y vendé en Argentina con IA",
+    default: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
     template: "%s | ComerxIA",
   },
   description:
-    "El marketplace inteligente de Argentina. Publicá tu aviso en 30 segundos con inteligencia artificial. Autos, motos, inmuebles, electrónica y más.",
+    "El marketplace inteligente. Todo con el poder de la IA. Publicá tu aviso en 30 segundos con inteligencia artificial. Autos, motos, inmuebles, electrónica y más.",
   keywords: [
     "clasificados argentina",
     "comprar usado argentina",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     "publicar aviso gratis",
   ],
   openGraph: {
-    title: "ComerxIA — El marketplace inteligente de Argentina",
+    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
     description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
     url: BASE,
     siteName: "ComerxIA",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ComerxIA — El marketplace inteligente de Argentina",
+    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
     description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
     images: [`${BASE}/og-image.jpg`],
   },

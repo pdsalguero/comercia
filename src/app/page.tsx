@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "ComerxIA — El marketplace inteligente de Argentina",
+  title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
   description: "Comprá y vendé en Argentina con inteligencia artificial. Publicá tu aviso de autos, motos, inmuebles y más en 30 segundos. Gratis.",
   keywords: ["marketplace argentina", "clasificados argentina", "comprar auto argentina", "vender moto argentina", "inmuebles argentina", "avisos gratis argentina"],
   alternates: { canonical: "https://comerxia.com.ar" },
   openGraph: {
-    title: "ComerxIA — El marketplace inteligente de Argentina",
+    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
     description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
     url: "https://comerxia.com.ar",
     type: "website",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ComerxIA — El marketplace inteligente de Argentina",
+    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
     description: "Publicá tu aviso en 30 segundos con IA. Gratis.",
     images: ["https://comerxia.com.ar/og-image.jpg"],
   },
