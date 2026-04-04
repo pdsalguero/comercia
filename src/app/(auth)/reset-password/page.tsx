@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -10,6 +10,20 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm]   = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+  const [ready, setReady]       = useState(false)
+
+  // Supabase lee automáticamente los hash params (#access_token=...&type=recovery)
+  // y establece la sesión. Esperamos a que lo haga antes de mostrar el form.
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') setReady(true)
+    })
+    // Si ya hay sesión activa (PKCE flow via callback), mostrar directamente
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setReady(true)
+    })
+  }, [])
 
   const strength = password.length === 0 ? 0 : password.length < 8 ? 1 : password.length < 10 ? 2 : password.length < 12 ? 3 : 4
   const strengthColor = ['#e2e8f0', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e'][strength]
@@ -40,6 +54,12 @@ export default function ResetPasswordPage() {
     padding: '11px 14px', fontSize: '14px', outline: 'none',
     boxSizing: 'border-box', color: '#0f172a', background: '#fff',
   }
+
+  if (!ready) return (
+    <div style={{ background: '#fff', borderRadius: '16px', padding: '36px 32px', width: '100%', maxWidth: '400px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', textAlign: 'center' }}>
+      <p style={{ fontSize: '14px', color: '#64748b' }}>Verificando link...</p>
+    </div>
+  )
 
   return (
     <div style={{

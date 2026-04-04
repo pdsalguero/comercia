@@ -83,6 +83,19 @@ export default async function AdminDashboard() {
   // Recent views (last 10)
   const recentViews = views.slice(0, 10);
 
+  // Conversión: registros últimos 7 días vs visitas últimos 7 días
+  const sevenDaysAgo = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
+  const [{ count: newUsersWeek }, { count: newListingsWeek }, { data: pagoStats }] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", sevenDaysAgo),
+    supabase.from("listings").select("*", { count: "exact", head: true }).gte("created_at", sevenDaysAgo),
+    service.from("pagos").select("amount, mp_status").eq("mp_status", "approved"),
+  ]);
+
+  const visitasWeek = views.filter((v: any) => v.created_at >= sevenDaysAgo).length;
+  const conversionRate = visitasWeek > 0 ? ((newUsersWeek ?? 0) / visitasWeek * 100).toFixed(1) : "0";
+  const avgListingsPerUser = (totalUsers ?? 0) > 0 ? ((totalListings ?? 0) / (totalUsers ?? 1)).toFixed(1) : "0";
+  const totalRevenue = (pagoStats ?? []).reduce((sum, p) => sum + (p.amount ?? 0), 0);
+
   // Recent listings & users
   const { data: recentListings } = await supabase
     .from("listings")
@@ -135,6 +148,29 @@ export default async function AdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── Conversión (últimos 7 días) ── */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "14px" }}>Conversión — últimos 7 días</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+          {[
+            { label: "Visitas al landing", value: visitasWeek, icon: "👁", color: "#0ea5e9", bg: "#f0f9ff" },
+            { label: "Nuevos usuarios", value: newUsersWeek ?? 0, icon: "👤", color: "#6366f1", bg: "#eef2ff" },
+            { label: "Tasa de registro", value: `${conversionRate}%`, icon: "📈", color: "#10b981", bg: "#ecfdf5" },
+            { label: "Nuevas publicaciones", value: newListingsWeek ?? 0, icon: "📋", color: "#f59e0b", bg: "#fffbeb" },
+            { label: "Avisos por usuario", value: avgListingsPerUser, icon: "📊", color: "#8b5cf6", bg: "#f5f3ff" },
+            { label: "Ingresos totales", value: `$${totalRevenue.toLocaleString("es-AR")}`, icon: "💰", color: "#10b981", bg: "#ecfdf5" },
+          ].map(s => (
+            <div key={s.label} style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "14px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>{s.icon}</div>
+              <div>
+                <div style={{ fontSize: "18px", fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "3px" }}>{s.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Visitor analytics ── */}

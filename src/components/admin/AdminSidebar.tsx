@@ -8,6 +8,8 @@ const NAV = [
   { href: "/admin",               label: "Dashboard",     icon: "📊" },
   { href: "/admin/usuarios",      label: "Usuarios",      icon: "👥" },
   { href: "/admin/publicaciones", label: "Publicaciones", icon: "📋" },
+  { href: "/admin/pagos",         label: "Pagos",         icon: "💰" },
+  { href: "/admin/resenas",       label: "Reseñas",       icon: "⭐" },
 ];
 
 interface Props {

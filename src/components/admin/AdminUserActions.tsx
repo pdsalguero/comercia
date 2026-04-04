@@ -18,6 +18,9 @@ export function AdminUserActions({ user }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
+  const [creditAmount, setCreditAmount] = useState(1);
 
   async function doAction(action: string, body?: object) {
     setLoading(action);
@@ -27,6 +30,7 @@ export function AdminUserActions({ user }: Props) {
       body: JSON.stringify({ action, ...body }),
     });
     setLoading(null);
+    if (action === "reset_password") { setResetSent(true); return; }
     router.refresh();
   }
 
@@ -52,6 +56,41 @@ export function AdminUserActions({ user }: Props) {
         : btn("Bloquear", "block", "#ef4444", "#fef2f2", () => setShowReason(true))
       }
       {!user.is_verified && btn("Verificar", "verify", "#3b82f6", "#eff6ff")}
+      {resetSent
+        ? <span style={{ fontSize: "11px", color: "#10b981", fontWeight: 600 }}>✅ Email enviado</span>
+        : btn("Reset pass", "reset_password", "#7c3aed", "#f5f3ff")
+      }
+      {btn("👑 Créditos", "add_credits", "#d97706", "#fffbeb", () => setShowCredits(true))}
+
+      {showCredits && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", borderRadius: "14px", padding: "28px", width: "320px", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: "15px", color: "#0f172a", fontWeight: 700 }}>
+              Asignar créditos Gold a {user.full_name ?? "este usuario"}
+            </h3>
+            <p style={{ margin: "0 0 14px", fontSize: "12px", color: "#64748b" }}>
+              Cada crédito permite destacar 1 publicación como Gold sin costo.
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+              <button onClick={() => setCreditAmount(v => Math.max(1, v - 1))}
+                style={{ width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: "16px", cursor: "pointer", fontWeight: 700 }}>−</button>
+              <span style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", minWidth: "32px", textAlign: "center" }}>{creditAmount}</span>
+              <button onClick={() => setCreditAmount(v => v + 1)}
+                style={{ width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: "16px", cursor: "pointer", fontWeight: 700 }}>+</button>
+            </div>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => { setShowCredits(false); setCreditAmount(1); }}
+                style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#fff", fontSize: "12px", cursor: "pointer", color: "#64748b" }}>
+                Cancelar
+              </button>
+              <button onClick={() => { setShowCredits(false); doAction("add_credits", { amount: creditAmount }); setCreditAmount(1); }}
+                style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: "#f59e0b", color: "#fff", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
+                Asignar {creditAmount} crédito{creditAmount !== 1 ? "s" : ""}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showReason && (
         <div style={{

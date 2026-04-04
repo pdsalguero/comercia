@@ -300,3 +300,25 @@ export function nuevoMensajeTemplate({
 
   return { subject: `💬 ${senderName} te escribió sobre "${listingTitle}"`, html };
 }
+
+export function resetPasswordTemplate({
+  userName,
+  resetUrl,
+}: {
+  userName: string;
+  resetUrl: string;
+}): { subject: string; html: string } {
+  const html = shell(
+    `<p style="color:#94a3b8; font-size:13px; margin:8px 0 0;">Restablecé tu contraseña</p>`,
+    `
+    <h1 class="title">🔐 Restablecé tu contraseña</h1>
+    <p class="text">Hola ${userName}, recibimos una solicitud para restablecer la contraseña de tu cuenta en ComerxIA.</p>
+    <p class="text">Hacé clic en el botón para elegir una nueva contraseña:</p>
+    <div class="btn-wrap">
+      <a href="${resetUrl}" class="btn">Restablecer contraseña</a>
+    </div>
+    <p class="text" style="font-size:13px; color:#94a3b8;">Si no solicitaste este cambio, ignorá este email. Tu contraseña no será modificada.<br>Este link expira en 1 hora.</p>
+    `
+  );
+  return { subject: `🔐 Restablecé tu contraseña — ComerxIA`, html };
+}

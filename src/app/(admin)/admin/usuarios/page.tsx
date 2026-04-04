@@ -11,7 +11,7 @@ export default async function AdminUsuarios({
 
   let query = supabase
     .from("profiles")
-    .select("id, full_name, username, created_at, is_blocked, is_verified, is_store, is_admin, blocked_reason, avatar_url")
+    .select("id, full_name, username, created_at, is_blocked, is_verified, is_store, is_admin, blocked_reason, avatar_url, free_destacado_credits")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -68,10 +68,11 @@ export default async function AdminUsuarios({
 
       {/* Table */}
       <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "650px" }}>
           <thead>
             <tr style={{ background: "#f8fafc" }}>
-              {["Usuario", "Nombre", "Registrado", "Estado", "Acciones"].map((h) => (
+              {["Usuario", "Nombre", "Registrado", "Créditos", "Estado", "Acciones"].map((h) => (
                 <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</th>
               ))}
             </tr>
@@ -102,6 +103,16 @@ export default async function AdminUsuarios({
                   {new Date(u.created_at).toLocaleDateString("es-AR")}
                 </td>
                 <td style={{ padding: "12px 16px" }}>
+                  <span style={{
+                    fontSize: "12px", fontWeight: 700,
+                    color: u.free_destacado_credits > 0 ? "#7c3aed" : "#94a3b8",
+                    background: u.free_destacado_credits > 0 ? "#f5f3ff" : "#f8fafc",
+                    padding: "2px 8px", borderRadius: "6px",
+                  }}>
+                    👑 {u.free_destacado_credits ?? 0}
+                  </span>
+                </td>
+                <td style={{ padding: "12px 16px" }}>
                   {u.is_blocked ? (
                     <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", background: "#fef2f2", color: "#ef4444" }}>BLOQUEADO</span>
                   ) : u.is_verified ? (
@@ -117,6 +128,7 @@ export default async function AdminUsuarios({
             ))}
           </tbody>
         </table>
+        </div>
         {!users?.length && (
           <div style={{ padding: "40px", textAlign: "center", color: "#94a3b8", fontSize: "13px" }}>
             No se encontraron usuarios

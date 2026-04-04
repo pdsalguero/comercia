@@ -17,6 +17,8 @@ const navItems = [
   { label: '⭐ Planes Pro',       href: '/upgrade' },
 ]
 
+const adminNavItem = { label: '🛡️ Admin',  href: '/admin' }
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const [{ data: profile }, { count: unreadCount }, { count: listingsCount }, { count: favoritesCount }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('username, full_name, avatar_url, is_pro, identity_verified')
+      .select('username, full_name, avatar_url, is_pro, identity_verified, is_admin')
       .eq('id', user.id)
       .single(),
     supabase
@@ -102,17 +104,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
             {/* Nav */}
             <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
-              {navItems.map((item, i) => (
+              {[...navItems, ...(profile?.is_admin ? [adminNavItem] : [])].map((item, i, arr) => (
                 <Link key={item.href} href={item.href}>
                   <div style={{
                     padding: '12px 16px',
                     fontSize: '14px',
-                    color: '#333',
-                    borderBottom: i < navItems.length - 1 ? '1px solid #f5f5f5' : 'none',
+                    color: item.href === '/admin' ? '#f97316' : '#333',
+                    borderBottom: i < arr.length - 1 ? '1px solid #f5f5f5' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    fontWeight: item.href === '/admin' ? 700 : 400,
                   }}
                   className="hover:bg-gray-50">
                     <span>{item.label}</span>
