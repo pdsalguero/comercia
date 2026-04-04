@@ -10,14 +10,27 @@ export default async function UpgradePage({
   const { listing_id, error, pending } = await searchParams;
 
   let listingTitle: string | null = null;
+  let freeCredits = 0;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   if (listing_id) {
-    const supabase = await createClient();
     const { data } = await supabase
       .from("listings")
       .select("title")
       .eq("id", listing_id)
       .single();
     listingTitle = data?.title ?? null;
+  }
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("free_destacado_credits")
+      .eq("id", user.id)
+      .single();
+    freeCredits = profile?.free_destacado_credits ?? 0;
   }
 
   return (
@@ -62,7 +75,7 @@ export default async function UpgradePage({
       )}
 
       {/* Plans */}
-      <PlanCards listingId={listing_id} />
+      <PlanCards listingId={listing_id} freeCredits={freeCredits} />
 
       {/* Bottom note */}
       <div style={{

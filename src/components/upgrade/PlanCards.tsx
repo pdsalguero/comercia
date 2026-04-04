@@ -65,13 +65,15 @@ const DAYS = [7, 15, 30] as const;
 
 interface Props {
   listingId?: string;
+  freeCredits?: number;
 }
 
-export function PlanCards({ listingId }: Props) {
+export function PlanCards({ listingId, freeCredits = 0 }: Props) {
   const router = useRouter();
   // Single global selection: "tierKey_days"
   const [selected, setSelected] = useState("silver_30");
   const [loading, setLoading] = useState(false);
+  const [freeLoading, setFreeLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   async function handleCheckout(planKey: string) {
@@ -97,8 +99,78 @@ export function PlanCards({ listingId }: Props) {
     }
   }
 
+  async function handleFreeDestacado() {
+    if (!listingId) return;
+    setFreeLoading(true);
+    setCheckoutError(null);
+    try {
+      const res = await fetch("/api/mp/free-destacado", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing_id: listingId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCheckoutError(data.error ?? "Error al activar el crédito");
+        return;
+      }
+      window.location.href = `/listings/${listingId}?destacado=1`;
+    } catch {
+      setCheckoutError("Error de conexion. Intenta de nuevo.");
+    } finally {
+      setFreeLoading(false);
+    }
+  }
+
   return (
     <>
+    {/* Banner de créditos gratuitos */}
+    {freeCredits > 0 && listingId && (
+      <div style={{
+        background: "linear-gradient(135deg,#fffbeb,#fef3c7)",
+        border: "2px solid #fbbf24",
+        borderRadius: "14px",
+        padding: "16px 20px",
+        marginBottom: "20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        flexWrap: "wrap",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "28px" }}>👑</span>
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400e" }}>
+              Tenés {freeCredits} crédito{freeCredits !== 1 ? "s" : ""} Premium gratuito{freeCredits !== 1 ? "s" : ""}
+            </div>
+            <div style={{ fontSize: "12px", color: "#b45309", marginTop: "2px" }}>
+              Destacado Gold sin límite de tiempo, sin costo. ¡Úsalo en esta publicación!
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={handleFreeDestacado}
+          disabled={freeLoading}
+          style={{
+            background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "10px",
+            padding: "11px 22px",
+            fontSize: "14px",
+            fontWeight: 700,
+            cursor: freeLoading ? "default" : "pointer",
+            opacity: freeLoading ? 0.7 : 1,
+            boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {freeLoading ? "Activando..." : "👑 Activar gratis"}
+        </button>
+      </div>
+    )}
+
     {checkoutError && (
       <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "10px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px", color: "#b91c1c" }}>
         ❌ {checkoutError}
