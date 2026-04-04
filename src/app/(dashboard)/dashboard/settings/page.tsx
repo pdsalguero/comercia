@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 type Tab = 'perfil' | 'verificacion' | 'cuenta'
 type VerifyStep = 'idle' | 'code'
+type PasswordStep = 'idle' | 'sent'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -26,6 +27,11 @@ export default function SettingsPage() {
   const [email, setEmail]             = useState('')
   const [avatarUrl, setAvatarUrl]     = useState<string | null>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
+
+  // Password reset
+  const [passwordStep, setPasswordStep]     = useState<PasswordStep>('idle')
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordError, setPasswordError]   = useState('')
 
   // Identity verification
   const [identityVerified, setIdentityVerified]   = useState(false)
@@ -99,6 +105,17 @@ export default function SettingsPage() {
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()
+  }
+
+  async function handlePasswordReset() {
+    setPasswordLoading(true)
+    setPasswordError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setPasswordLoading(false)
+    if (error) { setPasswordError('No se pudo enviar el email. Intentá de nuevo.'); return }
+    setPasswordStep('sent')
   }
 
   async function handleSendOtp() {
@@ -375,6 +392,30 @@ export default function SettingsPage() {
               style={{ background: '#fff', color: '#dc2626', border: '1.5px solid #dc2626', borderRadius: '8px', padding: '9px 20px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
               Cerrar sesión
             </button>
+          </div>
+
+          {/* Cambiar contraseña */}
+          <div style={{ padding: '16px 20px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>Contraseña</div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px' }}>
+              Te enviaremos un link a <strong>{email}</strong> para restablecer tu contraseña.
+            </div>
+            {passwordStep === 'sent' ? (
+              <div style={{ fontSize: '13px', color: '#15803d', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
+                ✅ Link enviado. Revisá tu bandeja de entrada.
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={handlePasswordReset}
+                  disabled={passwordLoading}
+                  style={{ background: passwordLoading ? '#e2e8f0' : '#fff', color: '#334155', border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '9px 20px', fontWeight: 600, fontSize: '13px', cursor: passwordLoading ? 'not-allowed' : 'pointer' }}
+                >
+                  {passwordLoading ? 'Enviando...' : 'Cambiar contraseña'}
+                </button>
+                {passwordError && <ErrorMsg>{passwordError}</ErrorMsg>}
+              </>
+            )}
           </div>
 
           <div style={{ padding: '16px 20px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fecaca' }}>
