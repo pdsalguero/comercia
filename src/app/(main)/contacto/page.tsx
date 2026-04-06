@@ -187,7 +187,7 @@ export default function ContactPage() {
           </div>
         </a>
 
-        <a href="https://wa.me/5492644000000" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+        <a href="https://wa.me/5492645115818" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: "12px",
             background: "#fff", borderRadius: "12px", padding: "16px",
@@ -204,7 +204,7 @@ export default function ContactPage() {
             </div>
             <div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.5px" }}>WhatsApp</div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>+54 9 264 400-0000</div>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>+54 9 264 511-5818</div>
             </div>
           </div>
         </a>
