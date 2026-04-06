@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useTransition, useRef, useMemo } from "react";
+import { useState, useTransition, useRef, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCategoryConfig } from "@/lib/category-config";
-import { CAR_BRANDS, getModels, getVersions } from "@/lib/vehicle-data";
+import { getCategoryConfig, CATEGORY_CONFIGS } from "@/lib/category-config";
+import { CAR_BRANDS, getModels } from "@/lib/vehicle-data";
 import { RE_LOCATIONS } from "@/lib/re-locations";
+import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CATEGORIAS } from "@/data/vehiculos";
+import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
+import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
 
 const CONDITIONS = [
   { value: "new",       label: "Nuevo / A estrenar" },
@@ -80,10 +83,14 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const catConfig = getCategoryConfig(listing.category_id);
+  const [categoryId, setCategoryId] = useState<number>(listing.category_id);
+  const catConfig = getCategoryConfig(categoryId);
   const [attrs, setAttrs] = useState<Record<string, any>>(listing.attributes ?? {});
-  const isVehicle = listing.category_id === 2;
-  const isRealEstate = listing.category_id === 3;
+  const isVehicle = categoryId === 2;
+  const isRealEstate = categoryId === 3;
+  const [showExtraVehicle, setShowExtraVehicle] = useState(false);
+  const [modelosML, setModelosML] = useState<string[]>([]);
+  const [loadingModelos, setLoadingModelos] = useState(false);
 
   // Province derived from existing zone slug
   const [province, setProvince] = useState<string>(() => {
@@ -98,13 +105,36 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
   }
 
   const vehicleModels = useMemo(() => getModels(attrs.brand ?? ""), [attrs.brand]);
-  const vehicleVersions = useMemo(() => getVersions(attrs.brand ?? "", attrs.model ?? ""), [attrs.brand, attrs.model]);
+  const marcasFiltradas = useMemo(() => {
+    const tipo = attrs.sub_category;
+    if (tipo === "auto" || tipo === "camioneta") return CAR_BRANDS.filter(b => MARCAS_POR_TIPO[tipo as "auto" | "camioneta"].has(b.value));
+    if (tipo === "moto") return MOTO_BRANDS_LIST;
+    if (tipo === "cuatriciclo") return CUATRI_BRANDS_LIST;
+    if (tipo === "utv") return UTV_BRANDS_LIST;
+    if (tipo === "camion") return CAMION_BRANDS_LIST;
+    return CAR_BRANDS;
+  }, [attrs.sub_category]);
+
+  useEffect(() => {
+    const brand = attrs.brand;
+    const tipo = attrs.sub_category;
+    if (!brand || !tipo || !["auto", "camioneta", "moto", "cuatriciclo", "utv", "camion"].includes(tipo)) {
+      setModelosML([]);
+      return;
+    }
+    setLoadingModelos(true);
+    fetch(`/api/vehiculos/modelos?brand=${brand}&tipo=${tipo}`)
+      .then(r => r.json())
+      .then((data: string[]) => { setModelosML(data); setLoadingModelos(false); })
+      .catch(() => setLoadingModelos(false));
+  }, [attrs.brand, attrs.sub_category]);
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const fd = new FormData(e.currentTarget);
     fd.set("attributes", JSON.stringify(attrs));
+    fd.set("category_id", String(categoryId));
     startTransition(async () => {
       const result = await onSave(fd);
       if (result?.error) {
@@ -222,6 +252,19 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
         </div>
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
+          <div>
+            <label style={lbl}>Categoría *</label>
+            <select
+              value={categoryId}
+              onChange={e => setCategoryId(Number(e.target.value))}
+              style={sel}
+            >
+              {CATEGORY_CONFIGS.filter(c => c.id === 2 || c.id === 3).map(c => (
+                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr 140px 120px", gap: "12px", alignItems: "start" }}>
             <div>
               <label style={lbl}>Título *</label>
@@ -274,120 +317,168 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
             {/* Tipo */}
             <div>
               <label style={lbl}>Tipo <span style={{ color: "#dc2626" }}>*</span></label>
-              <select value={attrs.sub_category ?? ""} onChange={e => setAttr("sub_category", e.target.value)} style={sel}>
+              <select value={attrs.sub_category ?? ""} onChange={e => {
+                setAttr("sub_category", e.target.value);
+                setAttr("brand", "");
+                setAttr("model", "");
+                setModelosML([]);
+              }} style={sel}>
                 <option value="">Seleccionar...</option>
-                <option value="auto">Auto</option>
-                <option value="camioneta">Pickup / SUV / Utilitario</option>
-                <option value="moto">Moto</option>
-                <option value="cuatriciclo">Cuatriciclo</option>
-                <option value="utv">Areneros/UTV</option>
-                <option value="camion">Camión</option>
-                <option value="nautica">Náutica</option>
-                <option value="otro">Otro</option>
+                {TIPOS_VEHICULO.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
 
-            {/* Marca */}
-            <div>
-              <label style={lbl}>Marca <span style={{ color: "#dc2626" }}>*</span></label>
-              <select value={attrs.brand ?? ""} onChange={e => { setAttr("brand", e.target.value); setAttr("model", ""); }} style={sel}>
-                <option value="">Seleccionar...</option>
-                {CAR_BRANDS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
-              </select>
-            </div>
-
-            {/* Modelo */}
-            <div>
-              <label style={lbl}>Modelo <span style={{ color: "#dc2626" }}>*</span></label>
-              {vehicleModels.length > 0 ? (
-                <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
+            {/* Tipo de moto */}
+            {attrs.sub_category === "moto" && (
+              <div>
+                <label style={lbl}>Tipo de moto</label>
+                <select value={attrs.moto_subtipo ?? ""} onChange={e => setAttr("moto_subtipo", e.target.value)} style={sel}>
                   <option value="">Seleccionar...</option>
-                  {vehicleModels.map(m => <option key={m} value={m}>{m}</option>)}
-                  <option value="Otro">Otro</option>
+                  {MOTO_SUBTIPOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
-              ) : (
-                <input value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} placeholder="Up!, Hilux, Corolla..." style={inp} />
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Versión */}
-            <div>
-              <label style={lbl}>Versión</label>
-              {vehicleVersions.length > 0 ? (
-                <select value={attrs.version ?? ""} onChange={e => setAttr("version", e.target.value)} style={sel}>
-                  <option value="">Sin especificar</option>
-                  {vehicleVersions.map(v => <option key={v} value={v}>{v}</option>)}
+            {/* Náutica */}
+            {attrs.sub_category === "nautica" ? (<>
+              <div>
+                <label style={lbl}>Categoría <span style={{ color: "#dc2626" }}>*</span></label>
+                <select value={attrs.nautica_categoria ?? ""} onChange={e => {
+                  setAttr("nautica_categoria", e.target.value);
+                  setAttr("nautica_subcategoria", "");
+                  setAttr("brand", "");
+                }} style={sel}>
+                  <option value="">Seleccionar...</option>
+                  {NAUTICA_CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
-              ) : (
-                <input value={attrs.version ?? ""} onChange={e => setAttr("version", e.target.value)} placeholder="Move, SR 4x4..." style={inp} />
-              )}
-            </div>
+              </div>
+              {attrs.nautica_categoria && (() => {
+                const cat = NAUTICA_CATEGORIAS.find(c => c.value === attrs.nautica_categoria);
+                return cat ? (
+                  <div>
+                    <label style={lbl}>Subcategoría</label>
+                    <select value={attrs.nautica_subcategoria ?? ""} onChange={e => setAttr("nautica_subcategoria", e.target.value)} style={sel}>
+                      <option value="">Seleccionar...</option>
+                      {cat.subcategorias.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                ) : null;
+              })()}
+              {attrs.nautica_categoria && (<>
+                <div>
+                  <label style={lbl}>Marca</label>
+                  {attrs.nautica_categoria === "motos_de_agua" ? (
+                    <select value={attrs.brand ?? ""} onChange={e => setAttr("brand", e.target.value)} style={sel}>
+                      <option value="">Seleccionar...</option>
+                      {NAUTICA_CATEGORIAS.find(c => c.value === "motos_de_agua")!.marcas!.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  ) : (
+                    <input value={attrs.brand ?? ""} onChange={e => setAttr("brand", e.target.value)} placeholder="Marca..." style={inp} />
+                  )}
+                </div>
+                <div>
+                  <label style={lbl}>Modelo</label>
+                  <input value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} placeholder="Modelo..." style={inp} />
+                </div>
+              </>)}
+            </>) : attrs.sub_category === "otro" ? (<>
+              {/* Otros vehículos */}
+              <div>
+                <label style={lbl}>Categoría <span style={{ color: "#dc2626" }}>*</span></label>
+                <select value={attrs.otros_categoria ?? ""} onChange={e => {
+                  setAttr("otros_categoria", e.target.value);
+                  setAttr("otros_subcategoria", "");
+                }} style={sel}>
+                  <option value="">Seleccionar...</option>
+                  {OTROS_VEHICULOS_CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+              {attrs.otros_categoria && (() => {
+                const cat = OTROS_VEHICULOS_CATEGORIAS.find(c => c.value === attrs.otros_categoria);
+                return cat ? (
+                  <div>
+                    <label style={lbl}>Subcategoría</label>
+                    <select value={attrs.otros_subcategoria ?? ""} onChange={e => setAttr("otros_subcategoria", e.target.value)} style={sel}>
+                      <option value="">Seleccionar...</option>
+                      {cat.subcategorias.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                ) : null;
+              })()}
+              <div>
+                <label style={lbl}>Marca</label>
+                <input value={attrs.brand ?? ""} onChange={e => setAttr("brand", e.target.value)} placeholder="Marca..." style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>Modelo</label>
+                <input value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} placeholder="Modelo..." style={inp} />
+              </div>
+            </>) : attrs.sub_category ? (<>
+              {/* Auto / Camioneta / Moto / Cuatriciclo / UTV / Camion */}
+              <div>
+                <label style={lbl}>Marca <span style={{ color: "#dc2626" }}>*</span></label>
+                <select value={attrs.brand ?? ""} onChange={e => { setAttr("brand", e.target.value); setAttr("model", ""); setModelosML([]); }} style={sel}>
+                  <option value="">Seleccionar...</option>
+                  {marcasFiltradas.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>Modelo <span style={{ color: "#dc2626" }}>*</span></label>
+                {loadingModelos ? (
+                  <div style={{ padding: "9px 12px", fontSize: "13px", color: "#94a3b8", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}>Cargando modelos...</div>
+                ) : modelosML.length > 0 ? (
+                  <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
+                    <option value="">Seleccionar...</option>
+                    {modelosML.map(m => <option key={m} value={m}>{m}</option>)}
+                    <option value="Otro">Otro</option>
+                  </select>
+                ) : vehicleModels.length > 0 ? (
+                  <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
+                    <option value="">Seleccionar...</option>
+                    {vehicleModels.map(m => <option key={m} value={m}>{m}</option>)}
+                    <option value="Otro">Otro</option>
+                  </select>
+                ) : (
+                  <input value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} placeholder="Up!, Hilux, Corolla..." style={inp} />
+                )}
+              </div>
+            </>) : null}
 
             {/* Año */}
-            <div>
-              <label style={lbl}>Año <span style={{ color: "#dc2626" }}>*</span></label>
-              <select value={attrs.year ?? ""} onChange={e => setAttr("year", Number(e.target.value))} style={sel}>
-                <option value="">Seleccionar...</option>
-                {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() + 1 - i).map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Kilómetros */}
-            <div>
-              <label style={lbl}>Kilómetros <span style={{ color: "#dc2626" }}>*</span></label>
-              <div style={{ position: "relative" }}>
-                <input type="number" value={attrs.km ?? ""} onChange={e => setAttr("km", e.target.value)} placeholder="0" style={{ ...inp, paddingRight: "36px" }} />
-                <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: "#94a3b8", fontWeight: 700 }}>km</span>
+            {attrs.sub_category && attrs.sub_category !== "nautica" && (
+              <div>
+                <label style={lbl}>Año <span style={{ color: "#dc2626" }}>*</span></label>
+                <select value={attrs.year ?? ""} onChange={e => setAttr("year", Number(e.target.value))} style={sel}>
+                  <option value="">Seleccionar...</option>
+                  {Array.from({ length: new Date().getFullYear() - 1929 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
               </div>
-            </div>
+            )}
 
-            {/* Combustible */}
-            <div>
-              <label style={lbl}>Combustible</label>
-              <select value={attrs.fuel ?? ""} onChange={e => setAttr("fuel", e.target.value)} style={sel}>
-                <option value="">Seleccionar...</option>
-                {FUELS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-              </select>
-            </div>
+            {/* Cilindrada — moto/cuatriciclo/utv */}
+            {["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+              <div>
+                <label style={lbl}>Cilindrada</label>
+                <div style={{ position: "relative" }}>
+                  <input type="number" value={attrs.cilindrada ?? ""} onChange={e => setAttr("cilindrada", e.target.value)} placeholder="125" style={{ ...inp, paddingRight: "36px" }} min={0} />
+                  <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: "#94a3b8", fontWeight: 700 }}>cc</span>
+                </div>
+              </div>
+            )}
 
-            {/* Transmisión */}
-            <div>
-              <label style={lbl}>Transmisión</label>
-              <select value={attrs.transmission ?? ""} onChange={e => setAttr("transmission", e.target.value)} style={sel}>
-                <option value="">Seleccionar...</option>
-                {TRANSMISIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-
-            {/* Color */}
-            <div>
-              <label style={lbl}>Color</label>
-              <input value={attrs.color ?? ""} onChange={e => setAttr("color", e.target.value)} placeholder="Gris plata..." style={inp} />
-            </div>
-
-            {/* Motor */}
-            <div>
-              <label style={lbl}>Motor</label>
-              <input value={attrs.engine ?? ""} onChange={e => setAttr("engine", e.target.value)} placeholder="1.6, 2.0 TDI..." style={inp} />
-            </div>
-
-            {/* Patente */}
-            <div>
-              <label style={lbl}>Patente</label>
-              <input
-                value={attrs.patente ?? ""}
-                onChange={e => setAttr("patente", e.target.value.toUpperCase())}
-                placeholder="PDL187"
-                maxLength={8}
-                style={{ ...inp, letterSpacing: "2px", fontWeight: 700 }}
-              />
-              <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px", fontSize: "12px", color: "#94a3b8", cursor: "pointer" }}>
-                <input type="checkbox" checked={attrs.show_patente ?? false} onChange={e => setAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1" }} />
-                Mostrar patente en la publicación
-              </label>
-            </div>
+            {/* Km */}
+            {attrs.sub_category && attrs.sub_category !== "nautica" && (
+              <div>
+                <label style={lbl}>Kilómetros <span style={{ color: "#dc2626" }}>*</span></label>
+                <div style={{ position: "relative" }}>
+                  <input type="number" value={attrs.km ?? ""} onChange={e => setAttr("km", e.target.value)} placeholder="0" style={{ ...inp, paddingRight: "36px" }} />
+                  <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: "#94a3b8", fontWeight: 700 }}>km</span>
+                </div>
+              </div>
+            )}
 
             {/* Provincia */}
             <div>
@@ -416,45 +507,111 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
               </select>
             </div>
 
-            {/* Tipo de vendedor */}
+            {/* Datos adicionales — collapsible */}
             <div style={{ gridColumn: "span 2" }}>
-              <label style={lbl}>Tipo de vendedor</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                {[["particular","👤 Particular"],["concesionaria","🏢 Concesionaria"]].map(([v,l]) => (
-                  <button key={v} type="button" onClick={() => setAttr("seller_type", v)} style={{
-                    flex: 1, padding: "10px", borderRadius: "9px",
-                    border: `1.5px solid ${attrs.seller_type === v ? "#2563eb" : "#e2e8f0"}`,
-                    background: attrs.seller_type === v ? "#eff6ff" : "#fff",
-                    color: attrs.seller_type === v ? "#2563eb" : "#64748b",
-                    fontWeight: attrs.seller_type === v ? 700 : 400,
-                    fontSize: "13px", cursor: "pointer", fontFamily: "inherit", transition: "all .1s",
-                  }}>{l}</button>
-                ))}
-              </div>
-            </div>
+              <button type="button" onClick={() => setShowExtraVehicle(v => !v)} style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0",
+                background: showExtraVehicle ? "#eff6ff" : "#fff",
+                color: showExtraVehicle ? "#2563eb" : "#64748b",
+                fontWeight: 600, fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
+              }}>
+                <span>Datos adicionales</span>
+                <span>{showExtraVehicle ? "▲" : "▼"}</span>
+              </button>
 
-            {/* Datos adicionales — pills siempre visibles */}
-            <div style={{ gridColumn: "span 2" }}>
-              <label style={lbl}>Datos adicionales</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                {[
-                  ["financing","💳 Financiamiento"],
-                  ["negotiable_price","💬 Precio negociable"],
-                  ["first_owner","🔑 Único dueño"],
-                  ["accepts_trade","🔄 Acepta permuta"],
-                  ["has_gnc","⛽ Con GNC"],
-                  ["has_alarm","🔒 Con alarma"],
-                  ["has_service","🔧 Con service"],
-                ].map(([k, l]) => (
-                  <button key={k} type="button" onClick={() => setAttr(k, !attrs[k])} style={{
-                    padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 600,
-                    border: `1.5px solid ${attrs[k] ? "#2563eb" : "#e2e8f0"}`,
-                    background: attrs[k] ? "#eff6ff" : "#fff",
-                    color: attrs[k] ? "#2563eb" : "#94a3b8",
-                    cursor: "pointer", fontFamily: "inherit", transition: "all .1s",
-                  }}>{l}</button>
-                ))}
-              </div>
+              {showExtraVehicle && (
+                <div style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", padding: "16px", borderRadius: "10px", border: "1px solid #f1f5f9", background: "#fafafa" }}>
+
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Versión</label>
+                      <input value={attrs.version ?? ""} onChange={e => setAttr("version", e.target.value)} placeholder="Move, SR 4x4..." style={inp} />
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Combustible</label>
+                      <select value={attrs.fuel ?? ""} onChange={e => setAttr("fuel", e.target.value)} style={sel}>
+                        <option value="">Seleccionar...</option>
+                        {FUELS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Transmisión</label>
+                      <select value={attrs.transmission ?? ""} onChange={e => setAttr("transmission", e.target.value)} style={sel}>
+                        <option value="">Seleccionar...</option>
+                        {TRANSMISIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Color</label>
+                      <input value={attrs.color ?? ""} onChange={e => setAttr("color", e.target.value)} placeholder="Gris plata..." style={inp} />
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Motor</label>
+                      <input value={attrs.engine ?? ""} onChange={e => setAttr("engine", e.target.value)} placeholder="1.6, 2.0 TDI..." style={inp} />
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Patente</label>
+                      <input value={attrs.patente ?? ""} onChange={e => setAttr("patente", e.target.value.toUpperCase())} placeholder="PDL187" maxLength={8} style={{ ...inp, letterSpacing: "2px", fontWeight: 700 }} />
+                      <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px", fontSize: "12px", color: "#94a3b8", cursor: "pointer" }}>
+                        <input type="checkbox" checked={attrs.show_patente ?? false} onChange={e => setAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1" }} />
+                        Mostrar patente en la publicación
+                      </label>
+                    </div>
+                  )}
+
+                  <div style={{ gridColumn: "span 2" }}>
+                    <label style={lbl}>Tipo de vendedor</label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {[["particular","👤 Particular"],["concesionaria","🏢 Concesionaria"]].map(([v,l]) => (
+                        <button key={v} type="button" onClick={() => setAttr("seller_type", v)} style={{
+                          flex: 1, padding: "10px", borderRadius: "9px",
+                          border: `1.5px solid ${attrs.seller_type === v ? "#2563eb" : "#e2e8f0"}`,
+                          background: attrs.seller_type === v ? "#eff6ff" : "#fff",
+                          color: attrs.seller_type === v ? "#2563eb" : "#64748b",
+                          fontWeight: attrs.seller_type === v ? 700 : 400,
+                          fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
+                        }}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ gridColumn: "span 2", paddingTop: "8px", borderTop: "1px solid #f1f5f9" }}>
+                    <label style={lbl}>Características</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {[
+                        ["negotiable_price","Precio negociable"],
+                        ["first_owner","Único dueño"],
+                        ["financing","Financiamiento"],
+                        ["accepts_trade","Acepta permuta"],
+                        ["has_gnc","Con GNC"],
+                        ["has_alarm","Con alarma"],
+                        ["has_service","Con service"],
+                      ].filter(([k]) => k !== "has_gnc" || !["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? ""))
+                      .map(([k, l]) => (
+                        <button key={k} type="button" onClick={() => setAttr(k, !attrs[k])} style={{
+                          padding: "7px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 600,
+                          border: `1.5px solid ${attrs[k] ? "#2563eb" : "#e2e8f0"}`,
+                          background: attrs[k] ? "#eff6ff" : "#fff",
+                          color: attrs[k] ? "#2563eb" : "#94a3b8",
+                          cursor: "pointer", fontFamily: "inherit",
+                        }}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              )}
             </div>
 
           </div>

@@ -24,6 +24,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
     lastTapTime: 0,
   });
   const imageWrapperRef = useRef<HTMLDivElement>(null);
+  const mouseRef = useRef({ isDragging: false, startX: 0, startY: 0, initialTranslate: { x: 0, y: 0 } });
 
   const resetTransform = () => {
     scaleRef.current = 1;
@@ -174,8 +175,8 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
         {/* Vertical thumbnail strip — siempre visible */}
         <div className="gallery-thumbs" style={{
             display: "flex", flexDirection: "column", gap: "6px",
-            width: "68px", flexShrink: 0,
-            maxHeight: "420px", overflowY: "auto",
+            width: "84px", flexShrink: 0,
+            maxHeight: "420px", overflowY: "auto", overflowX: "hidden",
           }}>
             {images.map((img, i) => (
               <button
@@ -321,10 +322,45 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
               display: "flex", alignItems: "center", justifyContent: "center",
               overflow: "hidden",
               touchAction: "none", // let our handlers manage all touch
-              cursor: scale > 1 ? "grab" : "zoom-in",
+              cursor: scale > 1 ? (mouseRef.current.isDragging ? "grabbing" : "grab") : "zoom-in",
+            }}
+            onWheel={(e) => {
+              e.preventDefault();
+              const delta = e.deltaY > 0 ? -0.2 : 0.2;
+              const newScale = Math.max(1, Math.min(6, scaleRef.current + delta));
+              scaleRef.current = newScale;
+              if (newScale === 1) translateRef.current = { x: 0, y: 0 };
+              setScale(newScale);
+              if (newScale === 1) setTranslate({ x: 0, y: 0 });
+            }}
+            onMouseDown={(e) => {
+              if (scaleRef.current <= 1) return;
+              e.preventDefault();
+              mouseRef.current = { isDragging: true, startX: e.clientX, startY: e.clientY, initialTranslate: { ...translateRef.current } };
+            }}
+            onMouseMove={(e) => {
+              if (!mouseRef.current.isDragging) return;
+              const newTranslate = {
+                x: mouseRef.current.initialTranslate.x + (e.clientX - mouseRef.current.startX),
+                y: mouseRef.current.initialTranslate.y + (e.clientY - mouseRef.current.startY),
+              };
+              translateRef.current = newTranslate;
+              setTranslate({ ...newTranslate });
+            }}
+            onMouseUp={() => { mouseRef.current.isDragging = false; }}
+            onMouseLeave={() => { mouseRef.current.isDragging = false; }}
+            onDoubleClick={() => {
+              if (scaleRef.current > 1) {
+                resetTransform();
+              } else {
+                scaleRef.current = 2.5;
+                translateRef.current = { x: 0, y: 0 };
+                setScale(2.5);
+                setTranslate({ x: 0, y: 0 });
+              }
             }}
             onClick={(e) => {
-              // Close only if not zoomed and click was not on a button
+              if (mouseRef.current.isDragging) return;
               if (scale <= 1 && e.target === e.currentTarget) closeLightbox();
             }}
           >
@@ -396,7 +432,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             {active + 1} / {images.length}
           </div>
 
-          {/* Zoom hint — only when not zoomed, on touch devices */}
+          {/* Zoom hint — only when not zoomed */}
           {scale <= 1 && (
             <div style={{
               position: "absolute", bottom: images.length > 1 ? "80px" : "16px",
@@ -404,7 +440,8 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
               color: "rgba(255,255,255,.5)", fontSize: "11px",
               pointerEvents: "none", whiteSpace: "nowrap",
             }}>
-              Pellizca para hacer zoom · Doble toque para acercar
+              <span className="hidden md:inline">Rueda del mouse para hacer zoom</span>
+              <span className="md:hidden">Pellizca para hacer zoom · Doble toque para acercar</span>
             </div>
           )}
         </div>

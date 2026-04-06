@@ -10,19 +10,20 @@ async function saveListing(id: string, formData: FormData): Promise<{ error?: st
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "No autenticado" };
 
-  const title       = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const price       = Number(String(formData.get("price") ?? "0").replace(/[^0-9]/g, ""));
-  const currency    = formData.get("currency") as string;
-  const condition   = formData.get("condition") as string;
+  const title        = formData.get("title") as string;
+  const description  = formData.get("description") as string;
+  const price        = Number(String(formData.get("price") ?? "0").replace(/[^0-9]/g, ""));
+  const currency     = formData.get("currency") as string;
+  const condition    = formData.get("condition") as string;
   const neighborhood = formData.get("neighborhood") as string;
+  const category_id  = Number(formData.get("category_id") || 0) || undefined;
   const attributesRaw = formData.get("attributes") as string;
   let attributes: Record<string, any> = {};
   try { attributes = JSON.parse(attributesRaw); } catch { /* ignore */ }
 
   const { error } = await supabase
     .from("listings")
-    .update({ title, description, price, currency, condition: condition || null, neighborhood: neighborhood || null, attributes })
+    .update({ title, description, price, currency, condition: condition || null, neighborhood: neighborhood || null, attributes, ...(category_id ? { category_id } : {}) })
     .eq("id", id)
     .eq("user_id", user.id);
 
