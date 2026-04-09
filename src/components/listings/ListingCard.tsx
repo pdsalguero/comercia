@@ -22,6 +22,7 @@ interface ListingCardProps {
   created_at?: string | null;
   is_store?: boolean | null;
   store_name?: string | null;
+  priority?: boolean;
 }
 
 function timeAgo(dateStr: string) {
@@ -60,6 +61,7 @@ export function ListingCard({
   created_at,
   is_store,
   store_name,
+  priority = false,
 }: ListingCardProps) {
   // Resolve date label client-side only to avoid SSR/hydration mismatch with Date.now()
   const [dateLabel, setDateLabel] = useState<"today" | string | null>(null);
@@ -117,7 +119,14 @@ export function ListingCard({
         {/* Image */}
         <div className="lc-img" style={{ height: "155px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
           {cover_image ? (
-            <img src={cover_image} alt={title} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cover_image}
+              alt={title}
+              loading={priority ? "eager" : "lazy"}
+              decoding="async"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
           ) : (
             <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>
               📦

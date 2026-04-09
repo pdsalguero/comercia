@@ -54,6 +54,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={inter.variable}>
+      <head>
+        {/* Preconnect a dominios externos críticos para reducir latencia */}
+        <link rel="preconnect" href="https://snrxpyolkxcficxnzaxh.supabase.co" />
+        <link rel="dns-prefetch" href="https://snrxpyolkxcficxnzaxh.supabase.co" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body style={{ fontFamily: "var(--font-inter), 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>{children}</body>
       {process.env.NODE_ENV === "production" && <GoogleAnalytics gaId="G-GQSJBS2HWF" />}
     </html>

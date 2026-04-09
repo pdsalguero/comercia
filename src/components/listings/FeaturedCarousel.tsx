@@ -94,9 +94,9 @@ export function FeaturedCarousel({ title, items, href }: Props) {
         </div>
       </div>
 
-      {/* Cards */}
+      {/* Cards — los primeros 4 se marcan priority para mejorar LCP */}
       <div className="grid-cols-4 featured-cards">
-        {visible.map((l) => (
+        {visible.map((l, i) => (
           <ListingCard
             key={l.id}
             id={l.id}
@@ -112,6 +112,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
             created_at={l.created_at ?? null}
             is_store={l.is_store ?? null}
             store_name={l.store_name ?? null}
+            priority={index === 0 && i < 4}
           />
         ))}
       </div>

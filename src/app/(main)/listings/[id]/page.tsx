@@ -13,7 +13,7 @@ import { ContactButton } from "@/components/listings/ContactButton";
 import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
-import { PropertyMap } from "@/components/map/PropertyMap";
+import { PropertyMap } from "./PropertyMapWrapper";
 
 const CONDITION_LABELS: Record<string, string> = {
   new: "Nuevo / A estrenar",

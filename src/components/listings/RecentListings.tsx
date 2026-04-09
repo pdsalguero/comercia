@@ -118,7 +118,8 @@ export function RecentListings({ items }: { items: Listing[] }) {
                   {/* Image */}
                   <div style={{ height: "120px", background: "#f0f4ff", position: "relative" }}>
                     {img
-                      ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={img} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                       : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>📦</div>
                     }
                     {l.is_store && (
@@ -199,7 +200,8 @@ export function RecentListings({ items }: { items: Listing[] }) {
               >
                 <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                   {img
-                    ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={img} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>📦</div>
                   }
                 </div>

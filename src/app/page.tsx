@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 
 export const metadata: Metadata = {
   title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
   },
 };
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FeaturedCarousel } from "@/components/listings/FeaturedCarousel";
@@ -29,6 +31,9 @@ import { RecentListings } from "@/components/listings/RecentListings";
 import { HeroSearch } from "@/components/listings/HeroSearch";
 import { StoreCards } from "@/components/listings/StoreCards";
 import { PublishFAB } from "@/components/ui/PublishFAB";
+
+// Revalida la home cada hora — evita fetch completo en cada request
+export const revalidate = 3600;
 
 const CATEGORIES = [
   { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2,  active: true  },
@@ -62,8 +67,9 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-async function getHomeData() {
-  const supabase = await createClient();
+// Función interna pura — no usa cookies(), apta para unstable_cache
+async function _fetchHomeData() {
+  const supabase = createPublicClient();
   const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
@@ -85,7 +91,6 @@ async function getHomeData() {
     supabase.from("listings").select("category_id").eq("status","active"),
   ]);
 
-  // Fetch store info separately to avoid FK join dependency
   const userIds = [...new Set((allFeatured ?? []).map((l: any) => l.user_id).filter(Boolean))];
   const { data: storeProfiles } = userIds.length > 0
     ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
@@ -103,7 +108,6 @@ async function getHomeData() {
     store_name: storeMap[l.user_id]?.store_name ?? null,
   }));
 
-  // Fetch store info for recent listings
   const recentUserIds = [...new Set((recent ?? []).map((l: any) => l.user_id).filter(Boolean))];
   const { data: recentStoreProfiles } = recentUserIds.length > 0
     ? await supabase.from("profiles").select("id, is_store, store_name").in("id", recentUserIds)
@@ -118,6 +122,13 @@ async function getHomeData() {
 
   return { featured, recent:recentMapped, totalListings:totalListings??0, totalSellers:totalSellers??0, totalStores:totalStores??0, viewsToday:viewsToday??0, categoryCounts:counts };
 }
+
+// Cache con TTL de 1 hora — evita 7 queries paralelas en cada request
+const getHomeData = unstable_cache(
+  _fetchHomeData,
+  ["home-data"],
+  { revalidate: 3600, tags: ["home-data"] }
+);
 
 function cover(listing: any): string | null {
   const imgs = listing.listing_images;
@@ -162,9 +173,6 @@ export default async function HomePage() {
               gridArea: "hero",
               borderRadius: "16px",
               backgroundColor: "#0f1b2d",
-              backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80')",
-              backgroundSize: "cover",
-              backgroundPosition: "center 60%",
               position: "relative",
               overflow: "hidden",
               height: "210px",
@@ -172,16 +180,26 @@ export default async function HomePage() {
               alignItems: "stretch",
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80"
+              alt=""
+              fetchPriority="high"
+              loading="eager"
+              decoding="sync"
+              aria-hidden="true"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 60%" }}
+            />
             <div style={{
               position: "absolute",
               inset: 0,
               background: "linear-gradient(160deg, rgba(10,20,60,0.55) 0%, rgba(10,30,80,0.70) 100%)",
               pointerEvents: "none",
-              zIndex: 0,
+              zIndex: 1,
             }} />
             <div style={{
               position: "relative",
-              zIndex: 1,
+              zIndex: 2,
               width: "100%",
               flex: 1,
               display: "flex",

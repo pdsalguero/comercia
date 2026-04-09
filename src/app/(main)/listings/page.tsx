@@ -9,6 +9,8 @@ import { OrderSelect } from "@/components/ui/OrderSelect";
 import { FilterPanel, type FilterValues } from "@/components/listings/FilterPanel";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
 
+const PAGE_SIZE = 24;
+
 const CATEGORIES = [
   { name: "Vehículos",                 slug: "vehicles",      icon: "🚗",  active: true  },
   { name: "Inmuebles",                 slug: "real-estate",   icon: "🏠",  active: true  },
@@ -52,12 +54,14 @@ export default async function ListingsPage({
     brand?: string; fuel?: string; transmission?: string;
     year_from?: string; year_to?: string; km_max?: string;
     re_sub?: string; operation?: string; bedrooms?: string; size?: string;
+    page?: string;
   }>;
 }) {
   const params = await searchParams;
   const { q, category, condition, price_min, price_max, order, location,
     brand, fuel, transmission, year_from, year_to, km_max,
     re_sub, operation, bedrooms, size } = params;
+  const currentPage = Math.max(1, Number(params.page ?? "1"));
 
   const supabase = await createClient();
 
@@ -96,7 +100,7 @@ export default async function ListingsPage({
     .select(`
       id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id,
       listing_images(url, position)
-    `)
+    `, { count: "exact" })
     .eq("status", "active");
 
   if (q) query = query.ilike("title", `%${q}%`);
@@ -118,8 +122,12 @@ export default async function ListingsPage({
   else if (order === "views") query = query.order("view_count", { ascending: false });
   else query = query.order("created_at", { ascending: false });
 
+  // Paginación — range es 0-indexed e inclusivo en Supabase
+  const from = (currentPage - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-  const { data: rawData } = await query.limit(60);
+  const { data: rawData, count: totalCount } = await query.range(from, to).returns<any[]>();
   const sorted = rawData?.slice().sort((a, b) => {
     if (order === "price_asc") return ((a as any).price ?? 0) - ((b as any).price ?? 0);
     if (order === "price_desc") return ((b as any).price ?? 0) - ((a as any).price ?? 0);
@@ -153,13 +161,14 @@ export default async function ListingsPage({
     profiles: storeMap[l.user_id] ?? null,
   }));
 
-  // Build URL helper preserving all params except the one changed
+  // Build URL helper preserving all params except el que se sobreescribe
   function buildUrl(overrides: Record<string, string | undefined>) {
     const merged = {
       q, category, condition, price_min, price_max, order, location,
       fuel, transmission, year_from, year_to, km_max,
       re_sub, operation, bedrooms, size,
-      ...overrides
+      page: currentPage > 1 ? String(currentPage) : undefined,
+      ...overrides,
     };
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) {
@@ -177,9 +186,6 @@ export default async function ListingsPage({
       <div style={{
         borderRadius: "16px",
         backgroundColor: "#0f1b2d",
-        backgroundImage: "url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80')",
-        backgroundSize: "cover",
-        backgroundPosition: "center 60%",
         position: "relative",
         overflow: "hidden",
         height: "140px",
@@ -187,6 +193,16 @@ export default async function ListingsPage({
         alignItems: "center",
         marginBottom: "16px",
       }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80"
+          alt=""
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+          aria-hidden="true"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 60%" }}
+        />
         <div style={{
           position: "absolute", inset: 0,
           background: "linear-gradient(160deg, rgba(10,20,60,0.60) 0%, rgba(10,30,80,0.75) 100%)",
@@ -196,7 +212,7 @@ export default async function ListingsPage({
             {category ? `${CATEGORIES.find(c => c.slug === category)?.icon ?? ""} ${CATEGORIES.find(c => c.slug === category)?.name ?? category}` : "Todos los avisos"}
           </h1>
           <p style={{ margin: "6px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.65)" }}>
-            {listings.length} publicaciones disponibles en ComerxIA
+            {totalCount ?? listings.length} publicaciones disponibles en ComerxIA
           </p>
         </div>
       </div>
@@ -342,11 +358,67 @@ export default async function ListingsPage({
               store_name: (listing as any).profiles?.store_name ?? null,
             };
           };
+          const totalPages = Math.ceil((totalCount ?? listings.length) / PAGE_SIZE);
           return (
-            <ListingsGrid
-              featured={featured.map(toItem)}
-              regular={regular.map(toItem)}
-            />
+            <>
+              <ListingsGrid
+                featured={featured.map(toItem)}
+                regular={regular.map(toItem)}
+              />
+
+              {/* ── Paginación ── */}
+              {totalPages > 1 && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "24px 0 8px", flexWrap: "wrap" }}>
+                  {currentPage > 1 && (
+                    <Link
+                      href={buildUrl({ page: String(currentPage - 1) })}
+                      style={{ padding: "8px 16px", borderRadius: "8px", border: "1.5px solid #e2e8f0", background: "#fff", fontSize: "13px", fontWeight: 600, color: "#374151", textDecoration: "none" }}
+                    >
+                      ← Anterior
+                    </Link>
+                  )}
+
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    // Ventana deslizante: mostrar páginas cercanas a la actual
+                    let p: number;
+                    if (totalPages <= 7) {
+                      p = i + 1;
+                    } else if (currentPage <= 4) {
+                      p = i + 1;
+                    } else if (currentPage >= totalPages - 3) {
+                      p = totalPages - 6 + i;
+                    } else {
+                      p = currentPage - 3 + i;
+                    }
+                    return (
+                      <Link
+                        key={p}
+                        href={buildUrl({ page: String(p) })}
+                        style={{
+                          width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center",
+                          border: p === currentPage ? "none" : "1.5px solid #e2e8f0",
+                          background: p === currentPage ? "#6366f1" : "#fff",
+                          fontSize: "13px", fontWeight: p === currentPage ? 800 : 500,
+                          color: p === currentPage ? "#fff" : "#374151",
+                          textDecoration: "none",
+                        }}
+                      >
+                        {p}
+                      </Link>
+                    );
+                  })}
+
+                  {currentPage < totalPages && (
+                    <Link
+                      href={buildUrl({ page: String(currentPage + 1) })}
+                      style={{ padding: "8px 16px", borderRadius: "8px", border: "1.5px solid #e2e8f0", background: "#fff", fontSize: "13px", fontWeight: 600, color: "#374151", textDecoration: "none" }}
+                    >
+                      Siguiente →
+                    </Link>
+                  )}
+                </div>
+              )}
+            </>
           );
         })()}
       </div>
