@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { GallerySection } from "./GallerySection";
@@ -131,7 +132,7 @@ async function getRelated(currentId: string, categoryId: number, brand?: string,
   return { items: byCat ?? [], label: "" };
 }
 
-async function getListing(id: string) {
+const getListing = cache(async function getListing(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
@@ -142,16 +143,18 @@ async function getListing(id: string) {
   if (error) { console.error("getListing error:", error.message); return null; }
   if (!data) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, username, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone, identity_verified")
-    .eq("id", data.user_id)
-    .single();
-
-  const { data: reviewStats } = await supabase
-    .from("reviews")
-    .select("rating")
-    .eq("seller_id", data.user_id);
+  // Parallelizar profile + reviews — no son dependientes entre sí
+  const [{ data: profile }, { data: reviewStats }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name, username, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone, identity_verified")
+      .eq("id", data.user_id)
+      .single(),
+    supabase
+      .from("reviews")
+      .select("rating")
+      .eq("seller_id", data.user_id),
+  ]);
 
   const reviewCount = reviewStats?.length ?? 0;
   const avgRating = reviewCount > 0
@@ -159,7 +162,9 @@ async function getListing(id: string) {
     : 0;
 
   return { ...data, profile: profile ?? null, reviewCount, avgRating };
-}
+});
+
+export const revalidate = 300; // 5 minutos — segunda visita llega desde caché
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
@@ -201,11 +206,15 @@ export async function generateMetadata(
 
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const listing = await getListing(id);
+
+  // Parallelizar listing + auth — independientes entre sí
+  const supabase = await createClient();
+  const [listing, { data: { user: currentUser } }] = await Promise.all([
+    getListing(id),
+    supabase.auth.getUser(),
+  ]);
   if (!listing) notFound();
 
-  const supabase = await createClient();
-  const { data: { user: currentUser } } = await supabase.auth.getUser();
   const isOwner = currentUser?.id === (listing as any).user_id;
 
   const attrs0 = (listing.attributes as Record<string, any>) ?? {};

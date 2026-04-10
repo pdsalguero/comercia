@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -60,6 +61,9 @@ export async function POST(req: NextRequest) {
       featured_level: "gold",
       mp_status:      "free",
     });
+
+    // Invalidar caché del home para que el aviso destacado aparezca de inmediato
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ ok: true });
 

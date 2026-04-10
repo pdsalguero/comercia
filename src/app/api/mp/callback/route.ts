@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail } from "@/lib/email";
 import { destacadoActivadoTemplate } from "@/lib/emailTemplates";
@@ -93,4 +94,7 @@ export async function applyDestacado({
     });
     sendEmail({ to: userEmail, subject, html }).catch(console.error);
   }
+
+  // Invalidar caché del home para que el aviso destacado aparezca de inmediato
+  revalidatePath('/', 'layout');
 }
