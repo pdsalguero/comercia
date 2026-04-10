@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { listingUrl } from "@/lib/listing-url";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -632,7 +633,7 @@ export default async function SellerPage({
               const attrs = (l.attributes as any) ?? {};
               const subPills: string[] = [attrs.sub_category, attrs.brand, attrs.model].filter(Boolean);
               return (
-                <Link key={l.id} href={`/listings/${l.id}`} style={{ textDecoration: "none" }}>
+                <Link key={l.id} href={listingUrl(l.id, l.title)} style={{ textDecoration: "none" }}>
                   <div style={{ background: "#fff", borderRadius: "10px", display: "flex", gap: "14px", padding: "12px", alignItems: "center", border: "1px solid #f0f0f0" }}
                     className="hover:shadow-sm transition-shadow">
                     <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff" }}>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import Link from "next/link";
+import { extractListingId, listingUrl } from "@/lib/listing-url";
 import { createClient } from "@/lib/supabase/server";
 import { GallerySection } from "./GallerySection";
 import { DetailTabs } from "./DetailTabs";
@@ -169,7 +170,8 @@ export const revalidate = 300; // 5 minutos — segunda visita llega desde cach�
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = extractListingId(rawId);
   const listing = await getListing(id);
   if (!listing) return { title: "Aviso no encontrado" };
 
@@ -190,7 +192,7 @@ export async function generateMetadata(
     openGraph: {
       title: `${listing.title} — ${priceStr}`,
       description: desc,
-      url: `https://comerxia.com.ar/listings/${id}`,
+      url: `https://comerxia.com.ar${listingUrl(id, listing.title)}`,
       ...(firstImage ? { images: [{ url: firstImage, width: 800, height: 600, alt: listing.title }] } : {}),
       type: "website",
     },
@@ -200,12 +202,13 @@ export async function generateMetadata(
       description: desc,
       ...(firstImage ? { images: [firstImage] } : {}),
     },
-    alternates: { canonical: `https://comerxia.com.ar/listings/${id}` },
+    alternates: { canonical: `https://comerxia.com.ar${listingUrl(id, listing.title)}` },
   };
 }
 
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = extractListingId(rawId);
 
   // Parallelizar listing + auth — independientes entre sí
   const supabase = await createClient();
@@ -845,7 +848,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 return (
                   <Link
                     key={r.id}
-                    href={`/listings/${r.id}`}
+                    href={listingUrl(r.id, r.title)}
                     className="related-card"
                     style={{ textDecoration: "none", flexShrink: 0, width: "220px" }}
                   >

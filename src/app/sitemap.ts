@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { MetadataRoute } from "next";
+import { listingUrl } from "@/lib/listing-url";
 
 const BASE = "https://comerxia.com.ar";
 
@@ -15,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [{ data: listings }, { data: stores }] = await Promise.all([
     supabase
       .from("listings")
-      .select("id, updated_at")
+      .select("id, title, updated_at")
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(5000),
@@ -27,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const listingUrls: MetadataRoute.Sitemap = (listings ?? []).map((l) => ({
-    url: `${BASE}/listings/${l.id}`,
+    url: `${BASE}${listingUrl(l.id, l.title)}`,
     lastModified: l.updated_at ? new Date(l.updated_at) : new Date(),
     changeFrequency: "weekly",
     priority: 0.8,

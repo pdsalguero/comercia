@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { FavoriteButton } from "./FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
 import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
+import { listingUrl } from "@/lib/listing-url";
 
 interface ListingCardProps {
   id: string;
@@ -90,7 +91,7 @@ export function ListingCard({
   const locationLabel = rawLocation.includes(",") ? rawLocation.split(",").pop()!.trim() : rawLocation;
 
   return (
-    <Link href={`/listings/${id}`} style={{ textDecoration: "none", display: "block" }}>
+    <Link href={listingUrl(id, title)} style={{ textDecoration: "none", display: "block" }}>
       <div
         style={{
           background: "#fff",

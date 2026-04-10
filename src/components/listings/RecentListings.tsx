@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
+import { listingUrl } from "@/lib/listing-url";
 
 type Listing = {
   id: string;
@@ -107,7 +108,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
           {items.map((l) => {
             const img = cover(l);
             return (
-              <Link key={l.id} href={`/listings/${l.id}`} style={{ textDecoration: "none" }}>
+              <Link key={l.id} href={listingUrl(l.id, l.title)} style={{ textDecoration: "none" }}>
                 <div style={{
                   border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden",
                   background: "#fafafa", cursor: "pointer",
@@ -190,7 +191,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
         items.map((l, i) => {
           const img = cover(l);
           return (
-            <Link key={l.id} href={`/listings/${l.id}`} style={{ textDecoration: "none" }}>
+            <Link key={l.id} href={listingUrl(l.id, l.title)} style={{ textDecoration: "none" }}>
               <div style={{
                 display: "flex", alignItems: "center", gap: "12px",
                 padding: "10px 16px",

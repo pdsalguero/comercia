@@ -1,6 +1,7 @@
 "use client";
 
 import PinIcon from "@/components/ui/PinIcon";
+import { listingUrl } from "@/lib/listing-url";
 
 export interface ListingListCardProps {
   id: string;
@@ -60,7 +61,7 @@ export function ListingListCard({
       : null;
 
   return (
-    <a href={`/listings/${id}`} style={{ textDecoration: "none", display: "block" }}>
+    <a href={listingUrl(id, title)} style={{ textDecoration: "none", display: "block" }}>
       <div
         className="listing-list-card"
         style={{
