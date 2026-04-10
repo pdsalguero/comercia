@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { sendEmail } from '@/lib/email'
 import { listingPublishedTemplate } from '@/lib/emailTemplates'
 
@@ -88,6 +89,11 @@ export async function POST(request: Request) {
       })
       sendEmail({ to: user.email, subject, html }).catch(console.error)
     }
+
+    // Invalidar caché de home y listings para que el nuevo aviso aparezca de inmediato
+    revalidateTag('home-data')
+    revalidatePath('/')
+    revalidatePath('/listings')
 
     return NextResponse.json(listing)
 
