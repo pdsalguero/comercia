@@ -32,8 +32,8 @@ import { HeroSearch } from "@/components/listings/HeroSearch";
 import { StoreCards } from "@/components/listings/StoreCards";
 import { PublishFAB } from "@/components/ui/PublishFAB";
 
-// Revalida la home cada hora — evita fetch completo en cada request
-export const revalidate = 3600;
+// Revalida la home cada 5 minutos para mantener view_count relativamente fresco
+export const revalidate = 300;
 
 const CATEGORIES = [
   { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2,  active: true  },
@@ -127,7 +127,7 @@ async function _fetchHomeData() {
 const getHomeData = unstable_cache(
   _fetchHomeData,
   ["home-data"],
-  { revalidate: 3600, tags: ["home-data"] }
+  { revalidate: 300, tags: ["home-data"] }
 );
 
 function cover(listing: any): string | null {
