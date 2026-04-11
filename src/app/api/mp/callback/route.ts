@@ -95,6 +95,29 @@ export async function applyDestacado({
     sendEmail({ to: userEmail, subject, html }).catch(console.error);
   }
 
+  // Postear en Facebook Page (fire-and-forget)
+  const FB_TOKEN  = process.env.FACEBOOK_PAGE_TOKEN;
+  const FB_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
+  if (FB_TOKEN && FB_PAGE_ID && listing?.title) {
+    const FBASE = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+    const listingUrl = `${FBASE}/listings/${listingId}`;
+    const planLabel  = plan.featured_level === "premium" ? "⭐ PREMIUM" : "🔝 DESTACADO";
+    const { data: listingData } = await service.from("listings").select("price, slug").eq("id", listingId).single();
+    const priceText = listingData?.price
+      ? `💰 $${Number(listingData.price).toLocaleString("es-AR")}`
+      : "";
+    const message = [
+      `${planLabel} | ${listing.title}`,
+      priceText,
+      listingUrl,
+    ].filter(Boolean).join("\n");
+    fetch(`https://graph.facebook.com/v20.0/${FB_PAGE_ID}/feed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, access_token: FB_TOKEN }),
+    }).catch((e) => console.error("[facebook]", e));
+  }
+
   // Invalidar caché del home para que el aviso destacado aparezca de inmediato
   revalidatePath('/', 'layout');
 }

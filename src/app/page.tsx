@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PageTracker from "@/components/PageTracker";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 
@@ -154,7 +155,8 @@ export default async function HomePage() {
     toys: "#facc15", pets: "#84cc16", books: "#94a3b8", other: "#cbd5e1",
   };
 
-  return (
+  return (<>
+      <PageTracker page="landing" />
     <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
       <Navbar user={user} hideSearch />
 
@@ -426,5 +428,5 @@ export default async function HomePage() {
       <Footer />
       <PublishFAB />
     </div>
-  );
+  </>);
 }

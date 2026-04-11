@@ -116,7 +116,6 @@ export default async function AdminDashboard() {
     { label: "Usuarios",              value: totalUsers ?? 0,      icon: "👥", color: "#3b82f6", bg: "#eff6ff" },
     { label: "Bloqueados",            value: blockedUsers ?? 0,    icon: "🔒", color: "#f59e0b", bg: "#fffbeb" },
     { label: "Tiendas",               value: totalStores ?? 0,     icon: "🏪", color: "#8b5cf6", bg: "#f5f3ff" },
-    { label: "Visitas landing",       value: landingViews ?? 0,    icon: "👁", color: "#0ea5e9", bg: "#f0f9ff" },
     { label: "Visitas hoy",           value: landingViewsToday ?? 0, icon: "📅", color: "#FF8C00", bg: "#fff7ed" },
     { label: "Visitantes únicos",     value: uniqueVisitors,       icon: "🙋", color: "#14b8a6", bg: "#f0fdfa" },
     { label: "Únicos hoy",            value: uniqueToday,          icon: "✨", color: "#a855f7", bg: "#faf5ff" },
