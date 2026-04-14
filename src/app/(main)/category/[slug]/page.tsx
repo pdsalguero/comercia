@@ -613,7 +613,7 @@ export default async function CategoryPage({
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-  const { data: rawListings } = await (query as any).limit(200);
+  const { data: rawListings } = await (query as any).limit(48);
 
   // Fetch store info separately (FK join causes empty results when FK constraint is missing)
   const userIds = [...new Set(((rawListings as any[]) ?? []).map((l: any) => l.user_id).filter(Boolean))];
