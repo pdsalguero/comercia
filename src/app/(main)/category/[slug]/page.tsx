@@ -427,12 +427,17 @@ export default async function CategoryPage({
 
   const supabase = await createClient();
 
-  // Get category id
-  const { data: cat } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("slug", slug)
-    .single();
+  // Get category id — cacheado indefinidamente (los slugs nunca cambian)
+  const getCatId = unstable_cache(
+    async (s: string) => {
+      const pub = createPublicClient();
+      const { data } = await pub.from("categories").select("id").eq("slug", s).single();
+      return data;
+    },
+    ["category-id-by-slug"],
+    { revalidate: 86400 }
+  );
+  const cat = await getCatId(slug);
 
   if (!cat) notFound();
 
