@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
+import { createPublicClient } from "@/lib/supabase/public";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { ListingListCard } from "@/components/listings/ListingListCard";
 import { SubcategoryPills } from "@/components/ui/SubcategoryPills";
@@ -751,12 +753,21 @@ export default async function CategoryPage({
   let motoSubtipoCounts: Record<string, number> = {};
   let noSubCatVehicleCount = 0;
   if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices || isOther) {
-    const { data: all } = await supabase
-      .from("listings")
-      .select("attributes, condition, neighborhood")
-      .eq("status", "active")
-      .eq("category_id", cat.id);
-    for (const row of all ?? []) {
+    const getCategoryFilterData = unstable_cache(
+      async (categoryId: number) => {
+        const pub = createPublicClient();
+        const { data } = await pub
+          .from("listings")
+          .select("attributes, condition, neighborhood")
+          .eq("status", "active")
+          .eq("category_id", categoryId);
+        return data ?? [];
+      },
+      [`category-filter-data`],
+      { revalidate: 300, tags: [`category-filter-data-${cat.id}`] }
+    );
+    const all = await getCategoryFilterData(cat.id);
+    for (const row of all) {
       const t = (row.attributes as any)?.sub_category;
       if (isVehicles) {
         const b = (row.attributes as any)?.brand;

@@ -2,9 +2,31 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
+// Throttle en memoria: evita contar la misma IP+listing más de 1 vez por hora
+const recentViews = new Map<string, number>();
+const THROTTLE_MS = 60 * 60 * 1000; // 1 hora
+
+function isThrottled(ip: string, listingId: string): boolean {
+  const key = `${ip}:${listingId}`;
+  const last = recentViews.get(key);
+  if (last && Date.now() - last < THROTTLE_MS) return true;
+  recentViews.set(key, Date.now());
+  // Limpiar entradas viejas cada ~1000 registros para no crecer indefinidamente
+  if (recentViews.size > 1000) {
+    const cutoff = Date.now() - THROTTLE_MS;
+    for (const [k, t] of recentViews) {
+      if (t < cutoff) recentViews.delete(k);
+    }
+  }
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   const { listing_id } = await req.json();
   if (!listing_id) return NextResponse.json({ ok: false }, { status: 400 });
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (isThrottled(ip, listing_id)) return NextResponse.json({ ok: true });
 
   const supabase = await createClient();
 

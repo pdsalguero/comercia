@@ -89,7 +89,7 @@ async function _fetchHomeData() {
     supabase.from("profiles").select("*",{count:"exact",head:true}),
     supabase.from("profiles").select("*",{count:"exact",head:true}).eq("is_store",true),
     supabase.from("listing_views_log").select("*",{count:"exact",head:true}).gte("created_at", todayStart.toISOString()),
-    supabase.from("listings").select("category_id").eq("status","active"),
+    Promise.resolve(supabase.rpc("get_category_counts")).catch(() => ({ data: null, error: null })),
   ]);
 
   const userIds = [...new Set((allFeatured ?? []).map((l: any) => l.user_id).filter(Boolean))];
@@ -100,8 +100,16 @@ async function _fetchHomeData() {
   for (const p of storeProfiles ?? []) storeMap[p.id] = p;
 
   const counts: Record<number,number> = {};
-  for (const row of catCounts ?? []) {
-    counts[row.category_id] = (counts[row.category_id]??0)+1;
+  if (catCounts) {
+    for (const row of catCounts) {
+      counts[row.category_id] = Number(row.count);
+    }
+  } else {
+    // Fallback si la RPC no existe aún: query directa (más egress, temporal)
+    const { data: fallback } = await supabase.from("listings").select("category_id").eq("status","active");
+    for (const row of fallback ?? []) {
+      counts[row.category_id] = (counts[row.category_id] ?? 0) + 1;
+    }
   }
   const featured = shuffle(allFeatured ?? []).slice(0, 16).map((l: any) => ({
     ...l,
