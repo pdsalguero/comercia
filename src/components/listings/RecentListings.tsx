@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import PinIcon from "@/components/ui/PinIcon";
 import { listingUrl } from "@/lib/listing-url";
 
@@ -119,8 +120,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
                   {/* Image */}
                   <div style={{ height: "120px", background: "#f0f4ff", position: "relative" }}>
                     {img
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={img} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                        ? <Image src={img} alt={l.title} fill style={{ objectFit: "contain" }} sizes="120px" />
                       : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>📦</div>
                     }
                     {l.is_store && (

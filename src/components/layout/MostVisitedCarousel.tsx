@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import PinIcon from "@/components/ui/PinIcon";
 
 interface Item {
@@ -55,8 +56,8 @@ export function MostVisitedCarousel({ items }: { items: Item[] }) {
       {/* Card */}
       <Link href={`/listings/${item.id}`} style={{ textDecoration: "none", display: "block" }}>
         {item.cover && (
-          <div style={{ position: "relative" }}>
-            <img src={item.cover} alt="" style={{ width: "100%", height: "130px", objectFit: "cover", display: "block" }} />
+          <div style={{ position: "relative", height: "130px" }}>
+            <Image src={item.cover} alt="" fill style={{ objectFit: "cover" }} sizes="200px" />
             <div style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.55)", borderRadius: "6px", padding: "2px 7px", display: "flex", alignItems: "center", gap: "4px" }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <span style={{ fontSize: "10px", fontWeight: 700, color: "#fff" }}>{item.view_count.toLocaleString("es-AR")}</span>

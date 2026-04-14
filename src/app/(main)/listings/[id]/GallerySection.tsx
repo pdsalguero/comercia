@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 
 export function GallerySection({ images, title }: { images: { url: string }[]; title: string }) {
   const [active, setActive] = useState(0);
@@ -189,9 +190,10 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                   borderRadius: "6px", overflow: "hidden",
                   cursor: "pointer", background: "#f8f9fa",
                   transition: "border-color 0.15s",
+                  position: "relative",
                 }}
               >
-                <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <Image src={img.url} alt="" fill style={{ objectFit: "cover" }} sizes="68px" />
               </button>
             ))}
           </div>
@@ -217,13 +219,13 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             }}
           />
           {/* Imagen principal centrada encima */}
-          <img
+          <Image
             src={images[active].url}
             alt={title}
-            style={{
-              position: "relative", width: "100%", height: "100%",
-              objectFit: "contain", display: "block",
-            }}
+            fill
+            style={{ objectFit: "contain" }}
+            sizes="(max-width: 768px) 100vw, 700px"
+            priority
           />
 
           {/* Prev arrow */}
@@ -414,9 +416,10 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                     width: "44px", height: "44px", padding: 0,
                     border: "2px solid", borderColor: i === active ? "#fff" : "transparent",
                     borderRadius: "4px", overflow: "hidden", cursor: "pointer", background: "none",
+                    position: "relative",
                   }}
                 >
-                  <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <Image src={img.url} alt="" fill style={{ objectFit: "cover" }} sizes="44px" />
                 </button>
               ))}
             </div>
