@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         accepts_offers: body.accepts_offers ?? true,
         condition:      body.condition,
         status:         'active',
-        city:           'San Juan',
+        city:           body.city ?? null,
         neighborhood:   body.neighborhood ?? null,
         attributes:     body.attributes ?? null,
         ai_generated:   body.ai_generated ?? false,

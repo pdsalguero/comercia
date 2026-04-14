@@ -22,7 +22,7 @@ interface Suggestion {
 
 export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
   const [query, setQuery] = useState("");
-  const [province, setProvince] = useState("San Juan");
+  const [province, setProvince] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [rect, setRect] = useState<DOMRect | null>(null);

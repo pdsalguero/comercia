@@ -875,7 +875,7 @@ export default function NewListingPage() {
   const [currency, setCurrency] = useState<"ARS" | "USD">("ARS");
   const [categoryId, setCategoryId] = useState(0);
   const [condition, setCondition] = useState("");
-  const [zone, setZone] = useState("San Juan");
+  const [zone, setZone] = useState("");
   const [locality, setLocality] = useState("");
   const [techGroup, setTechGroup] = useState("");
   const [attrs, setAttrs] = useState<Record<string, any>>({});
