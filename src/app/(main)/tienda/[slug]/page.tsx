@@ -3,6 +3,7 @@ import { listingUrl } from "@/lib/listing-url";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import Image from "next/image";
 import { ListingCard } from "@/components/listings/ListingCard";
 import PinIcon from "@/components/ui/PinIcon";
 import { StarRating } from "@/components/ui/StarRating";
@@ -215,7 +216,7 @@ export default async function TiendaPage({
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-  const { data: rawListings } = await query.limit(200);
+  const { data: rawListings } = await query.limit(48);
   const listings = ((rawListings as any[]) ?? []).slice().sort((a: any, b: any) => {
     if (sp.order === "price_asc") return (a.price ?? 0) - (b.price ?? 0);
     if (sp.order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
@@ -698,9 +699,9 @@ export default async function TiendaPage({
                   <Link key={l.id} href={listingUrl(l.id, l.title)} style={{ textDecoration: "none" }}>
                     <div style={{ background: "#fff", borderRadius: "10px", display: "flex", gap: "14px", padding: "12px", alignItems: "center", border: "1px solid #f0f0f0" }}
                       className="hover:shadow-sm transition-shadow">
-                      <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff" }}>
+                      <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                         {cover
-                          ? <img src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <Image src={cover} alt="" fill style={{ objectFit: "cover" }} sizes="80px" />
                           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                         }
                       </div>
@@ -771,9 +772,9 @@ export default async function TiendaPage({
             {reviews.map((review) => (
               <div key={review.id} style={{ background: "#fff", borderRadius: "12px", border: "1px solid #f1f5f9", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#e0e7ff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "14px" }}>
+                  <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#e0e7ff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "14px", position: "relative" }}>
                     {review.reviewer?.avatar_url
-                      ? <img src={review.reviewer.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <Image src={review.reviewer.avatar_url} alt="" fill style={{ objectFit: "cover" }} sizes="34px" />
                       : "👤"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

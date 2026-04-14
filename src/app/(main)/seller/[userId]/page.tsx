@@ -190,7 +190,7 @@ export default async function SellerPage({
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-  const { data: rawListings } = await query.limit(200);
+  const { data: rawListings } = await query.limit(48);
 
   const listings = ((rawListings as any[]) ?? []).slice().sort((a: any, b: any) => {
     if (sp.order === "price_asc") return (a.price ?? 0) - (b.price ?? 0);
