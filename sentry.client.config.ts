@@ -14,9 +14,33 @@ Sentry.init({
     "top.GLOBALS",
     "originalCreateNotification",
     "canvas.getContext",
-    // Errores de extensiones de navegador
+    // Errores de extensiones de navegador (URL en stack)
     /^chrome-extension:/,
     /^safari-extension:/,
+    /^moz-extension:/,
+    // Chrome runtime: extensiones intentando comunicarse con su SW muerto
+    "Could not establish connection. Receiving end does not exist",
+    "The message port closed before a response was received",
+    // ResizeObserver: falso positivo muy común en browsers con extensiones
+    "ResizeObserver loop limit exceeded",
+    "ResizeObserver loop completed with undelivered notifications",
   ],
+  beforeSend(event) {
+    // Descartar eventos cuyo stack trace provenga exclusivamente de extensiones
+    const frames = event.exception?.values?.[0]?.stacktrace?.frames ?? [];
+    if (
+      frames.length > 0 &&
+      frames.every(
+        (f) =>
+          f.filename?.startsWith("chrome-extension://") ||
+          f.filename?.startsWith("moz-extension://") ||
+          f.filename?.startsWith("safari-extension://") ||
+          f.filename === "<anonymous>"
+      )
+    ) {
+      return null;
+    }
+    return event;
+  },
   enabled: process.env.NODE_ENV === "production",
 });
