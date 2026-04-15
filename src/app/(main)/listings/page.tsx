@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { ListingsGrid } from "@/components/listings/ListingsGrid";
 import { ListingsViewProvider } from "@/components/listings/ListingsViewContext";
 import { ViewToggle } from "@/components/listings/ViewToggle";
@@ -10,6 +12,30 @@ import { FilterPanel, type FilterValues } from "@/components/listings/FilterPane
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
 
 const PAGE_SIZE = 24;
+
+const CAT_IDS = [1,2,3,4,5,6,7,8,9,10,21,22,23,24,25,26];
+
+// Counts cacheados 5 min — HEAD queries, cero egress de datos. Clave incluye province.
+const getCategoryCounts = unstable_cache(
+  async (province?: string): Promise<Record<number, number>> => {
+    const supabase = createPublicClient();
+    const entries = await Promise.all(
+      CAT_IDS.map(async (id) => {
+        let q = supabase
+          .from("listings")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "active")
+          .eq("category_id", id);
+        if (province) q = q.ilike("neighborhood", `%${province}`);
+        const { count } = await q;
+        return [id, count ?? 0] as [number, number];
+      })
+    );
+    return Object.fromEntries(entries);
+  },
+  ["listings-category-counts"],
+  { revalidate: 300 }
+);
 
 const CATEGORIES = [
   { name: "Vehículos",                 slug: "vehicles",      icon: "🚗",  active: true  },
@@ -76,15 +102,8 @@ export default async function ListingsPage({
     categoryId = cat?.id ?? null;
   }
 
-  // Per-category counts (respects location filter)
-  let countQuery = supabase.from("listings").select("category_id").eq("status", "active");
-  if (location) countQuery = countQuery.ilike("neighborhood", `%${location}%`);
-  const { data: catCountRows } = await countQuery;
-
-  const catCounts: Record<number, number> = {};
-  for (const row of catCountRows ?? []) {
-    catCounts[row.category_id] = (catCounts[row.category_id] ?? 0) + 1;
-  }
+  // Per-category counts — cacheados 5 min por provincia, HEAD queries sin egress de datos
+  const catCounts = await getCategoryCounts(location || undefined);
 
   // Fetch categories with ids
   const { data: dbCategories } = await supabase
@@ -223,6 +242,8 @@ export default async function ListingsPage({
       <aside className="listing-sidebar">
         <CategorySidebar
           hideUpsell
+          province={location || undefined}
+          todosHref={location ? `/listings?location=${encodeURIComponent(location)}` : "/listings"}
           categories={CATEGORIES.map(cat => ({
             ...cat,
             count: catCounts[slugToId[cat.slug] ?? -1] ?? 0,
@@ -272,9 +293,25 @@ export default async function ListingsPage({
           display: "flex", alignItems: "center", justifyContent: "space-between",
           gap: "12px", marginBottom: "16px", flexWrap: "wrap",
         }}>
-          <div style={{ fontSize: "13px", color: "#888" }}>
-            <strong style={{ color: "#333" }}>{listings?.length ?? 0}</strong> publicaciones
-            {category && ` en ${CATEGORIES.find(c => c.slug === category)?.name ?? category}`}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "13px", color: "#888" }}>
+              <strong style={{ color: "#333" }}>{listings?.length ?? 0}</strong> publicaciones
+              {category && ` en ${CATEGORIES.find(c => c.slug === category)?.name ?? category}`}
+            </span>
+            {location && (
+              <Link
+                href={buildUrl({ location: undefined, page: undefined })}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "4px",
+                  background: "#eff6ff", color: "#2563eb",
+                  border: "1px solid #bfdbfe", borderRadius: "20px",
+                  padding: "2px 10px", fontSize: "12px", fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                📍 {location} ✕
+              </Link>
+            )}
           </div>
 
           <div className="listings-search-bar" style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%", flexWrap: "wrap" }}>

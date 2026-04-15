@@ -16,9 +16,10 @@ interface CategorySidebarProps {
   categories: Category[];
   hideUpsell?: boolean;
   province?: string;
+  todosHref?: string;
 }
 
-export function CategorySidebar({ categories, hideUpsell = false, province }: CategorySidebarProps) {
+export function CategorySidebar({ categories, hideUpsell = false, province, todosHref = "/" }: CategorySidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeSlug = searchParams.get("category") ?? "";
@@ -55,7 +56,7 @@ export function CategorySidebar({ categories, hideUpsell = false, province }: Ca
         </div>
 
         {/* All */}
-        <Link href="/" style={{ textDecoration: "none" }}>
+        <Link href={todosHref} style={{ textDecoration: "none" }}>
           <div
             style={{
               padding: "9px 16px",
