@@ -27,11 +27,14 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FeaturedCarousel } from "@/components/listings/FeaturedCarousel";
+import { HomeFeaturedCarousel } from "@/components/listings/HomeFeaturedCarousel";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
-import { RecentListings } from "@/components/listings/RecentListings";
+import { HomeCategorySidebar } from "@/components/layout/HomeCategorySidebar";
 import { HeroSearch } from "@/components/listings/HeroSearch";
 import { StoreCards } from "@/components/listings/StoreCards";
 import { PublishFAB } from "@/components/ui/PublishFAB";
+import { HomeProvinceProvider } from "@/components/listings/HomeProvinceContext";
+import { HomeRecentListings } from "@/components/listings/HomeRecentListings";
 
 // Revalida la home cada 5 minutos para mantener view_count relativamente fresco
 export const revalidate = 300;
@@ -165,6 +168,7 @@ export default async function HomePage() {
 
   return (<>
       <PageTracker page="landing" />
+    <HomeProvinceProvider>
     <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
       <Navbar user={user} hideSearch />
 
@@ -173,7 +177,7 @@ export default async function HomePage() {
 
           {/* ── LEFT SIDEBAR ── */}
           <div className="sidebar-hide" style={{ gridArea: "sidebar" }}>
-            <CategorySidebar categories={categoriesWithCount} />
+            <HomeCategorySidebar initialCategories={categoriesWithCount} />
           </div>
 
           {/* ── HERO ── */}
@@ -276,11 +280,10 @@ export default async function HomePage() {
               ))}
             </div>
 
-            {/* All-category Premium carousel — shuffled on every load */}
+            {/* All-category Premium carousel — filtrable por provincia */}
             {featured.length > 0 ? (
-              <FeaturedCarousel
-                title="👑 Destacados"
-                items={featured.map((l:any)=>({...l, cover_image: cover(l)}))}
+              <HomeFeaturedCarousel
+                initialItems={featured.map((l:any)=>({...l, cover_image: cover(l)}))}
                 href="/listings"
               />
             ) : (
@@ -303,8 +306,8 @@ export default async function HomePage() {
             {/* Tiendas Virtuales */}
             <StoreCards />
 
-            {/* Últimos avisos — grid/list toggle */}
-            <RecentListings items={recent.map((l:any) => ({
+            {/* Últimos avisos — grid/list toggle, filtrables por provincia */}
+            <HomeRecentListings initialItems={recent.map((l:any) => ({
               ...l,
               categories: l.categories ? { ...l.categories, name: CAT_NAMES[l.categories.slug] ?? l.categories.name } : null,
             }))} />
@@ -436,5 +439,6 @@ export default async function HomePage() {
       <Footer />
       <PublishFAB />
     </div>
+    </HomeProvinceProvider>
   </>);
 }
