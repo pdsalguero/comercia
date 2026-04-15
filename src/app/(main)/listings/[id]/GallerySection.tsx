@@ -193,7 +193,8 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                   position: "relative",
                 }}
               >
-                <Image src={img.url} alt="" fill style={{ objectFit: "cover" }} sizes="68px" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>
@@ -419,7 +420,8 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                     position: "relative",
                   }}
                 >
-                  <Image src={img.url} alt="" fill style={{ objectFit: "cover" }} sizes="44px" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img.url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </button>
               ))}
             </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import PinIcon from "@/components/ui/PinIcon";
 import { listingUrl } from "@/lib/listing-url";
 
@@ -88,7 +87,8 @@ export function ListingListCard({
           position: "relative",
         }}>
           {cover_image
-            ? <Image src={cover_image} alt="" fill style={{ objectFit: "cover" }} sizes="140px" />
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={cover_image} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
           }
         </div>

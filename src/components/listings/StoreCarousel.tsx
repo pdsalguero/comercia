@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 interface Store {
   id: string;
@@ -119,7 +118,8 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                   background: bg,
                 }}>
                   {store.store_banner_url && (
-                    <Image src={store.store_banner_url} alt="" fill style={{ objectFit: "cover" }} sizes="280px" />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={store.store_banner_url} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                   )}
                   {/* Logo circle */}
                   <div style={{
@@ -130,7 +130,8 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                     boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
                   }}>
                     {store.store_logo_url
-                      ? <Image src={store.store_logo_url} alt="" fill style={{ objectFit: "cover" }} sizes="36px" />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={store.store_logo_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : <span style={{ fontSize: "16px" }}>🏪</span>
                     }
                   </div>

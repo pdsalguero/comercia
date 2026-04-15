@@ -3,7 +3,6 @@ import { listingUrl } from "@/lib/listing-url";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import Image from "next/image";
 import { ListingCard } from "@/components/listings/ListingCard";
 import PinIcon from "@/components/ui/PinIcon";
 import { StarRating } from "@/components/ui/StarRating";
@@ -701,7 +700,8 @@ export default async function TiendaPage({
                       className="hover:shadow-sm transition-shadow">
                       <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                         {cover
-                          ? <Image src={cover} alt="" fill style={{ objectFit: "cover" }} sizes="80px" />
+                          // eslint-disable-next-line @next/next/no-img-element
+                          ? <img src={cover} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                         }
                       </div>
@@ -774,7 +774,8 @@ export default async function TiendaPage({
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                   <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#e0e7ff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "14px", position: "relative" }}>
                     {review.reviewer?.avatar_url
-                      ? <Image src={review.reviewer.avatar_url} alt="" fill style={{ objectFit: "cover" }} sizes="34px" />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={review.reviewer.avatar_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : "👤"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
