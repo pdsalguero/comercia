@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { ListingsGrid } from "@/components/listings/ListingsGrid";
 import { ListingsViewProvider } from "@/components/listings/ListingsViewContext";
@@ -36,6 +35,78 @@ const getCategoryCounts = unstable_cache(
   ["listings-category-counts"],
   { revalidate: 300 }
 );
+
+type ListingsParams = {
+  q?: string; categorySlug?: string; condition?: string;
+  price_min?: string; price_max?: string; order?: string; location?: string;
+  fuel?: string; transmission?: string; operation?: string; re_sub?: string;
+  page: number;
+};
+
+async function _fetchListings(p: ListingsParams) {
+  const supabase = createPublicClient();
+  const PAGE_SIZE_INNER = 24;
+
+  // Category id from slug
+  let categoryId: number | null = null;
+  if (p.categorySlug) {
+    const { data: cat } = await supabase
+      .from("categories").select("id").eq("slug", p.categorySlug).single();
+    categoryId = cat?.id ?? null;
+  }
+
+  // slug→id map for sidebar
+  const { data: dbCategories } = await supabase.from("categories").select("id, slug");
+
+  // Main query
+  let query = supabase
+    .from("listings")
+    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`, { count: "exact" })
+    .eq("status", "active");
+
+  if (p.q)         query = query.ilike("title", `%${p.q}%`);
+  if (p.location)  query = query.ilike("neighborhood", `%${p.location}%`);
+  if (categoryId)  query = query.eq("category_id", categoryId);
+  if (p.condition) query = query.eq("condition", p.condition);
+  if (p.price_min) query = query.gte("price", Number(p.price_min));
+  if (p.price_max) query = query.lte("price", Number(p.price_max));
+  if (p.fuel)         query = (query as any).eq("attributes->>fuel", p.fuel);
+  if (p.transmission) query = (query as any).eq("attributes->>transmission", p.transmission);
+  if (p.operation)    query = (query as any).eq("attributes->>operation", p.operation);
+  if (p.re_sub)       query = (query as any).eq("attributes->>sub_category", p.re_sub);
+
+  if (p.order === "price_asc")  query = query.order("price", { ascending: true });
+  else if (p.order === "price_desc") query = query.order("price", { ascending: false });
+  else if (p.order === "views") query = query.order("view_count", { ascending: false });
+  else query = query.order("created_at", { ascending: false });
+
+  const from = (p.page - 1) * PAGE_SIZE_INNER;
+  const to   = from + PAGE_SIZE_INNER - 1;
+  const { data: rawData, count: totalCount } = await query.range(from, to).returns<any[]>();
+
+  // Store profiles
+  const userIds = [...new Set((rawData ?? []).map((l: any) => l.user_id).filter(Boolean))];
+  const { data: storeProfiles } = userIds.length > 0
+    ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
+    : { data: [] };
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
+  for (const p of storeProfiles ?? []) storeMap[p.id] = p;
+
+  return {
+    rawData: rawData ?? [],
+    totalCount: totalCount ?? 0,
+    dbCategories: dbCategories ?? [],
+    storeMap,
+  };
+}
+
+// Cache 2 min — reduce egress de crawlers y tráfico repetido con mismos filtros
+const fetchListings = (p: ListingsParams) =>
+  unstable_cache(
+    () => _fetchListings(p),
+    ["listings-page", JSON.stringify(p)],
+    { revalidate: 120, tags: ["listings"] }
+  )();
 
 const CATEGORIES = [
   { name: "Vehículos",                 slug: "vehicles",      icon: "🚗",  active: true  },
@@ -89,72 +160,28 @@ export default async function ListingsPage({
     re_sub, operation, bedrooms, size } = params;
   const currentPage = Math.max(1, Number(params.page ?? "1"));
 
-  const supabase = await createClient();
-
-  // Fetch category id from slug
-  let categoryId: number | null = null;
-  if (category) {
-    const { data: cat } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", category)
-      .single();
-    categoryId = cat?.id ?? null;
-  }
-
-  // Per-category counts — cacheados 5 min por provincia, HEAD queries sin egress de datos
+  // Per-category counts — cacheados 5 min por provincia
   const catCounts = await getCategoryCounts(location || undefined);
 
-  // Fetch categories with ids
-  const { data: dbCategories } = await supabase
-    .from("categories")
-    .select("id, slug");
+  // Listings + categories + store profiles — cacheados 2 min por combinación de filtros
+  const { rawData, totalCount, dbCategories, storeMap } = await fetchListings({
+    q, categorySlug: category, condition, price_min, price_max, order, location,
+    fuel, transmission, operation, re_sub, page: currentPage,
+  });
 
   const slugToId: Record<string, number> = {};
-  for (const c of dbCategories ?? []) slugToId[c.slug] = c.id;
-
-  // Build main query (profiles fetched separately to avoid FK join issues)
-  let query = supabase
-    .from("listings")
-    .select(`
-      id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id,
-      listing_images(url, position)
-    `, { count: "exact" })
-    .eq("status", "active");
-
-  if (q) query = query.ilike("title", `%${q}%`);
-  if (location) query = query.ilike("neighborhood", `%${location}%`);
-  if (categoryId) query = query.eq("category_id", categoryId);
-  if (condition) query = query.eq("condition", condition);
-  if (price_min) query = query.gte("price", Number(price_min));
-  if (price_max) query = query.lte("price", Number(price_max));
-
-  // JSONB attribute filters (string equality — works reliably in PostgREST)
-  if (fuel) query = (query as any).eq("attributes->>fuel", fuel);
-  if (transmission) query = (query as any).eq("attributes->>transmission", transmission);
-  if (operation) query = (query as any).eq("attributes->>operation", operation);
-  if (re_sub) query = (query as any).eq("attributes->>sub_category", re_sub);
-
-  // featured_level sorted in JS after fetch (gold > silver > bronze > null)
-  if (order === "price_asc") query = query.order("price", { ascending: true });
-  else if (order === "price_desc") query = query.order("price", { ascending: false });
-  else if (order === "views") query = query.order("view_count", { ascending: false });
-  else query = query.order("created_at", { ascending: false });
-
-  // Paginación — range es 0-indexed e inclusivo en Supabase
-  const from = (currentPage - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  for (const c of dbCategories) slugToId[c.slug] = c.id;
+  const categoryId = category ? (slugToId[category] ?? null) : null;
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-  const { data: rawData, count: totalCount } = await query.range(from, to).returns<any[]>();
-  const sorted = rawData?.slice().sort((a, b) => {
-    if (order === "price_asc") return ((a as any).price ?? 0) - ((b as any).price ?? 0);
-    if (order === "price_desc") return ((b as any).price ?? 0) - ((a as any).price ?? 0);
-    if (order === "views") return ((b as any).view_count ?? 0) - ((a as any).view_count ?? 0);
-    const fa = FEAT_ORDER[(a as any).featured_level ?? ""] ?? 3;
-    const fb = FEAT_ORDER[(b as any).featured_level ?? ""] ?? 3;
+  const sorted = rawData.slice().sort((a: any, b: any) => {
+    if (order === "price_asc")  return (a.price ?? 0) - (b.price ?? 0);
+    if (order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
+    if (order === "views")      return (b.view_count ?? 0) - (a.view_count ?? 0);
+    const fa = FEAT_ORDER[a.featured_level ?? ""] ?? 3;
+    const fb = FEAT_ORDER[b.featured_level ?? ""] ?? 3;
     return fa - fb;
-  }) ?? [];
+  });
 
   // Numeric JSONB filters (done in JS — PostgREST can't reliably cast JSONB text to numeric)
   const filteredData = sorted.filter((l: any) => {
@@ -166,14 +193,6 @@ export default async function ListingsPage({
     if (size      && a.size !== size)                     return false;
     return true;
   });
-
-  // Fetch store profiles separately
-  const userIds = [...new Set(filteredData.map((l: any) => l.user_id).filter(Boolean))];
-  const { data: storeProfiles } = userIds.length > 0
-    ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
-    : { data: [] };
-  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
-  for (const p of storeProfiles ?? []) storeMap[p.id] = p;
 
   const listings = filteredData.map((l: any) => ({
     ...l,
