@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useHomeProvince } from "./HomeProvinceContext";
 
 const PROVINCES = [
   "Todo el país",
@@ -22,7 +23,7 @@ interface Suggestion {
 
 export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
   const [query, setQuery] = useState("");
-  const [province, setProvince] = useState("");
+  const { province, setProvince } = useHomeProvince();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [rect, setRect] = useState<DOMRect | null>(null);

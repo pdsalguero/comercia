@@ -44,7 +44,7 @@ function conditionLabel(c: string) {
   return "Usado";
 }
 
-export function RecentListings({ items }: { items: Listing[] }) {
+export function RecentListings({ items, viewAllHref = "/listings" }: { items: Listing[]; viewAllHref?: string }) {
   const [view, setView] = useState<"grid" | "list">("grid");
 
   return (
@@ -87,7 +87,7 @@ export function RecentListings({ items }: { items: Listing[] }) {
               </svg>
             </button>
           </div>
-          <Link href="/listings" style={{ fontSize: "12px", color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
+          <Link href={viewAllHref} style={{ fontSize: "12px", color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
             Ver todos →
           </Link>
         </div>

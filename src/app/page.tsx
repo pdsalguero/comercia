@@ -27,11 +27,14 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FeaturedCarousel } from "@/components/listings/FeaturedCarousel";
+import { HomeFeaturedCarousel } from "@/components/listings/HomeFeaturedCarousel";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
-import { RecentListings } from "@/components/listings/RecentListings";
+import { HomeCategorySidebar } from "@/components/layout/HomeCategorySidebar";
 import { HeroSearch } from "@/components/listings/HeroSearch";
 import { StoreCards } from "@/components/listings/StoreCards";
 import { PublishFAB } from "@/components/ui/PublishFAB";
+import { HomeProvinceProvider } from "@/components/listings/HomeProvinceContext";
+import { HomeRecentListings } from "@/components/listings/HomeRecentListings";
 
 // Revalida la home cada 5 minutos para mantener view_count relativamente fresco
 export const revalidate = 300;
@@ -74,6 +77,8 @@ async function _fetchHomeData() {
   const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
+  const CAT_IDS = [1,2,3,4,5,6,7,8,9,10,21,22,23,24,25,26];
+
   const [
     { data: allFeatured },
     { data: recent },
@@ -81,15 +86,19 @@ async function _fetchHomeData() {
     { count: totalSellers },
     { count: totalStores },
     { count: viewsToday },
-    { data: catCounts },
+    catCountEntries,
   ] = await Promise.all([
-    supabase.from("listings").select(FIELDS).eq("status","active").eq("featured_level","gold").order("created_at",{ascending:false}).limit(32),
+    supabase.from("listings").select(FIELDS).eq("status","active").eq("featured_level","gold").order("created_at",{ascending:false}).limit(16),
     supabase.from("listings").select("id,title,price,currency,condition,neighborhood,created_at,view_count,user_id,listing_images!inner(url,position),categories(name,slug)").eq("status","active").order("created_at",{ascending:false}).limit(8),
     supabase.from("listings").select("*",{count:"exact",head:true}).eq("status","active"),
     supabase.from("profiles").select("*",{count:"exact",head:true}),
     supabase.from("profiles").select("*",{count:"exact",head:true}).eq("is_store",true),
     supabase.from("listing_views_log").select("*",{count:"exact",head:true}).gte("created_at", todayStart.toISOString()),
-    Promise.resolve(supabase.rpc("get_category_counts")).catch(() => ({ data: null, error: null })),
+    // 16 HEAD queries paralelas — cero egress de datos, solo count en headers
+    Promise.all(CAT_IDS.map(async (id) => {
+      const { count } = await supabase.from("listings").select("*",{count:"exact",head:true}).eq("status","active").eq("category_id",id);
+      return [id, count ?? 0] as [number, number];
+    })),
   ]);
 
   const userIds = [...new Set((allFeatured ?? []).map((l: any) => l.user_id).filter(Boolean))];
@@ -99,19 +108,8 @@ async function _fetchHomeData() {
   const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
   for (const p of storeProfiles ?? []) storeMap[p.id] = p;
 
-  const counts: Record<number,number> = {};
-  if (catCounts) {
-    for (const row of catCounts) {
-      counts[row.category_id] = Number(row.count);
-    }
-  } else {
-    // Fallback si la RPC no existe aún: query directa (más egress, temporal)
-    const { data: fallback } = await supabase.from("listings").select("category_id").eq("status","active");
-    for (const row of fallback ?? []) {
-      counts[row.category_id] = (counts[row.category_id] ?? 0) + 1;
-    }
-  }
-  const featured = shuffle(allFeatured ?? []).slice(0, 16).map((l: any) => ({
+  const counts: Record<number,number> = Object.fromEntries(catCountEntries);
+  const featured = shuffle(allFeatured ?? []).map((l: any) => ({
     ...l,
     is_store: storeMap[l.user_id]?.is_store ?? null,
     store_name: storeMap[l.user_id]?.store_name ?? null,
@@ -165,6 +163,7 @@ export default async function HomePage() {
 
   return (<>
       <PageTracker page="landing" />
+    <HomeProvinceProvider>
     <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
       <Navbar user={user} hideSearch />
 
@@ -173,7 +172,7 @@ export default async function HomePage() {
 
           {/* ── LEFT SIDEBAR ── */}
           <div className="sidebar-hide" style={{ gridArea: "sidebar" }}>
-            <CategorySidebar categories={categoriesWithCount} />
+            <HomeCategorySidebar initialCategories={categoriesWithCount} />
           </div>
 
           {/* ── HERO ── */}
@@ -276,11 +275,10 @@ export default async function HomePage() {
               ))}
             </div>
 
-            {/* All-category Premium carousel — shuffled on every load */}
+            {/* All-category Premium carousel — filtrable por provincia */}
             {featured.length > 0 ? (
-              <FeaturedCarousel
-                title="👑 Destacados"
-                items={featured.map((l:any)=>({...l, cover_image: cover(l)}))}
+              <HomeFeaturedCarousel
+                initialItems={featured.map((l:any)=>({...l, cover_image: cover(l)}))}
                 href="/listings"
               />
             ) : (
@@ -303,8 +301,8 @@ export default async function HomePage() {
             {/* Tiendas Virtuales */}
             <StoreCards />
 
-            {/* Últimos avisos — grid/list toggle */}
-            <RecentListings items={recent.map((l:any) => ({
+            {/* Últimos avisos — grid/list toggle, filtrables por provincia */}
+            <HomeRecentListings initialItems={recent.map((l:any) => ({
               ...l,
               categories: l.categories ? { ...l.categories, name: CAT_NAMES[l.categories.slug] ?? l.categories.name } : null,
             }))} />
@@ -436,5 +434,6 @@ export default async function HomePage() {
       <Footer />
       <PublishFAB />
     </div>
+    </HomeProvinceProvider>
   </>);
 }
