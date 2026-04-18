@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { ListingCard } from "@/components/listings/ListingCard";
@@ -370,6 +369,169 @@ type SP = {
   size?: string;
 };
 
+async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
+  const pub = createPublicClient();
+
+  const isVehicles    = slug === "vehicles";
+  const isRealEstate  = slug === "real-estate";
+  const isPhones      = slug === "phones";
+  const isElectronics = slug === "electronics";
+  const isAppliances  = slug === "appliances";
+  const isClothing    = slug === "clothing";
+  const isBabies      = slug === "babies";
+  const isBeauty      = slug === "beauty-health";
+  const isHomeGarden  = slug === "home-garden";
+  const isSports      = slug === "sports";
+  const isTools       = slug === "tools";
+  const isToys        = slug === "toys";
+  const isBooks       = slug === "books";
+  const isPets        = slug === "pets";
+  const isServices    = slug === "services";
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = pub
+    .from("listings")
+    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
+    .eq("status", "active")
+    .eq("category_id", catId) as any;
+
+  if (sp.q) {
+    const rawTokens = sp.q.trim().split(/\s+/).filter(Boolean);
+    const buildFuzzyPattern = (token: string) =>
+      "%" + token.replace(/([a-zA-Z])(\d)/g, "$1%$2").replace(/(\d)([a-zA-Z])/g, "$1%$2") + "%";
+    for (const token of rawTokens) query = query.ilike("title", buildFuzzyPattern(token));
+  }
+  if (sp.price_min) query = query.gte("price", Number(sp.price_min));
+  if (sp.price_max) query = query.lte("price", Number(sp.price_max));
+  if (sp.condition) query = query.eq("condition", sp.condition);
+
+  if (isVehicles) {
+    const vehicleType = sp.sub_category || sp.type;
+    if (vehicleType) query = query.eq("attributes->>sub_category" as any, vehicleType);
+    if (sp.brand) query = query.eq("attributes->>brand" as any, sp.brand);
+    if (sp.fuel) query = query.eq("attributes->>fuel" as any, sp.fuel);
+    if (sp.transmission) query = query.eq("attributes->>transmission" as any, sp.transmission);
+    if (sp.seller_type) query = query.eq("attributes->>seller_type" as any, sp.seller_type);
+    if (sp.v_zone) query = query.eq("attributes->>zone" as any, sp.v_zone);
+  }
+  if (isPhones) {
+    if (sp.phone_type) query = query.eq("attributes->>sub_category" as any, sp.phone_type);
+    if (sp.phone_brand) query = query.eq("attributes->>brand" as any, sp.phone_brand);
+    if (sp.phone_storage) query = query.eq("attributes->>storage" as any, sp.phone_storage.toLowerCase());
+    if (sp.phone_condition) query = query.eq("condition", sp.phone_condition);
+    if (sp.phone_ram) query = query.eq("attributes->>ram" as any, sp.phone_ram);
+    if (sp.phone_os) query = query.eq("attributes->>os" as any, sp.phone_os);
+    if (sp.phone_sim) query = query.eq("attributes->>sim_type" as any, sp.phone_sim);
+    if (sp.phone_province) query = query.ilike("neighborhood", `%${sp.phone_province}%`);
+  }
+  if (isElectronics) {
+    if (sp.tech_type) query = query.eq("attributes->>sub_category" as any, sp.tech_type);
+    else if (sp.tech_group && TECH_GROUPS[sp.tech_group]) query = query.in("attributes->>sub_category" as any, TECH_GROUPS[sp.tech_group].items);
+    if (sp.tech_brand) query = query.eq("attributes->>brand" as any, sp.tech_brand);
+    if (sp.tech_province) query = query.ilike("neighborhood", `%${sp.tech_province}%`);
+    if (sp.tech_condition) query = query.eq("condition", sp.tech_condition);
+  }
+  if (isAppliances) {
+    if (sp.appliance_type) query = query.eq("attributes->>sub_category" as any, sp.appliance_type);
+    if (sp.appliance_brand) query = query.eq("attributes->>brand" as any, sp.appliance_brand);
+    if (sp.appliance_condition) query = query.eq("condition", sp.appliance_condition);
+    if (sp.appliance_province) query = query.ilike("neighborhood", `%${sp.appliance_province}%`);
+  }
+  if (isClothing) {
+    if (sp.clothing_type) query = query.eq("attributes->>sub_category" as any, sp.clothing_type);
+    if (sp.clothing_gender) query = query.eq("attributes->>gender" as any, sp.clothing_gender);
+    if (sp.clothing_brand) query = query.eq("attributes->>brand" as any, sp.clothing_brand);
+    if (sp.clothing_condition) query = query.eq("condition", sp.clothing_condition);
+    if (sp.clothing_province) query = query.ilike("neighborhood", `%${sp.clothing_province}%`);
+  }
+  if (isBabies) {
+    if (sp.baby_type) query = query.eq("attributes->>sub_category" as any, sp.baby_type);
+    if (sp.baby_brand) query = query.eq("attributes->>brand" as any, sp.baby_brand);
+    if (sp.baby_condition) query = query.eq("condition", sp.baby_condition);
+    if (sp.baby_province) query = query.ilike("neighborhood", `%${sp.baby_province}%`);
+  }
+  if (isBeauty) {
+    if (sp.beauty_type) query = query.eq("attributes->>sub_category" as any, sp.beauty_type);
+    if (sp.beauty_brand) query = query.eq("attributes->>brand" as any, sp.beauty_brand);
+    if (sp.beauty_condition) query = query.eq("condition", sp.beauty_condition);
+    if (sp.beauty_province) query = query.ilike("neighborhood", `%${sp.beauty_province}%`);
+  }
+  if (isHomeGarden) {
+    if (sp.hg_type) query = query.eq("attributes->>sub_category" as any, sp.hg_type);
+    if (sp.hg_brand) query = query.eq("attributes->>brand" as any, sp.hg_brand);
+    if (sp.hg_condition) query = query.eq("condition", sp.hg_condition);
+    if (sp.hg_province) query = query.ilike("neighborhood", `%${sp.hg_province}%`);
+  }
+  if (isSports) {
+    if (sp.sport_type) query = query.eq("attributes->>sub_category" as any, sp.sport_type);
+    if (sp.sport_brand) query = query.eq("attributes->>brand" as any, sp.sport_brand);
+    if (sp.sport_condition) query = query.eq("condition", sp.sport_condition);
+    if (sp.sport_province) query = query.ilike("neighborhood", `%${sp.sport_province}%`);
+  }
+  if (isTools) {
+    if (sp.tool_type) query = query.eq("attributes->>sub_category" as any, sp.tool_type);
+    if (sp.tool_brand) query = query.eq("attributes->>brand" as any, sp.tool_brand);
+    if (sp.tool_condition) query = query.eq("condition", sp.tool_condition);
+    if (sp.tool_province) query = query.ilike("neighborhood", `%${sp.tool_province}%`);
+  }
+  if (isToys) {
+    if (sp.toy_type) query = query.eq("attributes->>sub_category" as any, sp.toy_type);
+    if (sp.toy_brand) query = query.eq("attributes->>brand" as any, sp.toy_brand);
+    if (sp.toy_condition) query = query.eq("condition", sp.toy_condition);
+    if (sp.toy_province) query = query.ilike("neighborhood", `%${sp.toy_province}%`);
+  }
+  if (isBooks) {
+    if (sp.book_type) query = query.eq("attributes->>sub_category" as any, sp.book_type);
+    if (sp.book_condition) query = query.eq("condition", sp.book_condition);
+    if (sp.book_province) query = query.ilike("neighborhood", `%${sp.book_province}%`);
+  }
+  if (isPets) {
+    if (sp.pet_type) query = query.eq("attributes->>sub_category" as any, sp.pet_type);
+    if (sp.pet_province) query = query.ilike("neighborhood", `%${sp.pet_province}%`);
+  }
+  if (isServices) {
+    if (sp.serv_type) query = query.eq("attributes->>sub_category" as any, sp.serv_type);
+    if (sp.serv_province) query = query.ilike("neighborhood", `%${sp.serv_province}%`);
+  }
+  if (slug === "other") {
+    if (sp.other_type) query = query.eq("attributes->>sub_category" as any, sp.other_type);
+    if (sp.other_condition) query = query.eq("condition", sp.other_condition);
+  }
+  if (isRealEstate) {
+    const reSub = sp.re_sub || sp.re_type;
+    const reOp  = sp.operation || sp.re_operation;
+    const reBed = sp.bedrooms || sp.re_bedrooms;
+    if (reSub) query = query.eq("attributes->>sub_category" as any, reSub);
+    if (reOp)  query = query.eq("attributes->>operation" as any, reOp);
+    if (reBed) query = query.eq("attributes->>bedrooms" as any, reBed);
+    if (sp.re_bathrooms) query = query.eq("attributes->>bathrooms" as any, sp.re_bathrooms);
+    if (sp.re_seller) query = query.eq("attributes->>seller_type" as any, sp.re_seller);
+  }
+
+  if (sp.order === "price_asc") query = query.order("price", { ascending: true });
+  else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
+  else if (sp.order === "views") query = query.order("view_count", { ascending: false });
+  else query = query.order("created_at", { ascending: false });
+
+  const { data: rawListings } = await (query as any).limit(48);
+
+  const userIds = [...new Set(((rawListings as any[]) ?? []).map((l: any) => l.user_id).filter(Boolean))];
+  const { data: storeProfiles } = userIds.length > 0
+    ? await pub.from("profiles").select("id, is_store, store_name").in("id", userIds)
+    : { data: [] };
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
+  for (const p of (storeProfiles ?? [])) (storeMap as any)[p.id] = p;
+
+  return { rawListings: (rawListings as any[]) ?? [], storeMap };
+}
+
+const fetchCategoryListings = (slug: string, catId: number, sp: SP) =>
+  unstable_cache(
+    () => _fetchCategoryListings(slug, catId, sp),
+    ["category-listings", slug, JSON.stringify(sp)],
+    { revalidate: 120, tags: ["category-listings"] }
+  )();
+
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
@@ -425,8 +587,6 @@ export default async function CategoryPage({
   const isServices = slug === "services";
   const isOther = slug === "other";
 
-  const supabase = await createClient();
-
   // Get category id — cacheado indefinidamente (los slugs nunca cambian)
   const getCatId = unstable_cache(
     async (s: string) => {
@@ -441,187 +601,8 @@ export default async function CategoryPage({
 
   if (!cat) notFound();
 
-  // Build query (cast to any to avoid TS deep instantiation error with many chained .eq calls)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = supabase
-    .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
-    .eq("status", "active")
-    .eq("category_id", cat.id) as any;
-
-  if (sp.q) {
-    // Normalize: split into tokens and also generate a no-space variant
-    // e.g. "CB500" → tokens ["CB500", "CB 500"] handled by requiring each word token
-    const rawTokens = sp.q.trim().split(/\s+/).filter(Boolean);
-    // Build a pattern that matches tokens with optional spaces between alphanumeric groups
-    // e.g. "CB500" becomes "%CB%500%" to match "CB 500", "CB500", "CB-500"
-    const buildFuzzyPattern = (token: string) => {
-      // Insert % between letter/digit transitions to allow spaces/separators
-      return "%" + token.replace(/([a-zA-Z])(\d)/g, "$1%$2").replace(/(\d)([a-zA-Z])/g, "$1%$2") + "%";
-    };
-    for (const token of rawTokens) {
-      query = query.ilike("title", buildFuzzyPattern(token));
-    }
-  }
-  if (sp.price_min) query = query.gte("price", Number(sp.price_min));
-  if (sp.price_max) query = query.lte("price", Number(sp.price_max));
-  // General condition filter (from FilterPanel)
-  if (sp.condition) query = query.eq("condition", sp.condition);
-
-  // Vehicle-specific JSON filters
-  if (isVehicles) {
-    const vehicleType = sp.sub_category || sp.type;
-    if (vehicleType) query = query.eq("attributes->>sub_category" as any, vehicleType);
-    if (sp.brand) query = query.eq("attributes->>brand" as any, sp.brand);
-    if (sp.fuel) query = query.eq("attributes->>fuel" as any, sp.fuel);
-    if (sp.transmission) query = query.eq("attributes->>transmission" as any, sp.transmission);
-    if (sp.seller_type) query = query.eq("attributes->>seller_type" as any, sp.seller_type);
-    if (sp.v_zone) {
-      query = query.eq("attributes->>zone" as any, sp.v_zone);
-    }
-    // v_province is handled in JS filter (to also match listings stored via neighborhood)
-  }
-
-  // Phones-specific JSON filters
-  if (isPhones) {
-    if (sp.phone_type) query = query.eq("attributes->>sub_category" as any, sp.phone_type);
-    if (sp.phone_brand) query = query.eq("attributes->>brand" as any, sp.phone_brand);
-    if (sp.phone_storage) query = query.eq("attributes->>storage" as any, sp.phone_storage.toLowerCase());
-    if (sp.phone_condition) query = query.eq("condition", sp.phone_condition);
-    if (sp.phone_ram) query = query.eq("attributes->>ram" as any, sp.phone_ram);
-    if (sp.phone_os) query = query.eq("attributes->>os" as any, sp.phone_os);
-    if (sp.phone_sim) query = query.eq("attributes->>sim_type" as any, sp.phone_sim);
-    if (sp.phone_province) query = query.ilike("neighborhood", `%${sp.phone_province}%`);
-  }
-
-  // Electronics-specific JSON filters
-  if (isElectronics) {
-    if (sp.tech_type) query = query.eq("attributes->>sub_category" as any, sp.tech_type);
-    else if (sp.tech_group && TECH_GROUPS[sp.tech_group]) query = query.in("attributes->>sub_category" as any, TECH_GROUPS[sp.tech_group].items);
-    if (sp.tech_brand) query = query.eq("attributes->>brand" as any, sp.tech_brand);
-    if (sp.tech_province) query = query.ilike("neighborhood", `%${sp.tech_province}%`);
-    if (sp.tech_condition) query = query.eq("condition", sp.tech_condition);
-  }
-
-  // Appliances-specific JSON filters
-  if (isAppliances) {
-    if (sp.appliance_type) query = query.eq("attributes->>sub_category" as any, sp.appliance_type);
-    if (sp.appliance_brand) query = query.eq("attributes->>brand" as any, sp.appliance_brand);
-    if (sp.appliance_condition) query = query.eq("condition", sp.appliance_condition);
-    if (sp.appliance_province) query = query.ilike("neighborhood", `%${sp.appliance_province}%`);
-  }
-
-  // Clothing-specific JSON filters
-  if (isClothing) {
-    if (sp.clothing_type) query = query.eq("attributes->>sub_category" as any, sp.clothing_type);
-    if (sp.clothing_gender) query = query.eq("attributes->>gender" as any, sp.clothing_gender);
-    if (sp.clothing_brand) query = query.eq("attributes->>brand" as any, sp.clothing_brand);
-    if (sp.clothing_condition) query = query.eq("condition", sp.clothing_condition);
-    if (sp.clothing_province) query = query.ilike("neighborhood", `%${sp.clothing_province}%`);
-  }
-
-  // Babies-specific JSON filters
-  if (isBabies) {
-    if (sp.baby_type) query = query.eq("attributes->>sub_category" as any, sp.baby_type);
-    if (sp.baby_brand) query = query.eq("attributes->>brand" as any, sp.baby_brand);
-    if (sp.baby_condition) query = query.eq("condition", sp.baby_condition);
-    if (sp.baby_province) query = query.ilike("neighborhood", `%${sp.baby_province}%`);
-  }
-
-  // Beauty-specific JSON filters
-  if (isBeauty) {
-    if (sp.beauty_type) query = query.eq("attributes->>sub_category" as any, sp.beauty_type);
-    if (sp.beauty_brand) query = query.eq("attributes->>brand" as any, sp.beauty_brand);
-    if (sp.beauty_condition) query = query.eq("condition", sp.beauty_condition);
-    if (sp.beauty_province) query = query.ilike("neighborhood", `%${sp.beauty_province}%`);
-  }
-
-  // Home-garden-specific JSON filters
-  if (isHomeGarden) {
-    if (sp.hg_type) query = query.eq("attributes->>sub_category" as any, sp.hg_type);
-    if (sp.hg_brand) query = query.eq("attributes->>brand" as any, sp.hg_brand);
-    if (sp.hg_condition) query = query.eq("condition", sp.hg_condition);
-    if (sp.hg_province) query = query.ilike("neighborhood", `%${sp.hg_province}%`);
-  }
-
-  // Sports-specific JSON filters
-  if (isSports) {
-    if (sp.sport_type) query = query.eq("attributes->>sub_category" as any, sp.sport_type);
-    if (sp.sport_brand) query = query.eq("attributes->>brand" as any, sp.sport_brand);
-    if (sp.sport_condition) query = query.eq("condition", sp.sport_condition);
-    if (sp.sport_province) query = query.ilike("neighborhood", `%${sp.sport_province}%`);
-  }
-
-  // Tools-specific JSON filters
-  if (isTools) {
-    if (sp.tool_type) query = query.eq("attributes->>sub_category" as any, sp.tool_type);
-    if (sp.tool_brand) query = query.eq("attributes->>brand" as any, sp.tool_brand);
-    if (sp.tool_condition) query = query.eq("condition", sp.tool_condition);
-    if (sp.tool_province) query = query.ilike("neighborhood", `%${sp.tool_province}%`);
-  }
-
-  // Toys-specific JSON filters
-  if (isToys) {
-    if (sp.toy_type) query = query.eq("attributes->>sub_category" as any, sp.toy_type);
-    if (sp.toy_brand) query = query.eq("attributes->>brand" as any, sp.toy_brand);
-    if (sp.toy_condition) query = query.eq("condition", sp.toy_condition);
-    if (sp.toy_province) query = query.ilike("neighborhood", `%${sp.toy_province}%`);
-  }
-
-  // Books-specific JSON filters
-  if (isBooks) {
-    if (sp.book_type) query = query.eq("attributes->>sub_category" as any, sp.book_type);
-    if (sp.book_condition) query = query.eq("condition", sp.book_condition);
-    if (sp.book_province) query = query.ilike("neighborhood", `%${sp.book_province}%`);
-  }
-
-  // Pets-specific JSON filters
-  if (isPets) {
-    if (sp.pet_type) query = query.eq("attributes->>sub_category" as any, sp.pet_type);
-    if (sp.pet_province) query = query.ilike("neighborhood", `%${sp.pet_province}%`);
-  }
-
-  // Services-specific JSON filters
-  if (isServices) {
-    if (sp.serv_type) query = query.eq("attributes->>sub_category" as any, sp.serv_type);
-    if (sp.serv_province) query = query.ilike("neighborhood", `%${sp.serv_province}%`);
-  }
-
-  // Other-specific filters
-  if (isOther) {
-    if (sp.other_type) query = query.eq("attributes->>sub_category" as any, sp.other_type);
-    if (sp.other_condition) query = query.eq("condition", sp.other_condition);
-  }
-
-  // Real-estate-specific JSON filters
-  if (isRealEstate) {
-    const reSub = sp.re_sub || sp.re_type;
-    const reOp  = sp.operation || sp.re_operation;
-    const reBed = sp.bedrooms || sp.re_bedrooms;
-    if (reSub) query = query.eq("attributes->>sub_category" as any, reSub);
-    if (reOp)  query = query.eq("attributes->>operation" as any, reOp);
-    // re_zone and re_province are handled JS-side to also match listings stored via neighborhood string
-    if (reBed) query = query.eq("attributes->>bedrooms" as any, reBed);
-    if (sp.re_bathrooms) query = query.eq("attributes->>bathrooms" as any, sp.re_bathrooms);
-    if (sp.re_seller) query = query.eq("attributes->>seller_type" as any, sp.re_seller);
-  }
-
-  // featured_level sorted in JS after fetch (gold > silver > bronze > null)
-  if (sp.order === "price_asc") query = query.order("price", { ascending: true });
-  else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
-  else if (sp.order === "views") query = query.order("view_count", { ascending: false });
-  else query = query.order("created_at", { ascending: false });
-
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-  const { data: rawListings } = await (query as any).limit(48);
-
-  // Fetch store info separately (FK join causes empty results when FK constraint is missing)
-  const userIds = [...new Set(((rawListings as any[]) ?? []).map((l: any) => l.user_id).filter(Boolean))];
-  const { data: storeProfiles } = userIds.length > 0
-    ? await supabase.from("profiles").select("id, is_store, store_name").in("id", userIds)
-    : { data: [] };
-  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
-  for (const p of (storeProfiles ?? [])) (storeMap as any)[p.id] = p;
+  const { rawListings, storeMap } = await fetchCategoryListings(slug, cat.id, sp);
 
   // Numeric and boolean filters done in JS (PostgREST can't reliably cast JSONB text fields)
   const RE_FEAT_KEYS = RE_FEATURES.map(f => f.key);
