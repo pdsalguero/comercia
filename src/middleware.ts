@@ -5,7 +5,14 @@ import { updateSession } from '@/lib/supabase/middleware'
 // Rutas que siguen accesibles en modo coming soon
 const COMING_SOON_ALLOWED = ['/landing', '/api/', '/admin', '/login']
 
+const BOT_UA_PATTERNS = ["node", "python-requests", "go-http-client", "curl/", "wget/"];
+
 export async function middleware(request: NextRequest) {
+  const ua = request.headers.get("user-agent") ?? "";
+  if (BOT_UA_PATTERNS.some((p) => ua.toLowerCase().startsWith(p))) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
   const { pathname } = request.nextUrl
 
   // ── Coming soon mode ──────────────────────────────────────────────────────
