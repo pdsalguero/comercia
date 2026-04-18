@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { storageImg } from "@/lib/storage-image";
 import Link from "next/link";
 
 interface Store {
@@ -119,7 +120,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                 }}>
                   {store.store_banner_url && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={store.store_banner_url} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={storageImg(store.store_banner_url, 600)} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                   )}
                   {/* Logo circle */}
                   <div style={{
@@ -131,7 +132,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                   }}>
                     {store.store_logo_url
                       // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={store.store_logo_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <img src={storageImg(store.store_logo_url, 80)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : <span style={{ fontSize: "16px" }}>🏪</span>
                     }
                   </div>

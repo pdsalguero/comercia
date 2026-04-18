@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { storageImg } from "@/lib/storage-image";
 import Image from "next/image";
 
 export function GallerySection({ images, title }: { images: { url: string }[]; title: string }) {
@@ -194,7 +195,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={storageImg(img.url, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>
@@ -421,7 +422,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img.url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={storageImg(img.url, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </button>
               ))}
             </div>

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 604800,             // 1 semana — reduce re-fetches desde Supabase Storage
     remotePatterns: [
       {
         protocol: "https",

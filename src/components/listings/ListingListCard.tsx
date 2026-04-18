@@ -1,6 +1,7 @@
 "use client";
 
 import PinIcon from "@/components/ui/PinIcon";
+import { storageImg } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 
 export interface ListingListCardProps {
@@ -88,7 +89,7 @@ export function ListingListCard({
         }}>
           {cover_image
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={cover_image} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ? <img src={storageImg(cover_image, 300)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
           }
         </div>

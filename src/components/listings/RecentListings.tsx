@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
+import { storageImg } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 
 type Listing = {
@@ -120,7 +121,7 @@ export function RecentListings({ items, viewAllHref = "/listings" }: { items: Li
                   <div style={{ height: "120px", background: "#f0f4ff", position: "relative" }}>
                     {img
                         // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={img} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                        ? <img src={storageImg(img, 300)} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                       : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>📦</div>
                     }
                     {l.is_store && (
@@ -202,7 +203,7 @@ export function RecentListings({ items, viewAllHref = "/listings" }: { items: Li
                 <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                   {img
                     // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={img} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    ? <img src={storageImg(img, 120)} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>📦</div>
                   }
                 </div>

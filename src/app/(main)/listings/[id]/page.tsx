@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import Link from "next/link";
 import { extractListingId, listingUrl } from "@/lib/listing-url";
+import { storageImg } from "@/lib/storage-image";
 import { createClient } from "@/lib/supabase/server";
 import { GallerySection } from "./GallerySection";
 import { DetailTabs } from "./DetailTabs";
@@ -860,7 +861,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       <div style={{ height: "155px", background: "#f0f0f0", overflow: "hidden", position: "relative" }}>
                         {thumb
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={thumb} alt={r.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <img src={storageImg(thumb, 400)} alt={r.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px" }}>📦</div>
                         }
                         <FavoriteButton listingId={r.id} variant="card" />

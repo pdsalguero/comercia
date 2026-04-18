@@ -1,5 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import sharp from 'sharp'
+
+const MAX_WIDTH = 1200
+const MAX_HEIGHT = 1200
+const WEBP_QUALITY = 82
 
 export async function POST(request: Request) {
   try {
@@ -13,12 +18,24 @@ export async function POST(request: Request) {
 
     if (!file) return NextResponse.json({ error: 'No se recibió archivo' }, { status: 400 })
 
-    const ext = file.name.split('.').pop() ?? 'jpg'
-    const fileName = `${user.id}/${listingId ?? 'temp'}/${Date.now()}.${ext}`
+    const buffer = Buffer.from(await file.arrayBuffer())
+
+    // Comprimir a WebP: máx 1200×1200, calidad 82 — reduce ~90% el tamaño de fotos de celular
+    const compressed = await sharp(buffer)
+      .rotate()                          // preserva orientación EXIF
+      .resize(MAX_WIDTH, MAX_HEIGHT, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer()
+
+    const fileName = `${user.id}/${listingId ?? 'temp'}/${Date.now()}.webp`
 
     const { data, error } = await supabase.storage
       .from('listing-images')
-      .upload(fileName, file, { contentType: file.type, upsert: false })
+      .upload(fileName, compressed, {
+        contentType: 'image/webp',
+        upsert: false,
+        cacheControl: '604800',          // 1 semana — reduce re-fetches desde CDN
+      })
 
     if (error) throw error
 

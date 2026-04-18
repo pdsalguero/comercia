@@ -6,6 +6,7 @@ import { FavoriteButton } from "./FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
 import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
 import { listingUrl } from "@/lib/listing-url";
+import { storageImg } from "@/lib/storage-image";
 
 interface ListingCardProps {
   id: string;
@@ -122,7 +123,7 @@ export function ListingCard({
           {cover_image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={cover_image}
+              src={storageImg(cover_image, 400)}
               alt={title}
               loading={priority ? "eager" : "lazy"}
               decoding="async"

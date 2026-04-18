@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { listingUrl } from "@/lib/listing-url";
+import { storageImg } from "@/lib/storage-image";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -701,7 +702,7 @@ export default async function TiendaPage({
                       <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                         {cover
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={cover} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <img src={storageImg(cover, 200)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                         }
                       </div>
@@ -775,7 +776,7 @@ export default async function TiendaPage({
                   <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#e0e7ff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "14px", position: "relative" }}>
                     {review.reviewer?.avatar_url
                       // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={review.reviewer.avatar_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <img src={storageImg(review.reviewer.avatar_url, 80)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : "👤"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
