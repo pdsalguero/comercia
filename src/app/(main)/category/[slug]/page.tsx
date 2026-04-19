@@ -370,6 +370,29 @@ type SP = {
 };
 
 async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
+  // Params que mapean a filtros JSONB (attributes->>) — excluye q, order, price_min/max, condition, view, size
+  const JSONB_FILTER_KEYS: (keyof SP)[] = [
+    "sub_category", "type", "brand", "fuel", "transmission", "seller_type", "v_zone", "moto_subtipo",
+    "re_type", "re_sub", "operation", "re_operation", "bedrooms", "re_bedrooms", "re_bathrooms",
+    "re_zone", "re_seller",
+    "phone_type", "phone_brand", "phone_storage", "phone_ram", "phone_os", "phone_sim",
+    "tech_type", "tech_group", "tech_brand",
+    "appliance_type", "appliance_brand",
+    "clothing_type", "clothing_gender", "clothing_brand",
+    "baby_type", "baby_brand",
+    "beauty_type", "beauty_brand",
+    "hg_type", "hg_brand",
+    "sport_type", "sport_brand",
+    "tool_type", "tool_brand",
+    "toy_type", "toy_brand",
+    "book_type",
+    "pet_type",
+    "serv_type",
+    "other_type",
+  ];
+  const activeJsonbFilters = JSONB_FILTER_KEYS.filter((k) => !!sp[k]).length;
+  if (activeJsonbFilters >= 4) return { rawListings: [], storeMap: {} };
+
   const pub = createPublicClient();
 
   const isVehicles    = slug === "vehicles";
