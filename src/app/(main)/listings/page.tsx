@@ -100,13 +100,19 @@ async function _fetchListings(p: ListingsParams) {
   };
 }
 
-// Cache 2 min — reduce egress de crawlers y tráfico repetido con mismos filtros
-const fetchListings = (p: ListingsParams) =>
-  unstable_cache(
+// Solo cachear cuando los parámetros son acotados (sin texto libre ni rangos numéricos
+// arbitrarios) — evita heap unbounded en Railway por claves únicas infinitas.
+function fetchListings(p: ListingsParams) {
+  const hasUnboundedParam = p.q || p.location || p.price_min || p.price_max ||
+    p.fuel || p.transmission || p.operation || p.re_sub;
+  if (hasUnboundedParam) return _fetchListings(p);
+
+  return unstable_cache(
     () => _fetchListings(p),
     ["listings-page", JSON.stringify(p)],
     { revalidate: 120, tags: ["listings"] }
   )();
+}
 
 const CATEGORIES = [
   { name: "Vehículos",                 slug: "vehicles",      icon: "🚗",  active: true  },
