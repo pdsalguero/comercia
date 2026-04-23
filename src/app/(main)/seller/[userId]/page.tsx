@@ -95,8 +95,9 @@ export default async function SellerPage({
 
   const supabase = await createClient();
 
-  // Current user (for review eligibility)
-  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  // Current user (for review eligibility) — getSession es local, sin round-trip
+  const { data: { session } } = await supabase.auth.getSession();
+  const currentUser = session?.user ?? null;
 
   // Fetch seller profile
   const { data: profile } = await supabase

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
+import { createPublicClient } from "@/lib/supabase/public";
 
 export const metadata: Metadata = {
   title: "Tiendas — Comprá a vendedores verificados en Argentina",
@@ -114,17 +115,25 @@ const STORE_TYPE_CAT: Record<string, string> = {
   servicios:    "services",
 };
 
-export default async function TiendasPage() {
-  const supabase = await createClient();
+const getStores = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, store_name, store_slug, store_logo_url, store_banner_url, store_type, store_verified, store_description")
+      .eq("is_store", true)
+      .order("store_name", { ascending: true });
+    return data ?? [];
+  },
+  ["tiendas-list"],
+  { revalidate: 300 }
+);
 
-  const { data: stores } = await supabase
-    .from("profiles")
-    .select("id, store_name, store_slug, store_logo_url, store_banner_url, store_type, store_verified, store_description")
-    .eq("is_store", true)
-    .order("store_name", { ascending: true });
+export default async function TiendasPage() {
+  const stores = await getStores();
 
   if (!stores?.length) {
-    return (
+      return (
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 16px", textAlign: "center" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏪</div>
         <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", marginBottom: "8px" }}>
@@ -145,7 +154,8 @@ export default async function TiendasPage() {
     );
   }
 
-  const storeIds = stores.map((s) => s.id);
+  const storeIds = stores.map((s: any) => s.id);
+  const supabase = createPublicClient();
 
   // Static map from DB category id → slug (avoids extra query + RLS issues)
   const CAT_ID_SLUG: Record<number, string> = {
@@ -166,8 +176,8 @@ export default async function TiendasPage() {
     .in("user_id", storeIds);
 
   // Build store data with main category and a sample image
-  const storeData = stores.map((store) => {
-    const sl = listings?.filter((l) => l.user_id === store.id) ?? [];
+  const storeData = stores.map((store: any) => {
+    const sl = listings?.filter((l: any) => l.user_id === store.id) ?? [];
     const catMap: Record<string, { name: string; slug: string; count: number }> = {};
     for (const l of sl) {
       const slug = l.category_id ? CAT_ID_SLUG[l.category_id] : null;

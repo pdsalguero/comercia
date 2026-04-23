@@ -195,7 +195,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   // Parallelizar listing + auth + related — todos independientes entre sí
   const supabase = await createClient();
   const listingPromise = getListing(id);
-  const authPromise = supabase.auth.getUser();
+  const authPromise = supabase.auth.getSession();
 
   // Lanzar related en paralelo: necesita category_id y attrs, pero si el listing
   // no existe igual hacemos notFound() después — el await de related es barato si falla
@@ -203,12 +203,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   if (!listing) notFound();
 
   const attrs0 = (listing.attributes as Record<string, any>) ?? {};
-  const [{ data: { user: currentUser } }, { items: related, label: relatedLabel }] = await Promise.all([
+  const [{ data: { session } }, { items: related, label: relatedLabel }] = await Promise.all([
     authPromise,
     getRelated(id, listing.category_id, attrs0.brand, attrs0.model),
   ]);
 
-  const isOwner = currentUser?.id === (listing as any).user_id;
+  const isOwner = (session?.user?.id ?? null) === (listing as any).user_id;
 
   const images: { url: string; position: number }[] = (
     (listing.listing_images as any[]) ?? []
