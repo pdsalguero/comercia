@@ -89,24 +89,25 @@ function WhatsAppIcon() {
   );
 }
 
+type RelatedItem = { data: any[] | null };
+
 async function getRelated(currentId: string, categoryId: number, brand?: string, model?: string) {
   const { createPublicClient } = await import("@/lib/supabase/public");
   const supabase = createPublicClient();
   const SEL = `id, title, price, currency, neighborhood, attributes, listing_images(url, position)`;
+  const base = () => supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId);
 
-  // Run brand+model, brand, and category queries in parallel, use the best result
-  const [byModelRes, byBrandRes, byCatRes] = await Promise.all([
-    brand && model
-      ? supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId)
-          .eq("attributes->>brand" as any, brand).eq("attributes->>model" as any, model).limit(10)
-      : Promise.resolve({ data: null }),
-    brand
-      ? supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId)
-          .eq("attributes->>brand" as any, brand).limit(10)
-      : Promise.resolve({ data: null }),
-    supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId)
-      .eq("category_id", categoryId).limit(10),
-  ]);
+  const byModelQ: Promise<RelatedItem> = brand && model
+    ? (base() as any).eq("attributes->>brand", brand).eq("attributes->>model", model).limit(10)
+    : Promise.resolve({ data: null });
+
+  const byBrandQ: Promise<RelatedItem> = brand
+    ? (base() as any).eq("attributes->>brand", brand).limit(10)
+    : Promise.resolve({ data: null });
+
+  const byCatQ: Promise<RelatedItem> = base().eq("category_id", categoryId).limit(10) as any;
+
+  const [byModelRes, byBrandRes, byCatRes] = await Promise.all([byModelQ, byBrandQ, byCatQ]);
 
   if (byModelRes.data?.length) return { items: byModelRes.data, label: `${brand} ${model}` };
   if (byBrandRes.data?.length) return { items: byBrandRes.data, label: brand! };
