@@ -174,14 +174,21 @@ export function RecentListings({ items, viewAllHref = "/listings" }: { items: Li
                         <span style={{ fontSize: "10px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={9} /> {loc}</span>
                       ); })()}
                     </div>
-                    {(l.view_count ?? 0) > 0 && (
-                      <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "2px" }}>
-                        <span style={{ fontSize: "10px", color: "#bbb", display: "inline-flex", alignItems: "center", gap: "2px" }}>
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                          {l.view_count}
-                        </span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "2px", minHeight: "14px" }}>
+                      <div>
+                        {(l.view_count ?? 0) > 0 && (
+                          <span style={{ fontSize: "10px", color: "#bbb", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            {l.view_count}
+                          </span>
+                        )}
                       </div>
-                    )}
+                      <div>
+                        {mounted && l.created_at && (
+                          <span style={{ fontSize: "10px", color: "#bbb" }}>{timeAgo(l.created_at)}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Link>
