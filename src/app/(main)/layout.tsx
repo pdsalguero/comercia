@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  // getSession decodifica el JWT localmente (sin round-trip de red a Supabase)
+  // getSession() — solo para display en navbar (nombre, avatar). Las mutaciones
+  // usan getUser() en sus propios Server Actions. Intencional para evitar round-trip.
   const { data: { session } } = await supabase.auth.getSession()
   const user = session?.user ?? null
 

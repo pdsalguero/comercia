@@ -95,7 +95,8 @@ export default async function SellerPage({
 
   const supabase = await createClient();
 
-  // Current user (for review eligibility) — getSession es local, sin round-trip
+  // getSession() — solo para mostrar/ocultar el formulario de review (UI).
+  // La acción submitReview usa getUser() internamente.
   const { data: { session } } = await supabase.auth.getSession();
   const currentUser = session?.user ?? null;
 

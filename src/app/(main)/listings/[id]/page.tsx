@@ -195,6 +195,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   // Parallelizar listing + auth + related — todos independientes entre sí
   const supabase = await createClient();
   const listingPromise = getListing(id);
+  // getSession() — isOwner solo controla visibilidad del botón editar (UI).
+  // Las mutaciones del owner pasan por Server Actions con getUser().
   const authPromise = supabase.auth.getSession();
 
   // Lanzar related en paralelo: necesita category_id y attrs, pero si el listing

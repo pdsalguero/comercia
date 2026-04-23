@@ -13,8 +13,8 @@ export default async function UpgradePage({
   let freeCredits = 0;
 
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user ?? null;
+  // getUser() aquí porque muestra créditos reales de pago — necesita verificación con el servidor
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (listing_id) {
     const { data } = await supabase
