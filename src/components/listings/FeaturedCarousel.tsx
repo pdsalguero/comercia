@@ -19,6 +19,7 @@ interface Item {
   cover_image: string | null;
   view_count?: number | null;
   created_at?: string | null;
+  bumped_at?: string | null;
   is_store?: boolean | null;
   store_name?: string | null;
 }
@@ -110,6 +111,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
             attributes={l.attributes ?? undefined}
             view_count={l.view_count ?? null}
             created_at={l.created_at ?? null}
+            bumped_at={l.bumped_at ?? null}
             is_store={l.is_store ?? null}
             store_name={l.store_name ?? null}
             priority={index === 0 && i < 4}

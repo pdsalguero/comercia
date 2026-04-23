@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from("listings")
       .select(
-        "id,title,price,currency,condition,neighborhood,created_at,view_count,user_id,listing_images(url,position),categories(name,slug)"
+        "id,title,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,listing_images(url,position),categories(name,slug)"
       )
       .eq("status", "active")
       .order("created_at", { ascending: false })

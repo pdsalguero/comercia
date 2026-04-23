@@ -22,6 +22,7 @@ interface ListingCardProps {
   size?: "normal" | "large";
   view_count?: number | null;
   created_at?: string | null;
+  bumped_at?: string | null;
   is_store?: boolean | null;
   store_name?: string | null;
   priority?: boolean;
@@ -61,11 +62,12 @@ export function ListingCard({
   attributes,
   view_count,
   created_at,
+  bumped_at,
   is_store,
   store_name,
   priority = false,
 }: ListingCardProps) {
-  // Resolve date label client-side only to avoid SSR/hydration mismatch with Date.now()
+  // Resolve date labels client-side only to avoid SSR/hydration mismatch with Date.now()
   const [dateLabel, setDateLabel] = useState<"today" | string | null>(null);
   useEffect(() => {
     if (!created_at) return;
@@ -247,9 +249,9 @@ export function ListingCard({
                 </div>
               )}
             </div>
-            {/* Row 2: date */}
+            {/* Row 2: publication date */}
             {dateLabel && (
-              <div style={{ marginTop: "4px", display: "flex", justifyContent: "flex-end" }}>
+              <div style={{ marginTop: "4px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                 {dateLabel === "today" ? (
                   <span style={{
                     display: "inline-flex", alignItems: "center", height: "18px",

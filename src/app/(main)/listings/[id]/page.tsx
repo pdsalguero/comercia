@@ -90,52 +90,32 @@ function WhatsAppIcon() {
 }
 
 async function getRelated(currentId: string, categoryId: number, brand?: string, model?: string) {
-  const supabase = await createClient();
-  const normalize = (s: string) => String(s ?? "").toLowerCase();
+  const { createPublicClient } = await import("@/lib/supabase/public");
+  const supabase = createPublicClient();
+  const SEL = `id, title, price, currency, neighborhood, attributes, listing_images(url, position)`;
 
-  // 1. Try brand + model across all categories
-  if (brand && model) {
-    const { data: byModel } = await supabase
-      .from("listings")
-      .select(`id, title, price, currency, neighborhood, attributes, listing_images(url, position)`)
-      .eq("status", "active")
-      .neq("id", currentId)
-      .limit(30);
-    const matched = (byModel ?? []).filter((l: any) => {
-      const a = (l.attributes as Record<string, any>) ?? {};
-      return normalize(a.brand) === normalize(brand) && normalize(a.model) === normalize(model);
-    });
-    if (matched.length > 0) return { items: matched.slice(0, 10), label: `${brand} ${model}` };
-  }
+  // Run brand+model, brand, and category queries in parallel, use the best result
+  const [byModelRes, byBrandRes, byCatRes] = await Promise.all([
+    brand && model
+      ? supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId)
+          .eq("attributes->>brand" as any, brand).eq("attributes->>model" as any, model).limit(10)
+      : Promise.resolve({ data: null }),
+    brand
+      ? supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId)
+          .eq("attributes->>brand" as any, brand).limit(10)
+      : Promise.resolve({ data: null }),
+    supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId)
+      .eq("category_id", categoryId).limit(10),
+  ]);
 
-  // 2. Try brand across all categories
-  if (brand) {
-    const { data: byBrand } = await supabase
-      .from("listings")
-      .select(`id, title, price, currency, neighborhood, attributes, listing_images(url, position)`)
-      .eq("status", "active")
-      .neq("id", currentId)
-      .limit(30);
-    const matched = (byBrand ?? []).filter((l: any) => {
-      const a = (l.attributes as Record<string, any>) ?? {};
-      return normalize(a.brand) === normalize(brand);
-    });
-    if (matched.length > 0) return { items: matched.slice(0, 10), label: brand };
-  }
-
-  // 3. Fallback: same category
-  const { data: byCat } = await supabase
-    .from("listings")
-    .select(`id, title, price, currency, neighborhood, attributes, listing_images(url, position)`)
-    .eq("status", "active")
-    .eq("category_id", categoryId)
-    .neq("id", currentId)
-    .limit(10);
-  return { items: byCat ?? [], label: "" };
+  if (byModelRes.data?.length) return { items: byModelRes.data, label: `${brand} ${model}` };
+  if (byBrandRes.data?.length) return { items: byBrandRes.data, label: brand! };
+  return { items: byCatRes.data ?? [], label: "" };
 }
 
 const getListing = cache(async function getListing(id: string) {
-  const supabase = await createClient();
+  const { createPublicClient } = await import("@/lib/supabase/public");
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
     .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, featured_level, listing_images(url, position)`)
@@ -211,20 +191,23 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const { id: rawId } = await params;
   const id = extractListingId(rawId);
 
-  // Parallelizar listing + auth — independientes entre sí
+  // Parallelizar listing + auth + related — todos independientes entre sí
   const supabase = await createClient();
-  const [listing, { data: { user: currentUser } }] = await Promise.all([
-    getListing(id),
-    supabase.auth.getUser(),
-  ]);
+  const listingPromise = getListing(id);
+  const authPromise = supabase.auth.getUser();
+
+  // Lanzar related en paralelo: necesita category_id y attrs, pero si el listing
+  // no existe igual hacemos notFound() después — el await de related es barato si falla
+  const listing = await listingPromise;
   if (!listing) notFound();
 
-  const isOwner = currentUser?.id === (listing as any).user_id;
-
   const attrs0 = (listing.attributes as Record<string, any>) ?? {};
-  const { items: related, label: relatedLabel } = await getRelated(
-    id, listing.category_id, attrs0.brand, attrs0.model
-  );
+  const [{ data: { user: currentUser } }, { items: related, label: relatedLabel }] = await Promise.all([
+    authPromise,
+    getRelated(id, listing.category_id, attrs0.brand, attrs0.model),
+  ]);
+
+  const isOwner = currentUser?.id === (listing as any).user_id;
 
   const images: { url: string; position: number }[] = (
     (listing.listing_images as any[]) ?? []

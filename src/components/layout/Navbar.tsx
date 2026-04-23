@@ -535,7 +535,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                       )}
                     </div>
                     <div style={{ fontSize: "12px", color: "#6366f1", fontWeight: 600 }}>
-                      Ver mi dashboard →
+                      Ver mi perfil →
                     </div>
                   </div>
                 </div>

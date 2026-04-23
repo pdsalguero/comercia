@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { storageImg } from "@/lib/storage-image";
@@ -13,6 +13,7 @@ type Listing = {
   condition: string;
   neighborhood: string;
   created_at?: string | null;
+  bumped_at?: string | null;
   view_count?: number | null;
   listing_images?: { url: string; position: number }[];
   categories?: { name: string; slug: string } | null;
@@ -46,6 +47,8 @@ function conditionLabel(c: string) {
 
 export function RecentListings({ items, viewAllHref = "/listings" }: { items: Listing[]; viewAllHref?: string }) {
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   return (
     <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
@@ -171,17 +174,14 @@ export function RecentListings({ items, viewAllHref = "/listings" }: { items: Li
                         <span style={{ fontSize: "10px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={9} /> {loc}</span>
                       ); })()}
                     </div>
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "2px" }}>
-                      {(l.view_count ?? 0) > 0 && (
+                    {(l.view_count ?? 0) > 0 && (
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "2px" }}>
                         <span style={{ fontSize: "10px", color: "#bbb", display: "inline-flex", alignItems: "center", gap: "2px" }}>
                           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                           {l.view_count}
                         </span>
-                      )}
-                      {l.created_at && (
-                        <span style={{ fontSize: "10px", color: "#bbb" }}>{timeAgo(l.created_at)}</span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -238,9 +238,14 @@ export function RecentListings({ items, viewAllHref = "/listings" }: { items: Li
                         {l.view_count}
                       </span>
                     )}
-                    {l.created_at && (
-                      <span style={{ fontSize: "10px", color: "#bbb" }}>{timeAgo(l.created_at)}</span>
-                    )}
+                    {mounted && (() => {
+                      const hasBump = l.bumped_at && l.created_at && new Date(l.bumped_at).getTime() - new Date(l.created_at).getTime() > 3600 * 1000;
+                      return hasBump ? (
+                        <span style={{ fontSize: "10px", color: "#64748b", display: "inline-flex", alignItems: "center", gap: "2px" }}>↑ act. {timeAgo(l.bumped_at!)}</span>
+                      ) : l.created_at ? (
+                        <span style={{ fontSize: "10px", color: "#bbb" }}>{timeAgo(l.created_at)}</span>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
                 <div style={{ fontSize: "14px", fontWeight: 800, color: l.price === 0 ? "#94a3b8" : "#f97316", flexShrink: 0 }}>

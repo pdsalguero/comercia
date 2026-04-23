@@ -16,6 +16,7 @@ interface Item {
   cover_image: string | null;
   view_count?: number | null;
   created_at?: string | null;
+  bumped_at?: string | null;
   is_store?: boolean | null;
   store_name?: string | null;
 }

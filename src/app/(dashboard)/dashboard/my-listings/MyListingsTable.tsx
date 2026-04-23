@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "./DeleteButton";
@@ -31,6 +31,7 @@ interface Listing {
   favorite_count: number | null;
   featured_level: string | null;
   created_at: string;
+  bumped_at: string | null;
   listing_images: { url: string; position: number }[] | null;
   categories: { name: string; slug: string } | null;
   description?: string | null;
@@ -55,10 +56,23 @@ function completeness(listing: Listing): string | null {
 type ConfirmState = { action: string; ids: string[] } | null;
 
 const CONFIRM_CONFIG: Record<string, { title: string; icon: string; confirmLabel: string; confirmColor: string; confirmBg: string; isDanger: boolean }> = {
-  delete:   { title: "Eliminar avisos",  icon: "🗑",  confirmLabel: "Sí, eliminar",  confirmColor: "#fff",     confirmBg: "#ef4444", isDanger: true },
-  pause:    { title: "Pausar avisos",    icon: "⏸",  confirmLabel: "Sí, pausar",    confirmColor: "#92400e",  confirmBg: "#fef3c7", isDanger: false },
-  activate: { title: "Activar avisos",   icon: "▶",  confirmLabel: "Sí, activar",   confirmColor: "#14532d",  confirmBg: "#dcfce7", isDanger: false },
+  delete:   { title: "Eliminar avisos",    icon: "🗑",  confirmLabel: "Sí, eliminar",    confirmColor: "#fff",     confirmBg: "#ef4444", isDanger: true },
+  pause:    { title: "Pausar avisos",      icon: "⏸",  confirmLabel: "Sí, pausar",      confirmColor: "#92400e",  confirmBg: "#fef3c7", isDanger: false },
+  activate: { title: "Activar avisos",     icon: "▶",  confirmLabel: "Sí, activar",     confirmColor: "#14532d",  confirmBg: "#dcfce7", isDanger: false },
+  bump:     { title: "Actualizar avisos",  icon: "↑",  confirmLabel: "Sí, actualizar",  confirmColor: "#1e3a8a",  confirmBg: "#dbeafe", isDanger: false },
 };
+
+const BUMP_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
+
+function bumpCooldownRemaining(bumpedAt: string | null): number {
+  if (!bumpedAt) return 0;
+  return Math.max(0, BUMP_COOLDOWN_MS - (Date.now() - new Date(bumpedAt).getTime()));
+}
+
+function formatCooldown(ms: number): string {
+  const hours = Math.ceil(ms / (1000 * 60 * 60));
+  return hours >= 24 ? `${Math.ceil(hours / 24)}d` : `${hours}h`;
+}
 
 export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelete, onUpdatePrice, onBulkAction }: Props) {
   const router = useRouter();
@@ -66,6 +80,10 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
   const [pending, startTransition] = useTransition();
   const [bulkLoading, setBulkLoading] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
+  const [bumpingIds, setBumpingIds] = useState<Set<string>>(new Set());
+  const [localBumpedAt, setLocalBumpedAt] = useState<Record<string, string | null>>({});
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const allIds = listings.map(l => l.id);
   const allSelected = allIds.length > 0 && allIds.every(id => selected.has(id));
@@ -103,6 +121,21 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
     });
   }
 
+  async function handleBump(id: string) {
+    setBumpingIds(prev => new Set(prev).add(id));
+    const res = await fetch("/api/listings/bump", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ listing_id: id }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      setLocalBumpedAt(prev => ({ ...prev, [id]: new Date().toISOString() }));
+      router.refresh();
+    }
+    setBumpingIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+  }
+
   return (
     <div>
       {/* Bulk action bar */}
@@ -117,9 +150,10 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
           </span>
           <div style={{ width: "1px", height: "20px", background: "#334155" }} />
           {[
-            { action: "activate", label: "Activar",  color: "#16a34a", bg: "#dcfce7" },
-            { action: "pause",    label: "Pausar",   color: "#ca8a04", bg: "#fef9c3" },
-            { action: "delete",   label: "Eliminar", color: "#dc2626", bg: "#fee2e2" },
+            { action: "activate",   label: "Activar",     color: "#16a34a", bg: "#dcfce7" },
+            { action: "pause",      label: "Pausar",      color: "#ca8a04", bg: "#fef9c3" },
+            { action: "bump",       label: "Actualizar",  color: "#1d4ed8", bg: "#dbeafe" },
+            { action: "delete",     label: "Eliminar",    color: "#dc2626", bg: "#fee2e2" },
           ].map(b => (
             <button key={b.action} onClick={() => handleBulk(b.action)} disabled={bulkLoading}
               style={{
@@ -163,6 +197,8 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
               <p style={{ margin: "0 0 20px", fontSize: "13px", color: "#64748b", lineHeight: 1.5 }}>
                 {confirmState.action === "delete"
                   ? <>Vas a eliminar <strong>{n} aviso{n !== 1 ? "s" : ""}</strong>. Esta acción <strong>no se puede deshacer</strong>.</>
+                  : confirmState.action === "bump"
+                  ? <>Vas a actualizar la fecha de <strong>{n} aviso{n !== 1 ? "s" : ""}</strong> activo{n !== 1 ? "s" : ""} para que aparezcan al tope.</>
                   : <>Vas a {confirmState.action === "pause" ? "pausar" : "activar"} <strong>{n} aviso{n !== 1 ? "s" : ""}</strong>.</>
                 }
               </p>
@@ -193,7 +229,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
         {listings.length > 0 && (
           <div style={{
             display: "grid",
-            gridTemplateColumns: "36px 88px 1fr 130px 170px 110px 1px 180px",
+            gridTemplateColumns: "36px 88px 1fr 130px 170px 110px 1px 220px",
             padding: "10px 20px",
             background: "#f8fafc", borderBottom: "1px solid #e2e8f0",
             fontSize: "11px", fontWeight: 700, color: "#94a3b8",
@@ -227,12 +263,16 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
           const tip = completeness(listing);
           const msgs = msgCountMap[listing.id] ?? 0;
           const isSelected = selected.has(listing.id);
+          const bumpedAt = localBumpedAt[listing.id] ?? listing.bumped_at ?? null;
+          const bumpCooldown = mounted ? bumpCooldownRemaining(bumpedAt) : 0;
+          const onBumpCooldown = bumpCooldown > 0;
+          const isBumping = bumpingIds.has(listing.id);
 
           return (
             <div key={listing.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "36px 88px 1fr 130px 170px 110px 1px 180px",
+                gridTemplateColumns: "36px 88px 1fr 130px 170px 110px 1px 220px",
                 alignItems: "center",
                 padding: "12px 20px",
                 borderBottom: i < listings.length - 1 ? "1px solid #f1f5f9" : "none",
@@ -337,6 +377,23 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
 
               {/* Actions */}
               <div style={{ display: "flex", gap: "5px", justifyContent: "flex-end", alignItems: "center" }}>
+                {isActive && (
+                  <button
+                    onClick={() => !onBumpCooldown && !isBumping && handleBump(listing.id)}
+                    disabled={onBumpCooldown || isBumping}
+                    title={onBumpCooldown ? `Disponible en ${formatCooldown(bumpCooldown)}` : "Subir al tope de la lista"}
+                    style={{
+                      background: onBumpCooldown ? "#f8fafc" : "#f0fdf4",
+                      color: onBumpCooldown ? "#94a3b8" : "#16a34a",
+                      border: `1px solid ${onBumpCooldown ? "#e2e8f0" : "#bbf7d0"}`,
+                      borderRadius: "6px", padding: "5px 9px",
+                      fontSize: "12px", fontWeight: 700,
+                      cursor: onBumpCooldown || isBumping ? "default" : "pointer",
+                      whiteSpace: "nowrap",
+                    }}>
+                    {isBumping ? "↑..." : onBumpCooldown ? `↑ ${formatCooldown(bumpCooldown)}` : "↑ Actualizar"}
+                  </button>
+                )}
                 {canToggle && (
                   <button
                     onClick={() => handleToggle(listing.id, listing.status)}

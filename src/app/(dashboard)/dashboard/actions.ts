@@ -24,6 +24,7 @@ export interface UserListing {
   status: string
   view_count: number
   created_at: string
+  bumped_at: string | null
   destacado_activo: boolean
   destacado_hasta: string | null
   destacado_tipo: string | null
@@ -139,7 +140,7 @@ export async function getUserListings(userId: string): Promise<UserListing[]> {
   const { data: listings } = await supabase
     .from('listings')
     .select(`
-      id, title, price, status, view_count, created_at,
+      id, title, price, status, view_count, created_at, bumped_at,
       featured_level, featured_until,
       destacado_activo, destacado_hasta, destacado_tipo,
       listing_images(url, position)
@@ -170,6 +171,7 @@ export async function getUserListings(userId: string): Promise<UserListing[]> {
       status: l.status,
       view_count: l.view_count ?? 0,
       created_at: l.created_at,
+      bumped_at: (l as any).bumped_at ?? null,
       // solo tiers de pago: bronze/silver/gold — 'standard' no es tier destacado
       destacado_activo: (l.destacado_activo ?? false) || ['bronze', 'silver', 'gold'].includes(l.featured_level ?? ''),
       destacado_hasta: l.destacado_hasta ?? l.featured_until ?? null,

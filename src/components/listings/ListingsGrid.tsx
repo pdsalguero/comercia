@@ -56,6 +56,7 @@ interface Listing {
   attributes?: Record<string, string | number | boolean | null>;
   view_count: number | null;
   created_at: string | null;
+  bumped_at?: string | null;
   is_store: boolean | null;
   store_name: string | null;
 }
@@ -84,6 +85,7 @@ export function ListingsGrid({ featured, regular }: Props) {
             attributes={l.attributes}
             view_count={l.view_count}
             created_at={l.created_at}
+            bumped_at={l.bumped_at}
             is_store={l.is_store}
             store_name={l.store_name}
           />
@@ -104,6 +106,7 @@ export function ListingsGrid({ featured, regular }: Props) {
             neighborhood={l.neighborhood}
             view_count={l.view_count}
             created_at={l.created_at}
+            bumped_at={l.bumped_at}
             breadcrumbs={buildBreadcrumbs(l.attributes)}
             showDivider={i < items.length - 1}
           />

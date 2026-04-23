@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import PinIcon from "@/components/ui/PinIcon";
 import { storageImg } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
@@ -15,6 +16,7 @@ export interface ListingListCardProps {
   neighborhood: string | null;
   view_count?: number | null;
   created_at?: string | null;
+  bumped_at?: string | null;
   /** Optional attribute chips shown below the title (e.g. sub-category, brand, model) */
   breadcrumbs?: Array<{ label: string; variant?: "primary" | "secondary" }>;
   showDivider?: boolean;
@@ -52,9 +54,12 @@ export function ListingListCard({
   neighborhood,
   view_count,
   created_at,
+  bumped_at,
   breadcrumbs,
   showDivider = true,
 }: ListingListCardProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const isFeatured = !!featured_level;
   const priceStr =
     price && price > 0
@@ -150,11 +155,23 @@ export function ListingListCard({
 
           {/* Meta: date + views */}
           <div className="llc-meta" style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "5px" }}>
-            {created_at && (
-              <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
-                📅 {timeAgo(created_at)}
-              </span>
-            )}
+            {mounted && created_at && (() => {
+              const hasBump = bumped_at && new Date(bumped_at).getTime() - new Date(created_at).getTime() > 3600 * 1000;
+              return hasBump ? (
+                <>
+                  <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
+                    📅 {timeAgo(created_at)}
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#64748b", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                    ↑ act. {timeAgo(bumped_at!)}
+                  </span>
+                </>
+              ) : (
+                <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
+                  📅 {timeAgo(created_at)}
+                </span>
+              );
+            })()}
             {view_count != null && (
               <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
                 👁 {view_count.toLocaleString("es-AR")} visitas

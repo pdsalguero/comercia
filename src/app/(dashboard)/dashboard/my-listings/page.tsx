@@ -34,7 +34,7 @@ export default async function MyListingsPage({
       view_count, favorite_count,
       featured_level, featured_until,
       destacado_activo, destacado_hasta, destacado_tipo,
-      created_at, slug,
+      created_at, bumped_at, slug,
       listing_images(url, position),
       categories(name, slug)
     `)
@@ -79,6 +79,7 @@ export default async function MyListingsPage({
       destacado_activo: ((l as any).destacado_activo ?? false) || ['bronze', 'silver', 'gold'].includes(l.featured_level ?? ''),
       destacado_hasta: (l as any).destacado_hasta ?? (l as any).featured_until ?? null,
       destacado_tipo: (l as any).destacado_tipo ?? l.featured_level ?? null,
+      bumped_at: (l as any).bumped_at ?? null,
       cover_url: cover,
       msg_count: msgCountMap[l.id] ?? 0,
     }
@@ -118,6 +119,8 @@ export default async function MyListingsPage({
       await sb.from('listings').update({ status: 'active' }).in('id', ids).eq('user_id', u.id)
     } else if (action === 'pause') {
       await sb.from('listings').update({ status: 'paused' }).in('id', ids).eq('user_id', u.id)
+    } else if (action === 'bump') {
+      await sb.from('listings').update({ bumped_at: new Date().toISOString() }).in('id', ids).eq('user_id', u.id).eq('status', 'active')
     }
     revalidatePath('/dashboard/my-listings')
   }

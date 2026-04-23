@@ -3374,6 +3374,7 @@ export default async function CategoryPage({
                       attributes={listing.attributes as Record<string, string | number | boolean | null> | undefined}
                       view_count={(listing as any).view_count ?? null}
                       created_at={(listing as any).created_at ?? null}
+                      bumped_at={(listing as any).bumped_at ?? null}
                       is_store={storeMap[(listing as any).user_id]?.is_store ?? null}
                       store_name={storeMap[(listing as any).user_id]?.store_name ?? null}
                     />

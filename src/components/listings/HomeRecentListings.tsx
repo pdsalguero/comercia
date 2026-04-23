@@ -12,6 +12,7 @@ type Listing = {
   condition: string;
   neighborhood: string;
   created_at?: string | null;
+  bumped_at?: string | null;
   view_count?: number | null;
   listing_images?: { url: string; position: number }[];
   categories?: { name: string; slug: string } | null;

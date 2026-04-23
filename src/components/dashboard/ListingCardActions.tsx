@@ -224,8 +224,22 @@ function MoreMenu({
 
 // ─── Listing Card ─────────────────────────────────────────────────────────────
 
+const BUMP_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
+
 function daysOnline(createdAt: string): number {
   return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000)
+}
+
+function bumpCooldownRemaining(bumpedAt: string | null): number {
+  if (!bumpedAt) return 0;
+  const elapsed = Date.now() - new Date(bumpedAt).getTime();
+  return Math.max(0, BUMP_COOLDOWN_MS - elapsed);
+}
+
+function formatCooldown(ms: number): string {
+  const hours = Math.ceil(ms / (1000 * 60 * 60));
+  if (hours >= 24) return `${Math.ceil(hours / 24)}d`;
+  return `${hours}h`;
 }
 
 interface ListingCardProps {
@@ -239,6 +253,8 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [bumping, setBumping] = useState(false)
+  const [bumpedAt, setBumpedAt] = useState<string | null>(listing.bumped_at)
   const router = useRouter()
 
   const conv = listing.view_count > 0
@@ -266,6 +282,21 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
     await onDelete(listing.id)
     router.refresh()
     setLoading(false)
+  }
+
+  async function handleBump() {
+    setBumping(true)
+    const res = await fetch("/api/listings/bump", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ listing_id: listing.id }),
+    })
+    const data = await res.json()
+    if (data.ok) {
+      setBumpedAt(new Date().toISOString())
+      router.refresh()
+    }
+    setBumping(false)
   }
 
   return (
@@ -370,7 +401,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
             </span>
           </div>
 
-          {/* Actions — fila superior: Editar + Más; fila inferior: Destacar full width */}
+          {/* Actions — fila superior: Editar + Más; filas inferiores: Subir + Destacar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '2px' }}>
             {/* Row 1 */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '6px' }}>
@@ -418,7 +449,32 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
               </div>
             </div>
 
-            {/* Row 2 — Destacar full width */}
+            {/* Row 2 — Subir aviso */}
+            {listing.status === 'active' && (() => {
+              const cooldown = bumpCooldownRemaining(bumpedAt);
+              const onCooldown = cooldown > 0;
+              return (
+                <button
+                  onClick={() => !onCooldown && !bumping && handleBump()}
+                  disabled={onCooldown || bumping}
+                  style={{
+                    width: '100%', height: '34px',
+                    border: `1px solid ${onCooldown ? '#e2e8f0' : '#22c55e'}`,
+                    borderRadius: '8px',
+                    background: onCooldown ? '#f8fafc' : '#f0fdf4',
+                    color: onCooldown ? '#94a3b8' : '#16a34a',
+                    fontSize: '12px', fontWeight: 700,
+                    cursor: onCooldown || bumping ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                    transition: 'opacity 0.15s',
+                  }}
+                >
+                  {bumping ? '↑ Actualizando...' : onCooldown ? `↑ Actualizar en ${formatCooldown(cooldown)}` : '↑ Actualizar aviso'}
+                </button>
+              );
+            })()}
+
+            {/* Row 3 — Destacar full width */}
             <button
               className="dlc-destacar-btn"
               onClick={() => !listing.destacado_activo && setShowModal(true)}

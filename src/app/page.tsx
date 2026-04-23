@@ -74,7 +74,7 @@ function shuffle<T>(arr: T[]): T[] {
 // Función interna pura — no usa cookies(), apta para unstable_cache
 async function _fetchHomeData() {
   const supabase = createPublicClient();
-  const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
+  const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, bumped_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
   const CAT_IDS = [1,2,3,4,5,6,7,8,9,10,21,22,23,24,25,26];
@@ -89,7 +89,7 @@ async function _fetchHomeData() {
     catCountEntries,
   ] = await Promise.all([
     supabase.from("listings").select(FIELDS).eq("status","active").eq("featured_level","gold").order("created_at",{ascending:false}).limit(16),
-    supabase.from("listings").select("id,title,price,currency,condition,neighborhood,created_at,view_count,user_id,listing_images!inner(url,position),categories(name,slug)").eq("status","active").order("created_at",{ascending:false}).limit(8),
+    supabase.from("listings").select("id,title,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,listing_images!inner(url,position),categories(name,slug)").eq("status","active").order("created_at",{ascending:false}).limit(8),
     supabase.from("listings").select("*",{count:"exact",head:true}).eq("status","active"),
     supabase.from("profiles").select("*",{count:"exact",head:true}),
     supabase.from("profiles").select("*",{count:"exact",head:true}).eq("is_store",true),

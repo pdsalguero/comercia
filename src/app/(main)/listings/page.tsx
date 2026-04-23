@@ -61,7 +61,7 @@ async function _fetchListings(p: ListingsParams) {
   // Main query
   let query = supabase
     .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`, { count: "exact" })
+    .select(`id, title, price, currency, condition, neighborhood, created_at, bumped_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`, { count: "exact" })
     .eq("status", "active");
 
   if (p.q)         query = query.ilike("title", `%${p.q}%`);
@@ -180,13 +180,18 @@ export default async function ListingsPage({
   const categoryId = category ? (slugToId[category] ?? null) : null;
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
+  const effectiveDate = (l: any) => Math.max(
+    l.bumped_at ? new Date(l.bumped_at).getTime() : 0,
+    l.created_at ? new Date(l.created_at).getTime() : 0,
+  );
   const sorted = rawData.slice().sort((a: any, b: any) => {
     if (order === "price_asc")  return (a.price ?? 0) - (b.price ?? 0);
     if (order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
     if (order === "views")      return (b.view_count ?? 0) - (a.view_count ?? 0);
     const fa = FEAT_ORDER[a.featured_level ?? ""] ?? 3;
     const fb = FEAT_ORDER[b.featured_level ?? ""] ?? 3;
-    return fa - fb;
+    if (fa !== fb) return fa - fb;
+    return effectiveDate(b) - effectiveDate(a);
   });
 
   // Numeric JSONB filters (done in JS — PostgREST can't reliably cast JSONB text to numeric)
@@ -416,6 +421,7 @@ export default async function ListingsPage({
               attributes: listing.attributes as Record<string, string | number | boolean | null> | undefined,
               view_count: (listing as any).view_count ?? null,
               created_at: (listing as any).created_at ?? null,
+              bumped_at: (listing as any).bumped_at ?? null,
               is_store: (listing as any).profiles?.is_store ?? null,
               store_name: (listing as any).profiles?.store_name ?? null,
             };
