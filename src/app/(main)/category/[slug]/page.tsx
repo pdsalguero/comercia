@@ -414,7 +414,7 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = pub
     .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
+    .select(`id, title, price, currency, condition, neighborhood, created_at, bumped_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
     .eq("status", "active")
     .eq("category_id", catId) as any;
 
@@ -534,7 +534,7 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
   if (sp.order === "price_asc") query = query.order("price", { ascending: true });
   else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
   else if (sp.order === "views") query = query.order("view_count", { ascending: false });
-  else query = query.order("created_at", { ascending: false });
+  else query = query.order("bumped_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
 
   const { data: rawListings } = await (query as any).limit(48);
 
@@ -564,6 +564,32 @@ const JSONB_CACHE_KEYS: (keyof SP)[] = [
   "toy_type", "toy_brand",
   "book_type", "pet_type", "serv_type", "other_type",
 ];
+
+// Definidas a nivel módulo para que unstable_cache no cree nuevos closures por request
+const getCatIdCached = unstable_cache(
+  async (s: string) => {
+    const pub = createPublicClient();
+    const { data } = await pub.from("categories").select("id").eq("slug", s).single();
+    return data;
+  },
+  ["category-id-by-slug"],
+  { revalidate: 86400 }
+);
+
+const getCategoryFilterDataCached = unstable_cache(
+  async (categoryId: number) => {
+    const pub = createPublicClient();
+    const { data } = await pub
+      .from("listings")
+      .select("attributes, condition, neighborhood")
+      .eq("status", "active")
+      .eq("category_id", categoryId)
+      .limit(3000);
+    return data ?? [];
+  },
+  ["category-filter-data"],
+  { revalidate: 300 }
+);
 
 function fetchCategoryListings(slug: string, catId: number, sp: SP) {
   // Skip in-memory cache when JSONB filters are active — each unique combination
@@ -633,17 +659,7 @@ export default async function CategoryPage({
   const isServices = slug === "services";
   const isOther = slug === "other";
 
-  // Get category id — cacheado indefinidamente (los slugs nunca cambian)
-  const getCatId = unstable_cache(
-    async (s: string) => {
-      const pub = createPublicClient();
-      const { data } = await pub.from("categories").select("id").eq("slug", s).single();
-      return data;
-    },
-    ["category-id-by-slug"],
-    { revalidate: 86400 }
-  );
-  const cat = await getCatId(slug);
+  const cat = await getCatIdCached(slug);
 
   if (!cat) notFound();
 
@@ -785,20 +801,7 @@ export default async function CategoryPage({
   let motoSubtipoCounts: Record<string, number> = {};
   let noSubCatVehicleCount = 0;
   if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices || isOther) {
-    const getCategoryFilterData = unstable_cache(
-      async (categoryId: number) => {
-        const pub = createPublicClient();
-        const { data } = await pub
-          .from("listings")
-          .select("attributes, condition, neighborhood")
-          .eq("status", "active")
-          .eq("category_id", categoryId);
-        return data ?? [];
-      },
-      [`category-filter-data`],
-      { revalidate: 300, tags: [`category-filter-data-${cat.id}`] }
-    );
-    const all = await getCategoryFilterData(cat.id);
+    const all = await getCategoryFilterDataCached(cat.id);
     for (const row of all) {
       const t = (row.attributes as any)?.sub_category;
       if (isVehicles) {
