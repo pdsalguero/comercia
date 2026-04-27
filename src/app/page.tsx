@@ -42,6 +42,7 @@ export const revalidate = 300;
 const CATEGORIES = [
   { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2,  active: true  },
   { name: "Inmuebles",         slug: "real-estate",   icon: "🏠", id: 3,  active: true  },
+  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26, active: true  },
   { name: "Celulares",         slug: "phones",        icon: "📱", id: 21, active: false },
   { name: "Tecnología",        slug: "electronics",   icon: "💻", id: 1,  active: false },
   { name: "Electrodomésticos", slug: "appliances",    icon: "🧊", id: 22, active: false },
@@ -54,7 +55,6 @@ const CATEGORIES = [
   { name: "Belleza y Salud",   slug: "beauty-health", icon: "💄", id: 24, active: false },
   { name: "Juegos y Juguetes", slug: "toys",          icon: "🧸", id: 25, active: false },
   { name: "Mascotas",          slug: "pets",          icon: "🐾", id: 9,  active: false },
-  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26, active: false },
   { name: "Otros",             slug: "other",         icon: "📦", id: 10, active: false },
 ];
 

@@ -94,7 +94,7 @@ export function ListingCard({
   const locationLabel = rawLocation.includes(",") ? rawLocation.split(",").pop()!.trim() : rawLocation;
 
   return (
-    <Link href={listingUrl(id, title)} style={{ textDecoration: "none", display: "block" }}>
+    <Link href={listingUrl(id, title)} style={{ textDecoration: "none", display: "block", height: "100%" }}>
       <div
         style={{
           background: "#fff",
@@ -117,6 +117,8 @@ export function ListingCard({
           transition: "transform 0.15s, box-shadow 0.15s",
           cursor: "pointer",
           height: "100%",
+          display: "flex",
+          flexDirection: "column",
         }}
         className="hover:-translate-y-1 hover:shadow-md"
       >
@@ -200,7 +202,7 @@ export function ListingCard({
         </div>
 
         {/* Content */}
-        <div className="lc-content" style={{ padding: "12px 14px" }}>
+        <div className="lc-content" style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
           <h3 className="lc-title" style={{
             fontSize: "14px", fontWeight: 600, color: "#111",
             marginBottom: "6px", lineHeight: 1.35,
@@ -232,7 +234,7 @@ export function ListingCard({
             </div>
           )}
 
-          <div style={{ fontSize: "12px", color: "#888" }}>
+          <div style={{ fontSize: "12px", color: "#888", marginTop: "auto" }}>
             {/* Row 1: location */}
             <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
               <PinIcon size={11} />

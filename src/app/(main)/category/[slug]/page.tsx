@@ -216,23 +216,16 @@ const OTHER_TYPES = [
 ];
 
 const SERVICES_TYPES = [
-  { value: "asesoramiento",  label: "Asesoramiento Legal y Contable" },
-  { value: "belleza-serv",   label: "Belleza y Estética" },
-  { value: "diseno",         label: "Diseño y Comunicación" },
-  { value: "cursos",         label: "Cursos y Clases" },
-  { value: "delivery",       label: "Delivery y Envíos" },
-  { value: "eventos",        label: "Fiestas y Eventos" },
-  { value: "fotografia",     label: "Fotografía y Audiovisual" },
-  { value: "construccion",   label: "Construcción y Reformas" },
-  { value: "imprenta",       label: "Imprenta y Gráfica" },
-  { value: "mecanica",       label: "Mecánica y Vehículos" },
-  { value: "salud",          label: "Salud y Bienestar" },
-  { value: "mascotas-serv",  label: "Servicios para Mascotas" },
-  { value: "limpieza",       label: "Limpieza y Mantenimiento" },
-  { value: "informatica",    label: "Informática y Tecnología" },
-  { value: "transporte",     label: "Transporte y Mudanzas" },
-  { value: "turismo",        label: "Turismo y Viajes" },
-  { value: "otro",           label: "Otro" },
+  { value: "capacitacion",     label: "Clases y Educación" },
+  { value: "cuidado-personal", label: "Cuidado y Estética Personal" },
+  { value: "eventos-fiestas",  label: "Eventos y Celebraciones" },
+  { value: "gastronomia",      label: "Gastronomía y Alimentación" },
+  { value: "automotriz",       label: "Automotriz y Vehículos" },
+  { value: "hogar-obras",      label: "Hogar y Obras" },
+  { value: "profesionales",    label: "Servicios Profesionales" },
+  { value: "tecnico",          label: "Servicio Técnico" },
+  { value: "transporte",       label: "Transporte y Logística" },
+  { value: "otros-servicios",  label: "Otros Servicios" },
 ];
 
 const TECH_GROUPS: Record<string, { label: string; items: string[] }> = {
@@ -354,7 +347,7 @@ type SP = {
   // pets
   pet_type?: string; pet_province?: string;
   // services
-  serv_type?: string; serv_province?: string;
+  serv_type?: string; serv_sub?: string; serv_province?: string;
   // other
   other_type?: string; other_condition?: string;
   // price
@@ -387,7 +380,7 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
     "toy_type", "toy_brand",
     "book_type",
     "pet_type",
-    "serv_type",
+    "serv_type", "serv_sub",
     "other_type",
   ];
   const activeJsonbFilters = JSONB_FILTER_KEYS.filter((k) => !!sp[k]).length;
@@ -514,6 +507,7 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
   }
   if (isServices) {
     if (sp.serv_type) query = query.eq("attributes->>sub_category" as any, sp.serv_type);
+    if (sp.serv_sub) query = query.eq("attributes->>sub_type" as any, sp.serv_sub);
     if (sp.serv_province) query = query.ilike("neighborhood", `%${sp.serv_province}%`);
   }
   if (slug === "other") {

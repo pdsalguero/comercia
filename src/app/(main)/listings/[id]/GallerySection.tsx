@@ -228,6 +228,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             style={{ objectFit: "contain" }}
             sizes="(max-width: 768px) 100vw, 700px"
             priority
+            unoptimized
           />
 
           {/* Prev arrow */}

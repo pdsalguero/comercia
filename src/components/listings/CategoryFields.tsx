@@ -38,7 +38,17 @@ function FieldInput({
   onChange: (val: any) => void;
 }) {
   switch (field.type) {
-    case "select":
+    case "select": {
+      const hasGroups = field.options?.some((o) => o.group);
+      const grouped: { group: string; options: typeof field.options }[] = [];
+      if (hasGroups && field.options) {
+        for (const o of field.options) {
+          const g = o.group ?? "";
+          const last = grouped[grouped.length - 1];
+          if (last && last.group === g) last.options!.push(o);
+          else grouped.push({ group: g, options: [o] });
+        }
+      }
       return (
         <div style={{ position: "relative" }}>
           <select
@@ -47,11 +57,24 @@ function FieldInput({
             style={{ ...inputStyle, appearance: "none", paddingRight: "32px" }}
           >
             <option value="">Seleccionar...</option>
-            {field.options?.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
+            {hasGroups
+              ? grouped.map((g) =>
+                  g.group ? (
+                    <optgroup key={g.group} label={g.group}>
+                      {g.options?.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </optgroup>
+                  ) : (
+                    g.options?.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))
+                  )
+                )
+              : field.options?.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))
+            }
           </select>
           <span
             style={{
@@ -67,6 +90,7 @@ function FieldInput({
           </span>
         </div>
       );
+    }
 
     case "number":
       return (

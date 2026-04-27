@@ -88,7 +88,7 @@ const USER_PROMPT = `Analizá la imagen y devolvé exactamente este JSON (sin ca
   "attributes": { ...campos según categoría... }
 }
 
-CATEGORÍAS: 1=Electrónica 2=Vehículos 3=Inmuebles 4=Ropa 5=Hogar 6=Deportes 7=Herramientas 8=Libros 9=Mascotas 10=Otros 21=Celulares 22=Electrodomésticos 23=Bebés/Niños 24=Belleza/Salud
+CATEGORÍAS: 1=Electrónica 2=Vehículos 3=Inmuebles 4=Ropa 5=Hogar 6=Deportes 7=Herramientas 8=Libros 9=Mascotas 10=Otros 21=Celulares 22=Electrodomésticos 23=Bebés/Niños 24=Belleza/Salud 26=Servicios
 
 ══════════════════════════════════════════════════════════════
 CATEGORÍA 2 — VEHÍCULOS  (el más importante, leé todo)
@@ -346,7 +346,19 @@ Hogar(5): sub_category, brand, color, material
 Deportes(6): sub_category, brand, size, color
 Herramientas(7): sub_category, brand, voltage
 Mascotas(9): sub_category, breed, sex, vaccinated, is_adoption
-Belleza/Salud(24): sub_category="cuidado-personal|maquillaje|perfume|capilar|equipo-medico|suplemento|optica|otro", brand, volume`;
+Belleza/Salud(24): sub_category="cuidado-personal|maquillaje|perfume|capilar|equipo-medico|suplemento|optica|otro", brand, volume
+Servicios(26): sub_category (ver tabla), sub_type (ver tabla), modality="online|domicilio|local|mixto", brand="nombre empresa o profesional si es visible"
+  sub_category → sub_type válidos (USÁ EXACTAMENTE estos valores):
+  capacitacion      → apoyo-escolar | idiomas | computacion-curso | musica-danza | deportes-clase | fotografia-cine | cocina-curso | manejo | belleza-curso | otras-clases
+  cuidado-personal  → peluqueria-barberia | estetica-spa | masajes | depilacion | podologia | gimnasios-fitness | yoga-bienestar
+  eventos-fiestas   → foto-video-evento | musica-dj | catering | animacion-inflables | salones-quintas | reposteria-dulce | decoracion-floral | cotillon-souvenirs | organizacion
+  gastronomia       → viandas-delivery | comida-casera | reposteria-pastel | artesanal
+  automotriz        → mecanica-general | chapa-pintura | gomeria | lubricentro | lavado-detailing | auxilio-grua | reparacion-motos
+  hogar-obras       → plomeria | electricidad | albanileria | pintura-empapelado | carpinteria-muebles | limpieza | jardineria-paisaj | climatizacion | cerrajeria | gas-calefaccion | herreria-rejas | pisos-ceramicos | seguridad-alarmas | impermeabilizacion
+  profesionales     → legal-notarial | contabilidad | arquitectura-ing | diseno-creativo | dev-web-sistemas | salud-medicina | consultoria | tramites-gestiones | marketing-publicidad | otros-profesional
+  tecnico           → computacion-redes | celulares-tablets | electrodomesticos | electronica | aire-acondicionado | audio-video-tv | equipos-fitness | otros-tecnicos
+  transporte        → fletes-mudanzas | mensajeria-envios | alquiler-vehiculos | remis-traslados
+  otros-servicios   → cuidado-personas | paseo-mascotas | servicio-domestico | otro`;
 
 
 export async function analyzePhotoWithClaude(
@@ -574,6 +586,45 @@ export async function analyzePhotoWithClaude(
       );
     }
 
+    parsed.attributes = attrs;
+  }
+
+  // ── Post-process services attributes ─────────────────────────
+  if (parsed.category_id === 26 && parsed.attributes) {
+    const attrs = parsed.attributes;
+    const VALID_SERVICE_CATS = [
+      "capacitacion", "cuidado-personal", "eventos-fiestas", "gastronomia",
+      "automotriz", "hogar-obras", "profesionales", "tecnico", "transporte", "otros-servicios",
+    ];
+    const SERVICE_SUBTYPE_MAP: Record<string, string[]> = {
+      capacitacion:       ["apoyo-escolar","idiomas","computacion-curso","musica-danza","deportes-clase","fotografia-cine","cocina-curso","manejo","belleza-curso","otras-clases"],
+      "cuidado-personal": ["peluqueria-barberia","estetica-spa","masajes","depilacion","podologia","gimnasios-fitness","yoga-bienestar"],
+      "eventos-fiestas":  ["foto-video-evento","musica-dj","catering","animacion-inflables","salones-quintas","reposteria-dulce","decoracion-floral","cotillon-souvenirs","organizacion"],
+      gastronomia:        ["viandas-delivery","comida-casera","reposteria-pastel","artesanal"],
+      automotriz:         ["mecanica-general","chapa-pintura","gomeria","lubricentro","lavado-detailing","auxilio-grua","reparacion-motos"],
+      "hogar-obras":      ["plomeria","electricidad","albanileria","pintura-empapelado","carpinteria-muebles","limpieza","jardineria-paisaj","climatizacion","cerrajeria","gas-calefaccion","herreria-rejas","pisos-ceramicos","seguridad-alarmas","impermeabilizacion"],
+      profesionales:      ["legal-notarial","contabilidad","arquitectura-ing","diseno-creativo","dev-web-sistemas","salud-medicina","consultoria","tramites-gestiones","marketing-publicidad","otros-profesional"],
+      tecnico:            ["computacion-redes","celulares-tablets","electrodomesticos","electronica","aire-acondicionado","audio-video-tv","equipos-fitness","otros-tecnicos"],
+      transporte:         ["fletes-mudanzas","mensajeria-envios","alquiler-vehiculos","remis-traslados"],
+      "otros-servicios":  ["cuidado-personas","paseo-mascotas","servicio-domestico","otro"],
+    };
+    const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+    if (attrs.sub_category) {
+      const sc = normalize(attrs.sub_category);
+      const match = VALID_SERVICE_CATS.find((v) => sc === v || sc === normalize(v) || sc.includes(v.replace("-","")) || v.replace("-","").includes(sc));
+      attrs.sub_category = match ?? "otros-servicios";
+    }
+    if (attrs.sub_type && attrs.sub_category) {
+      const validSubTypes = SERVICE_SUBTYPE_MAP[attrs.sub_category] ?? [];
+      const st = normalize(attrs.sub_type);
+      const match = validSubTypes.find((v) => st === v || st === normalize(v) || st.includes(v.replace("-","")) || v.replace("-","").includes(st));
+      attrs.sub_type = match ?? null;
+    }
+    if (attrs.modality) {
+      const m = attrs.modality.toLowerCase();
+      const validModalities = ["online", "domicilio", "local", "mixto"];
+      if (!validModalities.includes(m)) attrs.modality = "local";
+    }
     parsed.attributes = attrs;
   }
 

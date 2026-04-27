@@ -6,10 +6,11 @@ import { storageImg } from "@/lib/storage-image";
 import { createClient } from "@/lib/supabase/server";
 import { GallerySection } from "./GallerySection";
 import { DetailTabs } from "./DetailTabs";
-import { getCategoryConfig } from "@/lib/category-config";
+import { getCategoryConfig, SERVICE_CATEGORIES, SERVICE_SUBCATS } from "@/lib/category-config";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { RelatedCarousel } from "@/components/listings/RelatedCarousel";
 import { ShareButton } from "@/components/listings/ShareButton";
+import { ReportButton } from "@/components/listings/ReportButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
@@ -296,6 +297,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   // Determine specs + boolTags for the detail tabs
   const isVehicle = listing.category_id === 2;
   const isRealEstate = listing.category_id === 3;
+  const isServices = listing.category_id === 26;
 
   // Generic specs from category-config fields
   const catConfig = !isVehicle && !isRealEstate ? getCategoryConfig(listing.category_id) : undefined;
@@ -477,12 +479,33 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </>
               )}
 
-              {!isVehicle && !isRealEstate && catConfig && attrs.sub_category && (() => {
+              {isServices && attrs.sub_category && (
+                <>
+                  {sep}
+                  <Link href={`/category/${catSlug}?serv_type=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
+                    {SERVICE_CATEGORIES.find(c => c.value === attrs.sub_category)?.label ?? String(attrs.sub_category)}
+                  </Link>
+                </>
+              )}
+
+              {isServices && attrs.sub_type && (
+                <>
+                  {sep}
+                  <Link
+                    href={`/category/${catSlug}?serv_type=${encodeURIComponent(attrs.sub_category)}&serv_sub=${encodeURIComponent(attrs.sub_type)}`}
+                    style={linkStyle}
+                  >
+                    {SERVICE_SUBCATS[attrs.sub_category]?.find(s => s.value === attrs.sub_type)?.label ?? String(attrs.sub_type)}
+                  </Link>
+                </>
+              )}
+
+              {!isVehicle && !isRealEstate && !isServices && catConfig && attrs.sub_category && (() => {
                 const TYPE_PARAM: Record<number, string> = {
                   4: "clothing_type", 5: "hg_type", 6: "sport_type", 7: "tool_type",
                   22: "appliance_type", 21: "phone_type", 1: "tech_type",
                   23: "baby_type", 24: "beauty_type", 25: "toy_type",
-                  8: "book_type", 9: "pet_type", 26: "serv_type",
+                  8: "book_type", 9: "pet_type",
                 };
                 const typeParam = TYPE_PARAM[listing.category_id] ?? "type";
                 const label = catConfig.fields.find(f => f.key === "sub_category")?.options?.find(o => o.value === attrs.sub_category)?.label ?? String(attrs.sub_category);
@@ -496,12 +519,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 );
               })()}
 
-              {!isVehicle && !isRealEstate && catConfig && attrs.brand && (() => {
+              {!isVehicle && !isRealEstate && !isServices && catConfig && attrs.brand && (() => {
                 const BRAND_PARAM: Record<number, string> = {
                   4: "clothing_brand", 5: "hg_brand", 6: "sport_brand", 7: "tool_brand",
                   22: "appliance_brand", 21: "phone_brand", 1: "tech_brand",
                   23: "baby_brand", 24: "beauty_brand", 25: "toy_brand",
-                  26: "serv_brand",
                 };
                 const brandParam = BRAND_PARAM[listing.category_id] ?? "brand";
                 const label = catConfig.fields.find(f => f.key === "brand")?.options?.find(o => o.value === attrs.brand)?.label ?? String(attrs.brand);
@@ -515,7 +537,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 );
               })()}
 
-              {!isVehicle && (
+              {!isVehicle && !isServices && (
                 <>
                   {sep}
                   <span style={activeStyle}>
@@ -793,6 +815,13 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </Link>
 
               </div>
+
+              {/* Denunciar — solo para no-owners */}
+              {!isOwner && (
+                <div style={{ padding: "8px 20px 12px", display: "flex", justifyContent: "center" }}>
+                  <ReportButton listingId={listing.id} isLoggedIn={!!session?.user} />
+                </div>
+              )}
 
               {/* Destacar — amber footer, solo al dueño */}
               {isOwner && (

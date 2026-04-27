@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORY_CONFIGS, getCategoryConfig } from "@/lib/category-config";
+import { CATEGORY_CONFIGS, getCategoryConfig, SERVICE_CATEGORIES, SERVICE_SUBCATS } from "@/lib/category-config";
 import { CategoryIcon, TechGroupIcon } from "@/components/ui/CategoryIcon";
 import { CAR_BRANDS, getModels } from "@/lib/vehicle-data";
 import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
@@ -474,7 +474,7 @@ function FocusSel({
   );
 }
 
-const ENABLED_CAT_IDS = new Set([2, 3]); // Vehículos, Inmuebles
+const ENABLED_CAT_IDS = new Set([2, 3, 26]); // Vehículos, Inmuebles, Servicios
 const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 25, 9, 26, 10];
 const SORTED_CATS = [...CATEGORY_CONFIGS]
   .filter(c => ENABLED_CAT_IDS.has(c.id))
@@ -1183,6 +1183,8 @@ export default function NewListingPage() {
       if (data.attributes?.year) filledFields.push("Año");
       if (data.attributes?.km) filledFields.push("Kilómetros");
       if (data.attributes?.cilindrada) filledFields.push("Cilindrada");
+      if (data.attributes?.sub_category && data.category_id === 26) filledFields.push("Categoría de servicio");
+      if (data.attributes?.sub_type && data.category_id === 26) filledFields.push("Especialidad");
       setAiRevealFields(filledFields);
       setAiReveal(true);
       setTimeout(() => setAiReveal(false), 3000);
@@ -1656,7 +1658,7 @@ export default function NewListingPage() {
                     </div>
                     <div style={{ fontSize: "13px", color: C.slate500, marginBottom: "24px", lineHeight: 1.6 }}>
                       Nuestra IA identificó tu producto como <strong style={{ color: C.slate700 }}>{unsupportedCategoryName}</strong>.
-                      Por ahora ComerxIA funciona con <strong style={{ color: C.slate700 }}>Vehículos</strong> e <strong style={{ color: C.slate700 }}>Inmuebles</strong> —
+                      Por ahora ComerxIA funciona con <strong style={{ color: C.slate700 }}>Vehículos</strong>, <strong style={{ color: C.slate700 }}>Inmuebles</strong> y <strong style={{ color: C.slate700 }}>Servicios</strong> —
                       pero ya estamos trabajando para sumar más. ¡Gracias por la paciencia!
                     </div>
                     <button
@@ -2554,6 +2556,33 @@ export default function NewListingPage() {
                     </>
                   )}
 
+                  {/* ── SERVICES: two dependent selects ── */}
+                  {isServices && (<>
+                    <Field label="Categoría de servicio" required>
+                      <FocusSel
+                        value={attrs.sub_category ?? ""}
+                        onChange={(e) => { handleAttr("sub_category", e.target.value); handleAttr("sub_type", ""); }}
+                      >
+                        <option value="">Seleccioná...</option>
+                        {SERVICE_CATEGORIES.map(c => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </FocusSel>
+                    </Field>
+                    <Field label="Especialidad" required>
+                      <FocusSel
+                        value={attrs.sub_type ?? ""}
+                        onChange={(e) => handleAttr("sub_type", e.target.value)}
+                        disabled={!attrs.sub_category}
+                      >
+                        <option value="">{attrs.sub_category ? "Seleccioná..." : "Primero elegí una categoría"}</option>
+                        {(SERVICE_SUBCATS[attrs.sub_category ?? ""] ?? []).map(s => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </FocusSel>
+                    </Field>
+                  </>)}
+
                   {/* ── GENERIC category fields (phones, appliances, babies, beauty, clothing, etc.) ── */}
                   {!isVehicle && !isRealEstate && !isTechnology && catConfig?.fields && (
                     <>
@@ -2569,9 +2598,26 @@ export default function NewListingPage() {
                               onChange={(e) => handleAttr(field.key, e.target.value)}
                             >
                               <option value="">Seleccioná...</option>
-                              {field.options?.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
+                              {field.options?.some(o => o.group)
+                                ? (() => {
+                                    const groups: { g: string; opts: typeof field.options }[] = [];
+                                    for (const o of field.options ?? []) {
+                                      const last = groups[groups.length - 1];
+                                      if (last && last.g === (o.group ?? "")) last.opts!.push(o);
+                                      else groups.push({ g: o.group ?? "", opts: [o] });
+                                    }
+                                    return groups.map(({ g, opts }) =>
+                                      g ? (
+                                        <optgroup key={g} label={g}>
+                                          {opts?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                        </optgroup>
+                                      ) : opts?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)
+                                    );
+                                  })()
+                                : field.options?.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                  ))
+                              }
                             </FocusSel>
                           ) : field.type === "radio" ? (
                             <div style={{ display: "flex", gap: "6px" }}>

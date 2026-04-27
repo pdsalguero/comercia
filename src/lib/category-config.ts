@@ -7,7 +7,7 @@ export interface CategoryField {
   key: string;
   label: string;
   type: FieldType;
-  options?: { value: string; label: string }[];
+  options?: { value: string; label: string; group?: string }[];
   placeholder?: string;
   required?: boolean;
   unit?: string; // km, m², etc.
@@ -44,6 +44,119 @@ const ZONAS_SJ = [
   { value: "valle-fertil", label: "Valle Fértil" },
   { value: "otro", label: "Otro" },
 ];
+
+export const SERVICE_CATEGORIES = [
+  { value: "capacitacion",     label: "Clases y Educación" },
+  { value: "cuidado-personal", label: "Cuidado y Estética Personal" },
+  { value: "eventos-fiestas",  label: "Eventos y Celebraciones" },
+  { value: "gastronomia",      label: "Gastronomía y Alimentación" },
+  { value: "automotriz",       label: "Automotriz y Vehículos" },
+  { value: "hogar-obras",      label: "Hogar y Obras" },
+  { value: "profesionales",    label: "Servicios Profesionales" },
+  { value: "tecnico",          label: "Servicio Técnico" },
+  { value: "transporte",       label: "Transporte y Logística" },
+  { value: "otros-servicios",  label: "Otros Servicios" },
+];
+
+export const SERVICE_SUBCATS: Record<string, { value: string; label: string }[]> = {
+  capacitacion: [
+    { value: "apoyo-escolar",       label: "Apoyo Escolar y Universitario" },
+    { value: "idiomas",             label: "Idiomas" },
+    { value: "computacion-curso",   label: "Computación e Informática" },
+    { value: "musica-danza",        label: "Música, Teatro y Danza" },
+    { value: "deportes-clase",      label: "Deporte y Actividad Física" },
+    { value: "fotografia-cine",     label: "Fotografía y Cine" },
+    { value: "cocina-curso",        label: "Gastronomía y Cocina" },
+    { value: "manejo",              label: "Conducción y Manejo" },
+    { value: "belleza-curso",       label: "Belleza y Maquillaje" },
+    { value: "otras-clases",        label: "Otras Clases" },
+  ],
+  "cuidado-personal": [
+    { value: "peluqueria-barberia", label: "Peluquería y Barbería" },
+    { value: "estetica-spa",        label: "Estética y Spa" },
+    { value: "masajes",             label: "Masajes y Relajación" },
+    { value: "depilacion",          label: "Depilación" },
+    { value: "podologia",           label: "Podología" },
+    { value: "gimnasios-fitness",   label: "Gimnasios y Fitness" },
+    { value: "yoga-bienestar",      label: "Yoga y Bienestar" },
+  ],
+  "eventos-fiestas": [
+    { value: "foto-video-evento",   label: "Fotografía y Filmación" },
+    { value: "musica-dj",           label: "Música, DJ e Iluminación" },
+    { value: "catering",            label: "Catering y Gastronomía" },
+    { value: "animacion-inflables", label: "Animación e Inflables" },
+    { value: "salones-quintas",     label: "Salones y Quintas" },
+    { value: "reposteria-dulce",    label: "Repostería y Candy Bar" },
+    { value: "decoracion-floral",   label: "Decoración y Florerías" },
+    { value: "cotillon-souvenirs",  label: "Cotillón y Souvenirs" },
+    { value: "organizacion",        label: "Organización y Producción" },
+  ],
+  gastronomia: [
+    { value: "viandas-delivery",    label: "Viandas y Delivery" },
+    { value: "comida-casera",       label: "Comida Casera" },
+    { value: "reposteria-pastel",   label: "Repostería y Pastelería" },
+    { value: "artesanal",           label: "Productos Artesanales" },
+  ],
+  automotriz: [
+    { value: "mecanica-general",    label: "Mecánica General" },
+    { value: "chapa-pintura",       label: "Chapa y Pintura" },
+    { value: "gomeria",             label: "Gomería" },
+    { value: "lubricentro",         label: "Lubricentro" },
+    { value: "lavado-detailing",    label: "Lavado y Detailing" },
+    { value: "auxilio-grua",        label: "Auxilio y Grúa" },
+    { value: "reparacion-motos",    label: "Reparación de Motos" },
+  ],
+  "hogar-obras": [
+    { value: "plomeria",            label: "Plomería" },
+    { value: "electricidad",        label: "Instalaciones Eléctricas" },
+    { value: "albanileria",         label: "Albañilería y Construcción" },
+    { value: "pintura-empapelado",  label: "Pintura y Empapelado" },
+    { value: "carpinteria-muebles", label: "Carpintería y Mueblería" },
+    { value: "limpieza",            label: "Limpieza" },
+    { value: "jardineria-paisaj",   label: "Jardinería y Paisajismo" },
+    { value: "climatizacion",       label: "Climatización y Aire Acondicionado" },
+    { value: "cerrajeria",          label: "Cerrajería" },
+    { value: "gas-calefaccion",     label: "Gas y Calefacción" },
+    { value: "herreria-rejas",      label: "Herrería y Rejas" },
+    { value: "pisos-ceramicos",     label: "Pisos y Cerámicos" },
+    { value: "seguridad-alarmas",   label: "Seguridad y Alarmas" },
+    { value: "impermeabilizacion",  label: "Impermeabilización" },
+  ],
+  profesionales: [
+    { value: "legal-notarial",      label: "Legal y Notarial" },
+    { value: "contabilidad",        label: "Contabilidad e Impuestos" },
+    { value: "arquitectura-ing",    label: "Arquitectura e Ingeniería" },
+    { value: "diseno-creativo",     label: "Diseño Gráfico y Creativo" },
+    { value: "dev-web-sistemas",    label: "Desarrollo Web y Sistemas" },
+    { value: "salud-medicina",      label: "Salud y Medicina" },
+    { value: "consultoria",         label: "Consultoría y Asesoramiento" },
+    { value: "tramites-gestiones",  label: "Trámites y Gestiones" },
+    { value: "marketing-publicidad",label: "Marketing y Publicidad" },
+    { value: "otros-profesional",   label: "Otras Especialidades" },
+  ],
+  tecnico: [
+    { value: "computacion-redes",   label: "Computación y Redes" },
+    { value: "celulares-tablets",   label: "Celulares y Tablets" },
+    { value: "electrodomesticos",   label: "Electrodomésticos" },
+    { value: "electronica",         label: "Electrónica General" },
+    { value: "aire-acondicionado",  label: "Aire Acondicionado" },
+    { value: "audio-video-tv",      label: "Audio, Video y TV" },
+    { value: "equipos-fitness",     label: "Equipos de Fitness" },
+    { value: "otros-tecnicos",      label: "Otros Servicios Técnicos" },
+  ],
+  transporte: [
+    { value: "fletes-mudanzas",     label: "Fletes y Mudanzas" },
+    { value: "mensajeria-envios",   label: "Mensajería y Envíos" },
+    { value: "alquiler-vehiculos",  label: "Alquiler de Vehículos" },
+    { value: "remis-traslados",     label: "Remis y Traslados" },
+  ],
+  "otros-servicios": [
+    { value: "cuidado-personas",    label: "Cuidado de Niños y Adultos Mayores" },
+    { value: "paseo-mascotas",      label: "Paseo y Cuidado de Mascotas" },
+    { value: "servicio-domestico",  label: "Servicio Doméstico" },
+    { value: "otro",                label: "Otro" },
+  ],
+};
 
 export const CATEGORY_CONFIGS: CategoryConfig[] = [
   // ── 1. TECNOLOGÍA ─────────────────────────────────────────────
@@ -849,6 +962,7 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
   },
 
   // ── 26. SERVICIOS ─────────────────────────────────────────────
+  // sub_category (grupo) y sub_type (específico) se renderizan con bloque especial en el form
   {
     id: 26,
     name: "Servicios",
@@ -856,38 +970,13 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
     icon: "🛠️",
     fields: [
       {
-        key: "sub_category",
-        label: "Rubro",
-        type: "select",
-        required: true,
-        options: [
-          { value: "asesoramiento",  label: "Asesoramiento Legal y Contable" },
-          { value: "belleza-serv",   label: "Belleza y Estética" },
-          { value: "diseno",         label: "Diseño y Comunicación" },
-          { value: "cursos",         label: "Cursos y Clases" },
-          { value: "delivery",       label: "Delivery y Envíos" },
-          { value: "eventos",        label: "Fiestas y Eventos" },
-          { value: "fotografia",     label: "Fotografía y Audiovisual" },
-          { value: "construccion",   label: "Construcción y Reformas" },
-          { value: "imprenta",       label: "Imprenta y Gráfica" },
-          { value: "mecanica",       label: "Mecánica y Vehículos" },
-          { value: "salud",          label: "Salud y Bienestar" },
-          { value: "mascotas-serv",  label: "Servicios para Mascotas" },
-          { value: "limpieza",       label: "Limpieza y Mantenimiento" },
-          { value: "informatica",    label: "Informática y Tecnología" },
-          { value: "transporte",     label: "Transporte y Mudanzas" },
-          { value: "turismo",        label: "Turismo y Viajes" },
-          { value: "otro",           label: "Otro" },
-        ],
-      },
-      {
         key: "modality",
         label: "Modalidad",
         type: "select",
         options: [
-          { value: "presencial",  label: "Presencial" },
-          { value: "online",      label: "Online / Remoto" },
-          { value: "ambas",       label: "Presencial y Online" },
+          { value: "presencial", label: "Presencial" },
+          { value: "online",     label: "Online / Remoto" },
+          { value: "ambas",      label: "Presencial y Online" },
         ],
       },
       {
