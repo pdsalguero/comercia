@@ -578,7 +578,7 @@ const getCategoryFilterDataCached = unstable_cache(
       .select("attributes, condition, neighborhood")
       .eq("status", "active")
       .eq("category_id", categoryId)
-      .limit(3000);
+      .limit(500);
     return data ?? [];
   },
   ["category-filter-data"],
@@ -586,16 +586,9 @@ const getCategoryFilterDataCached = unstable_cache(
 );
 
 function fetchCategoryListings(slug: string, catId: number, sp: SP) {
-  // Skip in-memory cache when JSONB filters are active — each unique combination
-  // would be a separate cache key, causing unbounded heap growth in long-running servers.
-  const hasJsonbFilter = JSONB_CACHE_KEYS.some((k) => !!sp[k]);
-  if (hasJsonbFilter) return _fetchCategoryListings(slug, catId, sp);
-
-  return unstable_cache(
-    () => _fetchCategoryListings(slug, catId, sp),
-    ["category-listings", slug, JSON.stringify(sp)],
-    { revalidate: 120, tags: ["category-listings"] }
-  )();
+  // No cache here — each unique filter combination would be a separate cache key,
+  // causing unbounded heap growth. The page is already dynamic (searchParams).
+  return _fetchCategoryListings(slug, catId, sp);
 }
 
 export async function generateMetadata(
