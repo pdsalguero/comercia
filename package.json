@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:clean": "node -e \"require('fs').rmSync('.next', {recursive:true, force:true})\" && next dev",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
-    "start": "NODE_OPTIONS=--max-old-space-size=512 next start",
+    "start": "NODE_OPTIONS=--max-old-space-size=384 next start",
     "lint": "eslint"
   },
   "dependencies": {

@@ -8,24 +8,7 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    formats: ["image/webp"],
-    minimumCacheTTL: 604800,             // 1 semana — reduce re-fetches desde Supabase Storage
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "snrxpyolkxcficxnzaxh.supabase.co",
-      },
-      {
-        protocol: "https",
-        hostname: "hbeswalibpblqkrdqczh.supabase.co",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-    ],
-    deviceSizes: [375, 640, 750, 828, 1080, 1200],
-    imageSizes: [64, 128, 200, 256],
+    unoptimized: true,
   },
   async headers() {
     return [
