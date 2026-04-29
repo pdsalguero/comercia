@@ -100,18 +100,10 @@ async function _fetchListings(p: ListingsParams) {
   };
 }
 
-// Solo cachear cuando los parámetros son acotados (sin texto libre ni rangos numéricos
-// arbitrarios) — evita heap unbounded en Railway por claves únicas infinitas.
+// Sin cache — cualquier combinación crea un entry en heap (categorySlug + condition + order + page),
+// y la página ya es dinámica via searchParams. Cachear acá producía OOM en producción.
 function fetchListings(p: ListingsParams) {
-  const hasUnboundedParam = p.q || p.location || p.price_min || p.price_max ||
-    p.fuel || p.transmission || p.operation || p.re_sub;
-  if (hasUnboundedParam) return _fetchListings(p);
-
-  return unstable_cache(
-    () => _fetchListings(p),
-    ["listings-page", JSON.stringify(p)],
-    { revalidate: 120, tags: ["listings"] }
-  )();
+  return _fetchListings(p);
 }
 
 const CATEGORIES = [
