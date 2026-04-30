@@ -15,6 +15,16 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // ── Maintenance mode (sin llamadas a DB — funciona aunque Supabase esté caído) ──
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    if (pathname !== '/mantenimiento' && !pathname.startsWith('/_next') && !pathname.startsWith('/api/')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/mantenimiento'
+      return NextResponse.redirect(url)
+    }
+    if (pathname === '/mantenimiento') return NextResponse.next()
+  }
+
   // ── Coming soon mode ──────────────────────────────────────────────────────
   if (process.env.COMING_SOON === 'true') {
     const isAllowed = COMING_SOON_ALLOWED.some((p) => pathname.startsWith(p))
