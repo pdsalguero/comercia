@@ -56,10 +56,10 @@ export default function MantenimientoPage() {
               <p style={{ margin: 0, fontSize: "13px", color: "#475569" }}>
                 Si tenés una consulta urgente podés escribirnos a{" "}
                 <a
-                  href="mailto:hola@comerxia.com.ar"
+                  href="mailto:contacto@comerxia.com.ar"
                   style={{ color: "#3b82f6", textDecoration: "none", fontWeight: 600 }}
                 >
-                  hola@comerxia.com.ar
+                  contacto@comerxia.com.ar
                 </a>
               </p>
             </div>
