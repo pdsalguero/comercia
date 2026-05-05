@@ -104,7 +104,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     filters.year_from, filters.year_to, filters.km_max, filters.sub_category,
     filters.re_sub, filters.operation, filters.bedrooms,
     filters.size, filters.price_min, filters.price_max, filters.moto_subtipo,
-    filters.re_bathrooms, filters.re_seller,
+    filters.re_bathrooms, filters.re_seller, filters.location,
     filters.garage, filters.pool, filters.elevator, filters.furnished,
     filters.pets_allowed, filters.air_conditioning, filters.grill,
     filters.security, filters.private_complex, filters.credit_eligible,
@@ -413,6 +413,21 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
             ]} />
           </div>
         )}
+
+        {/* ── PROVINCIA ── */}
+        <div style={{ padding: "14px 16px", borderBottom: "1px solid #f5f5f5" }}>
+          <div style={sectionLabel}>Provincia</div>
+          <select
+            value={filters.location ?? ""}
+            onChange={e => setFilters(f => ({ ...f, location: e.target.value || undefined }))}
+            style={selectStyle}
+          >
+            <option value="">Todo el país</option>
+            {Object.entries(RE_LOCATIONS).map(([, prov]) => (
+              <option key={prov.label} value={prov.label}>{prov.label}</option>
+            ))}
+          </select>
+        </div>
 
         {/* ── PRECIO ── */}
         <div style={{ padding: "14px 16px", borderBottom: "1px solid #f5f5f5" }}>
