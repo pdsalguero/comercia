@@ -7,6 +7,7 @@ import { Logo } from "@/components/ui/Logo";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { isCategorySlugEnabled } from "@/lib/site-config";
 
 interface Suggestion {
   id: string;
@@ -44,7 +45,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
     { name: "Mascotas",              slug: "pets",          active: false },
     { name: "Servicios",             slug: "services",      active: false },
     { name: "Otros",                 slug: "other",         active: false },
-  ];
+  ].map((c) => ({ ...c, active: isCategorySlugEnabled(c.slug) }));
 
   // Realtime: incrementa el badge cuando llega un mensaje nuevo
   useEffect(() => {

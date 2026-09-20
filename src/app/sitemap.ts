@@ -1,14 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { MetadataRoute } from "next";
 import { listingUrl } from "@/lib/listing-url";
+import { ENABLED_CATEGORY_IDS, ENABLED_CATEGORY_SLUGS } from "@/lib/site-config";
 
 const BASE = "https://comerxia.com.ar";
 
-const STATIC_CATEGORIES = [
-  "vehicles", "real-estate", "phones", "electronics", "appliances",
-  "clothing", "home-garden", "sports", "tools", "babies",
-  "books", "beauty-health", "toys", "pets", "services", "other",
-];
+// Solo categorías habilitadas: las demás redirigen y no deben indexarse
+const STATIC_CATEGORIES = ENABLED_CATEGORY_SLUGS;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
@@ -18,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from("listings")
       .select("id, title, updated_at")
       .eq("status", "active")
+      .in("category_id", ENABLED_CATEGORY_IDS)
       .order("created_at", { ascending: false })
       .limit(5000),
     supabase

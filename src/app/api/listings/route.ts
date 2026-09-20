@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { sendEmail } from '@/lib/email'
 import { listingPublishedTemplate } from '@/lib/emailTemplates'
+import { isCategoryEnabled } from '@/lib/site-config'
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,13 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
     const body = await request.json()
+
+    if (!isCategoryEnabled(Number(body.category_id))) {
+      return NextResponse.json(
+        { error: 'Por ahora solo se pueden publicar vehículos.' },
+        { status: 400 }
+      )
+    }
 
     const { data: listing, error } = await supabase
       .from('listings')

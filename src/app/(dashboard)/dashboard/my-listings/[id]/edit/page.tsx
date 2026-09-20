@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { EditForm } from "./EditForm";
+import { isCategoryEnabled } from "@/lib/site-config";
 
 async function saveListing(id: string, formData: FormData): Promise<{ error?: string }> {
   "use server";
@@ -23,7 +24,7 @@ async function saveListing(id: string, formData: FormData): Promise<{ error?: st
 
   const { error } = await supabase
     .from("listings")
-    .update({ title, description, price, currency, condition: condition || null, neighborhood: neighborhood || null, attributes, ...(category_id ? { category_id } : {}) })
+    .update({ title, description, price, currency, condition: condition || null, neighborhood: neighborhood || null, attributes, ...(category_id && isCategoryEnabled(category_id) ? { category_id } : {}) })
     .eq("id", id)
     .eq("user_id", user.id);
 

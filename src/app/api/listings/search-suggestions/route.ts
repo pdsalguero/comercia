@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim();
@@ -10,6 +11,7 @@ export async function GET(req: NextRequest) {
     .from("listings")
     .select("id, title, price, currency")
     .eq("status", "active")
+    .in("category_id", ENABLED_CATEGORY_IDS)
     .ilike("title", `%${q}%`)
     .order("created_at", { ascending: false })
     .limit(6);
