@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import { ComerxIALanding } from "@/components/ComerciaLanding";
 
 export const metadata: Metadata = {
-  title: "ComerxIA — Sacá una foto. Publicá. Vendé.",
+  title: "ComerxIA — Vendé tu auto o moto en 30 segundos",
   description:
-    "Publicá un aviso en 30 segundos. Sacá una foto y te armamos el título, la descripción y el precio sugerido. Gratis, para particulares y comercios de toda la Argentina.",
-  keywords: ["marketplace", "clasificados", "argentina", "tienda online", "vender", "comprar", "publicar gratis"],
+    "Sacá una foto de tu vehículo y publicá en 30 segundos: te armamos el título, la descripción y el precio sugerido. Gratis, para particulares y concesionarias de toda la Argentina.",
+  keywords: ["autos usados", "motos usadas", "camionetas", "clasificados de autos", "argentina", "vender auto", "comprar auto", "concesionarias", "publicar gratis"],
   openGraph: {
-    title: "ComerxIA — Vendé más rápido, en todo el país",
-    description: "Sacá una foto y publicá tu aviso en 30 segundos. Gratis.",
+    title: "ComerxIA — Vendé tu auto o moto, en todo el país",
+    description: "Sacá una foto y publicá tu vehículo en 30 segundos. Gratis.",
     type: "website",
     locale: "es_AR",
     siteName: "ComerxIA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ComerxIA — Sacá una foto. Publicá. Vendé.",
-    description: "Publicá un aviso en 30 segundos. Gratis, para particulares y comercios.",
+    title: "ComerxIA — Vendé tu auto o moto en 30 segundos",
+    description: "Sacá una foto y publicá tu vehículo. Gratis, para particulares y concesionarias.",
   },
 };
 

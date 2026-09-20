@@ -18,7 +18,7 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "15px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>Publicá con una foto</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
-            Sacá una foto de tu producto<br />y armamos todo el aviso<br />por vos
+            Sacá una foto de tu vehículo<br />y armamos todo el aviso<br />por vos
           </div>
         </div>
         <Link href="/listings/new" style={{ width: "100%" }}>

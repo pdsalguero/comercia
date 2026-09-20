@@ -227,7 +227,7 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
                   if (e.key === "Escape") setShowSuggestions(false);
                 }}
                 onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                placeholder="¿Qué estás buscando hoy?"
+                placeholder="Buscá tu próximo auto o moto"
                 style={{
                   flex: 1,
                   border: "none",

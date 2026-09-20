@@ -17,7 +17,7 @@ export function Footer() {
               <Logo height={22} />
             </Link>
             <p style={{ fontSize: "11px", color: "#475569", lineHeight: 1.4, margin: "0 0 8px" }}>
-              Comprá y vendé en toda la Argentina.
+              Autos y motos en toda la Argentina.
             </p>
             <a
               href="mailto:contacto@comerxia.com.ar"

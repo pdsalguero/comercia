@@ -4,21 +4,21 @@ import Link from "next/link";
 import { unstable_cache } from "next/cache";
 
 export const metadata: Metadata = {
-  title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
-  description: "Comprá y vendé en toda la Argentina. Publicá tu aviso de autos, motos, inmuebles y más en 30 segundos. Gratis, para particulares y comercios.",
-  keywords: ["marketplace argentina", "clasificados argentina", "comprar auto argentina", "vender moto argentina", "inmuebles argentina", "avisos gratis argentina"],
+  title: "ComerxIA — Comprá y vendé autos y motos en todo el país",
+  description: "Comprá y vendé autos, motos, camionetas y más en toda la Argentina. Publicá en 30 segundos, gratis y sin comisiones. Para particulares y concesionarias.",
+  keywords: ["marketplace argentina", "clasificados de autos argentina", "comprar auto argentina", "vender moto argentina", "camionetas usadas argentina", "concesionarias argentina", "avisos gratis argentina"],
   alternates: { canonical: "https://comerxia.com.ar" },
   openGraph: {
-    title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
-    description: "Publicá tu aviso en 30 segundos, gratis. Autos, motos, inmuebles y más.",
+    title: "ComerxIA — Comprá y vendé autos y motos en todo el país",
+    description: "Sacá una foto y publicá tu vehículo en 30 segundos. Gratis y sin comisiones.",
     url: "https://comerxia.com.ar",
     type: "website",
     images: [{ url: "https://comerxia.com.ar/og-image.jpg", width: 1200, height: 630, alt: "ComerxIA marketplace" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
-    description: "Publicá tu aviso en 30 segundos. Gratis.",
+    title: "ComerxIA — Comprá y vendé autos y motos en todo el país",
+    description: "Sacá una foto y publicá tu vehículo en 30 segundos. Gratis.",
     images: ["https://comerxia.com.ar/og-image.jpg"],
   },
 };
@@ -41,8 +41,8 @@ export const revalidate = 300;
 
 const CATEGORIES = [
   { name: "Vehículos",         slug: "vehicles",      icon: "🚗", id: 2,  active: true  },
-  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠", id: 3,  active: true  },
-  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26, active: true  },
+  { name: "Inmuebles",         slug: "real-estate",   icon: "🏠", id: 3,  active: false },
+  { name: "Servicios",         slug: "services",      icon: "🛠️", id: 26, active: false },
   { name: "Celulares",         slug: "phones",        icon: "📱", id: 21, active: false },
   { name: "Tecnología",        slug: "electronics",   icon: "💻", id: 1,  active: false },
   { name: "Electrodomésticos", slug: "appliances",    icon: "🧊", id: 22, active: false },
@@ -322,7 +322,7 @@ export default async function HomePage() {
               Vendé fácil. Comprá sin vueltas.
             </h2>
             <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-              Para particulares y comercios de toda la Argentina. Sacá una foto y publicá en 30 segundos.
+              Autos y motos para particulares y concesionarias de toda la Argentina. Sacá una foto y publicá en 30 segundos.
             </p>
           </div>
 

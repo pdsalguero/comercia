@@ -40,7 +40,7 @@ const FEATURES: FeatureCard[] = [
     icon: <Zap size={28} />,
     title: "Publicación Express",
     description:
-      "De la foto a publicado en menos de un minuto. Sin formularios interminables, sin burocracia. Solo tu producto y listo.",
+      "De la foto a publicado en menos de un minuto. Sin formularios interminables, sin burocracia. Solo tu vehículo y listo.",
     highlight: "3 pasos para publicar",
   },
   {
@@ -177,7 +177,7 @@ export function ComerxIALanding() {
           marginBottom: "28px", letterSpacing: "0.5px",
         }}>
           <Sparkles size={13} />
-          PARA PARTICULARES Y COMERCIOS · TODA ARGENTINA
+          AUTOS Y MOTOS · PARTICULARES Y CONCESIONARIAS · TODA ARGENTINA
         </div>
 
         {/* Headline */}
@@ -200,7 +200,7 @@ export function ComerxIALanding() {
           fontSize: "clamp(16px,2.2vw,22px)", color: "rgba(255,255,255,0.75)",
           maxWidth: "600px", lineHeight: 1.6, marginBottom: "40px",
         }}>
-          Publicá tu aviso en{" "}
+          Publicá tu auto, moto o camioneta en{" "}
           <strong style={{ color: "#fff" }}>30 segundos</strong> y llegá a compradores de todo el país.
           Gratis, sin comisiones.
         </p>
@@ -400,7 +400,7 @@ export function ComerxIALanding() {
               Para vendedores
             </h3>
             <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "24px" }}>
-              Publicá más rápido y llegá a compradores de toda la Argentina. Ideal para particulares y comercios.
+              Publicá más rápido y llegá a compradores de toda la Argentina. Ideal para particulares y concesionarias.
             </p>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
               {SELLER_BENEFITS.map((b) => (
@@ -516,7 +516,7 @@ export function ComerxIALanding() {
         background: "#0f172a", padding: "28px 20px",
         textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: "13px",
       }}>
-        © {new Date().getFullYear()} ComerxIA · Compra y venta en toda la Argentina
+        © {new Date().getFullYear()} ComerxIA · Autos y motos en toda la Argentina
       </footer>
 
       <style>{`

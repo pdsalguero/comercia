@@ -31,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           comerxia
         </div>
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '5px', fontWeight: 500, letterSpacing: '0.5px' }}>
-          Sacá una foto. Publicá. Vendé en todo el país.
+          Comprá y vendé autos y motos en todo el país.
         </div>
       </a>
 

@@ -110,7 +110,7 @@ export function welcomeEmailTemplate(userName: string): {
     `,
     `
     <h1 class="title">Sacá una foto. Publicá. Vendé.</h1>
-    <p class="text">En ComerxIA armamos el título, la descripción y el precio sugerido por vos — solo subís una foto. Llegá a compradores de todo el país sin perder tiempo, ya seas particular o comercio.</p>
+    <p class="text">En ComerxIA armamos el título, la descripción y el precio sugerido por vos — solo subís una foto. Llegá a compradores de todo el país sin perder tiempo, ya seas particular o concesionaria.</p>
 
     <!-- Feature cards -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">

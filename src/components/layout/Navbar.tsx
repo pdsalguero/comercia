@@ -29,7 +29,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
 
   const CATEGORIES = [
     { name: "Vehículos",             slug: "vehicles",      active: true  },
-    { name: "Inmuebles",             slug: "real-estate",   active: true  },
+    { name: "Inmuebles",             slug: "real-estate",   active: false },
     { name: "Celulares",             slug: "phones",        active: false },
     { name: "Tecnología",            slug: "electronics",   active: false },
     { name: "Electrodomésticos",     slug: "appliances",    active: false },
@@ -650,7 +650,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
               padding: "10px 18px", background: "#6366f1", flexShrink: 0,
               textAlign: "center",
             }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>Comprá y vendé en todo el país</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>Comprá y vendé autos y motos</div>
               <div style={{ fontSize: "11px", color: "#c7d2fe" }}>Sacá una foto • Publicá • Vendé</div>
             </div>
           </div>
