@@ -166,8 +166,8 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
             textShadow: "0 2px 8px rgba(0,0,0,0.5)",
           }}
         >
-          El marketplace inteligente. Todo con el poder de la{" "}
-          <span style={{ color: "#fbbf24" }}>IA</span>.
+          Sacá una foto.{" "}
+          <span style={{ color: "#fbbf24" }}>Publicá. Vendé.</span>
         </h1>
 
         <div className="hero-main-subtitle" style={{
@@ -185,7 +185,7 @@ export function HeroSearch({ topSubcats: _ }: { topSubcats?: unknown[] }) {
         >
           <span style={{ whiteSpace: "nowrap" }}>📸 Subí una foto</span>
           <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>
-          <span style={{ whiteSpace: "nowrap" }}>✨ La IA redacta tu aviso</span>
+          <span style={{ whiteSpace: "nowrap" }}>✨ El aviso se arma solo</span>
           <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>
           <span style={{ whiteSpace: "nowrap" }}>🆓 Gratis</span>
           <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>

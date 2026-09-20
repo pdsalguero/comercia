@@ -200,10 +200,10 @@ export default async function MyListingsPage({
             <div style={{ textAlign: 'center', padding: '56px 32px', color: '#94a3b8', background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
               <div style={{ fontSize: '52px', marginBottom: '14px' }}>📭</div>
               <p style={{ fontSize: '15px', fontWeight: 600, color: '#64748b', margin: '0 0 6px' }}>Todavía no publicaste ningún aviso</p>
-              <p style={{ fontSize: '13px', margin: '0 0 20px' }}>Publicá tu primer aviso en segundos con ayuda de IA</p>
+              <p style={{ fontSize: '13px', margin: '0 0 20px' }}>Publicá tu primer aviso en segundos, solo con una foto</p>
               <Link href="/listings/new">
                 <button style={{ background: '#3483fa', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
-                  📸 Publicar con IA
+                  📸 Publicar con una foto
                 </button>
               </Link>
             </div>

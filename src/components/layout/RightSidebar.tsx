@@ -6,7 +6,7 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
   return (
     <aside style={{ display: "flex", flexDirection: "column", gap: "14px", width: "240px", flexShrink: 0 }}>
 
-      {/* Publicar con IA */}
+      {/* Publicar con una foto */}
       <div style={{
         background: "linear-gradient(160deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%)",
         borderRadius: "14px", padding: "20px 16px",
@@ -16,9 +16,9 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
         <div style={{ position: "absolute", width: "100px", height: "100px", background: "rgba(249,115,22,0.2)", borderRadius: "50%", top: "-30px", right: "-20px", filter: "blur(35px)" }} />
         <div style={{ fontSize: "36px", lineHeight: 1 }}>📸</div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "15px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>Publicá con IA</div>
+          <div style={{ fontSize: "15px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>Publicá con una foto</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
-            Sacá una foto de tu producto<br />y generamos todo el aviso<br />automáticamente
+            Sacá una foto de tu producto<br />y armamos todo el aviso<br />por vos
           </div>
         </div>
         <Link href="/listings/new" style={{ width: "100%" }}>

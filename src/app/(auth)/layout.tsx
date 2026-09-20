@@ -28,13 +28,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Logo + tagline */}
       <a href="/" style={{ marginBottom: '28px', textDecoration: 'none', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div style={{ fontSize: '32px', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1 }}>
-          comerx<span style={{
-            color: '#60a5fa',
-            textShadow: '0 0 20px rgba(96,165,250,0.6)',
-          }}>IA</span>
+          comerxia
         </div>
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '5px', fontWeight: 500, letterSpacing: '0.5px' }}>
-          El marketplace inteligente. Todo con el poder de la IA.
+          Sacá una foto. Publicá. Vendé en todo el país.
         </div>
       </a>
 

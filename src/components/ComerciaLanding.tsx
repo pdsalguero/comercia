@@ -31,9 +31,9 @@ interface Stat {
 const FEATURES: FeatureCard[] = [
   {
     icon: <Sparkles size={28} />,
-    title: "Descripciones con IA",
+    title: "Publicá con una foto",
     description:
-      "Sacá una foto y nuestra IA genera el título, descripción y precio sugerido en segundos. Sin escribir una sola palabra.",
+      "Sacá una foto y te armamos el título, la descripción y un precio sugerido en segundos. Sin escribir una sola palabra.",
     highlight: "30 segundos por publicación",
   },
   {
@@ -53,7 +53,7 @@ const FEATURES: FeatureCard[] = [
 ];
 
 const SELLER_BENEFITS = [
-  "La IA redacta el aviso por vos",
+  "Sacás la foto y el aviso se arma solo",
   "Precio sugerido basado en el mercado real",
   "Estadísticas de visitas en tiempo real",
   "Planes de destacado accesibles",
@@ -61,7 +61,7 @@ const SELLER_BENEFITS = [
 ];
 
 const BUYER_BENEFITS = [
-  "Búsqueda inteligente con IA",
+  "Avisos de todo el país en un solo lugar",
   "Avisos verificados y actualizados",
   "Filtros avanzados por localidad, precio y características",
   "Contacto directo con el vendedor",
@@ -71,7 +71,7 @@ const BUYER_BENEFITS = [
 
 const STATS: Stat[] = [
   { value: "< 1 min", label: "para publicar" },
-  { value: "IA", label: "que trabaja por vos" },
+  { value: "0%", label: "comisión por venta" },
   { value: "100%", label: "gratis para empezar" },
   { value: "Argentina", label: "en todo el país" },
 ];
@@ -177,7 +177,7 @@ export function ComerxIALanding() {
           marginBottom: "28px", letterSpacing: "0.5px",
         }}>
           <Sparkles size={13} />
-          MARKETPLACE IMPULSADO POR IA · ARGENTINA
+          PARA PARTICULARES Y COMERCIOS · TODA ARGENTINA
         </div>
 
         {/* Headline */}
@@ -186,12 +186,12 @@ export function ComerxIALanding() {
           color: "#fff", lineHeight: 1.1, marginBottom: "20px",
           maxWidth: "820px",
         }}>
-          Vendé más rápido con{" "}
+          Sacá una foto.{" "}
           <span style={{
             background: "linear-gradient(90deg,#FF8C00,#fbbf24)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
           }}>
-            inteligencia artificial
+            Publicá. Vendé.
           </span>
         </h1>
 
@@ -200,9 +200,9 @@ export function ComerxIALanding() {
           fontSize: "clamp(16px,2.2vw,22px)", color: "rgba(255,255,255,0.75)",
           maxWidth: "600px", lineHeight: 1.6, marginBottom: "40px",
         }}>
-          Sacá una foto, la IA redacta tu aviso y lo publicás en{" "}
-          <strong style={{ color: "#fff" }}>30 segundos</strong>.
-          Gratis. Sin complicaciones.
+          Publicá tu aviso en{" "}
+          <strong style={{ color: "#fff" }}>30 segundos</strong> y llegá a compradores de todo el país.
+          Gratis, sin comisiones.
         </p>
 
         {/* Email form */}
@@ -316,7 +316,7 @@ export function ComerxIALanding() {
               Publicar nunca fue tan fácil
             </h2>
             <p style={{ fontSize: "16px", color: "#64748b", marginTop: "12px", maxWidth: "500px", margin: "12px auto 0" }}>
-              La IA hace el trabajo duro. Vos solo publicás y esperás las consultas.
+              Vos sacás la foto, nosotros armamos el aviso. Solo te queda esperar las consultas.
             </p>
           </AnimatedSection>
 
@@ -400,7 +400,7 @@ export function ComerxIALanding() {
               Para vendedores
             </h3>
             <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "24px" }}>
-              Publicá más rápido y llegá a más compradores. La IA trabaja por vos.
+              Publicá más rápido y llegá a compradores de toda la Argentina. Ideal para particulares y comercios.
             </p>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
               {SELLER_BENEFITS.map((b) => (
@@ -516,7 +516,7 @@ export function ComerxIALanding() {
         background: "#0f172a", padding: "28px 20px",
         textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: "13px",
       }}>
-        © {new Date().getFullYear()} ComerxIA · Marketplace con IA · Argentina
+        © {new Date().getFullYear()} ComerxIA · Compra y venta en toda la Argentina
       </footer>
 
       <style>{`

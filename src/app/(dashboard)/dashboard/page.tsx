@@ -339,7 +339,7 @@ export default async function DashboardPage() {
             <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
               {stats.activeListings > 0
                 ? `Tenés ${stats.activeListings} aviso${stats.activeListings !== 1 ? 's' : ''} activo${stats.activeListings !== 1 ? 's' : ''} y ${weekTotal} vistas esta semana.`
-                : 'Publicá tu primer aviso en 30 segundos con inteligencia artificial.'}
+                : 'Publicá tu primer aviso en 30 segundos, solo con una foto.'}
             </p>
           </div>
           <Link href="/listings/new">
@@ -350,7 +350,7 @@ export default async function DashboardPage() {
               fontSize: '14px', cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}>
-              📸 Publicar con IA
+              📸 Publicar con una foto
             </button>
           </Link>
         </div>

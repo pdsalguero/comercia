@@ -38,7 +38,7 @@ function shell(headerContent: string, bodyContent: string): string {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <div class="logo">Comerx<span>IA</span></div>
+        <div class="logo">Comerxia</div>
         ${headerContent}
       </div>
       <div class="content">
@@ -106,11 +106,11 @@ export function welcomeEmailTemplate(userName: string): {
     `
     <p style="color:#94a3b8; font-size:13px; margin:16px 0 4px; letter-spacing:0.04em; text-transform:uppercase;">Bienvenido/a</p>
     <p style="color:#ffffff; font-size:26px; font-weight:800; margin:0 0 6px; line-height:1.2;">${userName} 👋</p>
-    <p style="color:#93c5fd; font-size:14px; margin:0; line-height:1.5;">Tu marketplace con IA ya te espera.<br>Publicá, vendé y conectá con compradores cerca tuyo.</p>
+    <p style="color:#93c5fd; font-size:14px; margin:0; line-height:1.5;">Ya podés publicar y vender.<br>Conectá con compradores de todo el país.</p>
     `,
     `
-    <h1 class="title">Vendé más rápido: publicá clasificados inteligentes en 30 segundos</h1>
-    <p class="text">La IA de ComerxIA genera el título, la descripción y el precio sugerido por vos — solo subís una foto. Llegá a compradores cerca tuyo sin perder tiempo.</p>
+    <h1 class="title">Sacá una foto. Publicá. Vendé.</h1>
+    <p class="text">En ComerxIA armamos el título, la descripción y el precio sugerido por vos — solo subís una foto. Llegá a compradores de todo el país sin perder tiempo, ya seas particular o comercio.</p>
 
     <!-- Feature cards -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
@@ -118,7 +118,7 @@ export function welcomeEmailTemplate(userName: string): {
         <td style="padding:0 0 12px;">
           <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #1E5BA8; border-radius:10px; padding:16px 20px;">
             <p style="margin:0 0 4px; font-size:13px; font-weight:700; color:#1E5BA8; text-transform:uppercase; letter-spacing:0.5px;">📸 Publicar gratis</p>
-            <p style="margin:0; font-size:14px; color:#374151; line-height:1.5;">Subí hasta 10 fotos y la IA genera el título, descripción y precio automáticamente. Sin formularios largos.</p>
+            <p style="margin:0; font-size:14px; color:#374151; line-height:1.5;">Subí hasta 10 fotos y el título, la descripción y el precio se completan solos. Sin formularios largos.</p>
           </div>
         </td>
       </tr>

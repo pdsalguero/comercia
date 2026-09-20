@@ -426,7 +426,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   whiteSpace: "nowrap",
                 }}
               >
-                📸 Publicar con IA
+                📸 Publicar
                 <span style={{
                   background: "rgba(255,255,255,0.25)",
                   borderRadius: "4px",
@@ -650,8 +650,8 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
               padding: "10px 18px", background: "#6366f1", flexShrink: 0,
               textAlign: "center",
             }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>El marketplace inteligente con IA</div>
-              <div style={{ fontSize: "11px", color: "#c7d2fe" }}>Subi foto • IA redacta</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>Comprá y vendé en todo el país</div>
+              <div style={{ fontSize: "11px", color: "#c7d2fe" }}>Sacá una foto • Publicá • Vendé</div>
             </div>
           </div>
         </>

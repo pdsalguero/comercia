@@ -17,7 +17,7 @@ export function Footer() {
               <Logo height={22} />
             </Link>
             <p style={{ fontSize: "11px", color: "#475569", lineHeight: 1.4, margin: "0 0 8px" }}>
-              El marketplace inteligente de Argentina.
+              Comprá y vendé en toda la Argentina.
             </p>
             <a
               href="mailto:contacto@comerxia.com.ar"
@@ -92,7 +92,7 @@ export function Footer() {
             borderRadius: "5px", padding: "2px 8px",
             fontSize: "10px", fontWeight: 700, color: "#f97316",
           }}>
-            Powered by IA
+            Sin comisiones
           </div>
         </div>
       </div>

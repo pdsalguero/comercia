@@ -4,21 +4,21 @@ import Link from "next/link";
 import { unstable_cache } from "next/cache";
 
 export const metadata: Metadata = {
-  title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
-  description: "Comprá y vendé en Argentina con inteligencia artificial. Publicá tu aviso de autos, motos, inmuebles y más en 30 segundos. Gratis.",
+  title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
+  description: "Comprá y vendé en toda la Argentina. Publicá tu aviso de autos, motos, inmuebles y más en 30 segundos. Gratis, para particulares y comercios.",
   keywords: ["marketplace argentina", "clasificados argentina", "comprar auto argentina", "vender moto argentina", "inmuebles argentina", "avisos gratis argentina"],
   alternates: { canonical: "https://comerxia.com.ar" },
   openGraph: {
-    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
-    description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
+    title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
+    description: "Publicá tu aviso en 30 segundos, gratis. Autos, motos, inmuebles y más.",
     url: "https://comerxia.com.ar",
     type: "website",
     images: [{ url: "https://comerxia.com.ar/og-image.jpg", width: 1200, height: 630, alt: "ComerxIA marketplace" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
-    description: "Publicá tu aviso en 30 segundos con IA. Gratis.",
+    title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
+    description: "Publicá tu aviso en 30 segundos. Gratis.",
     images: ["https://comerxia.com.ar/og-image.jpg"],
   },
 };
@@ -319,17 +319,17 @@ export default async function HomePage() {
           {/* Headline */}
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <h2 style={{ fontSize: "20px", fontWeight: 900, color: "#0f172a", margin: "0 0 6px" }}>
-              Vendé con inteligencia. Comprá sin vueltas.
+              Vendé fácil. Comprá sin vueltas.
             </h2>
             <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-              El primer marketplace argentino donde la IA redacta tus avisos por vos.
+              Para particulares y comercios de toda la Argentina. Sacá una foto y publicá en 30 segundos.
             </p>
           </div>
 
           {/* 3 feature cards */}
           <div className="feature-cards-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
 
-            {/* Card 1 — IA */}
+            {/* Card 1 — Publicar con una foto */}
             <div style={{ display: "flex", flexDirection: "column", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", background: "#fff" }}>
               <div style={{ background: "linear-gradient(135deg,#eef2ff,#ede9fe)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", position: "relative" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: "#fff", borderRadius: "8px", padding: "8px", boxShadow: "0 2px 8px rgba(99,102,241,.15)", width: "48px" }}>
@@ -349,7 +349,7 @@ export default async function HomePage() {
                 <div style={{ position: "absolute", top: "8px", right: "10px", fontSize: "14px" }}>✨</div>
               </div>
               <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Publicaciones con IA</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Publicá con una foto</span>
                 <span style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>Subí una foto y generamos tu publicación automáticamente.</span>
               </div>
             </div>

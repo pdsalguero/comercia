@@ -517,7 +517,7 @@ export function ListingsGrid({ listings, onToggleStatus, onDelete }: ListingsGri
           Todavía no publicaste ningún aviso
         </p>
         <p style={{ fontSize: '13px', marginBottom: '20px' }}>
-          Publicá tu primer aviso en 30 segundos con IA
+          Publicá tu primer aviso en 30 segundos, solo con una foto
         </p>
         <Link href="/listings/new">
           <button style={{
@@ -525,7 +525,7 @@ export function ListingsGrid({ listings, onToggleStatus, onDelete }: ListingsGri
             borderRadius: '8px', padding: '10px 24px',
             fontWeight: 700, fontSize: '14px', cursor: 'pointer',
           }}>
-            📸 Publicar con IA
+            📸 Publicar con una foto
           </button>
         </Link>
       </div>

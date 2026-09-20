@@ -10,11 +10,11 @@ const BASE = "https://comerxia.com.ar";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: {
-    default: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
+    default: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
     template: "%s | ComerxIA",
   },
   description:
-    "El marketplace inteligente. Todo con el poder de la IA. Publicá tu aviso en 30 segundos con inteligencia artificial. Autos, motos, inmuebles, electrónica y más.",
+    "Comprá y vendé en toda la Argentina. Publicá tu aviso en 30 segundos, gratis y sin comisiones. Autos, motos, inmuebles, electrónica y más. Para particulares y comercios.",
   keywords: [
     "clasificados argentina",
     "comprar usado argentina",
@@ -25,12 +25,12 @@ export const metadata: Metadata = {
     "vender auto argentina",
     "inmuebles argentina",
     "clasificados san juan",
-    "marketplace inteligente",
+    "tienda online gratis argentina",
     "publicar aviso gratis",
   ],
   openGraph: {
-    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
-    description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
+    title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
+    description: "Publicá tu aviso en 30 segundos, gratis. Autos, motos, inmuebles y más.",
     url: BASE,
     siteName: "ComerxIA",
     locale: "es_AR",
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ComerxIA — El marketplace inteligente. Todo con el poder de la IA.",
-    description: "Publicá tu aviso en 30 segundos con IA. Autos, motos, inmuebles y más.",
+    title: "ComerxIA — Sacá una foto. Publicá. Vendé en todo el país.",
+    description: "Publicá tu aviso en 30 segundos, gratis. Autos, motos, inmuebles y más.",
     images: [`${BASE}/og-image.jpg`],
   },
   alternates: { canonical: BASE },
