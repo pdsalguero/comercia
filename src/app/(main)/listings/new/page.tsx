@@ -11,6 +11,7 @@ import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
 import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CATEGORIAS } from "@/data/vehiculos";
 import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
 import { PropertyLocation } from "@/components/listings/PropertyLocation";
+import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
 
 // ─── Types ──────────────────────────────────────────────────────
 type Step = "upload" | "analyzing" | "form" | "publishing" | "promo" | "done";
@@ -474,7 +475,7 @@ function FocusSel({
   );
 }
 
-const ENABLED_CAT_IDS = new Set([2, 3, 26]); // Vehículos, Inmuebles, Servicios
+const ENABLED_CAT_IDS = new Set(ENABLED_CATEGORY_IDS); // Ver src/lib/site-config.ts
 const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 25, 9, 26, 10];
 const SORTED_CATS = [...CATEGORY_CONFIGS]
   .filter(c => ENABLED_CAT_IDS.has(c.id))
@@ -1263,7 +1264,8 @@ export default function NewListingPage() {
           currency,
           category_id: categoryId,
           condition,
-          neighborhood: locality ? `${locality}, ${zone}` : zone,
+          city:         zone,
+          neighborhood: locality || null,
           attributes: attrs,
           image_urls: urls,
           ai_generated: !!aiData,
@@ -1489,7 +1491,7 @@ export default function NewListingPage() {
             <div style={{ position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)", pointerEvents: "none" }} />
             <div style={{ fontSize: "52px", lineHeight: 1, marginBottom: "12px", animation: "aiRevealStar 3s ease forwards" }}>✨</div>
             <div style={{ fontSize: "20px", fontWeight: 900, color: "#fff", marginBottom: "6px", letterSpacing: "-0.3px" }}>
-              ¡IA completó tu aviso!
+              ¡Tu aviso está casi listo!
             </div>
             <div style={{ fontSize: "13px", color: "rgba(199,210,254,0.75)", marginBottom: "20px", lineHeight: 1.5 }}>
               Detectamos y completamos automáticamente:
@@ -1657,8 +1659,8 @@ export default function NewListingPage() {
                       Todavía no llegamos a esa categoría
                     </div>
                     <div style={{ fontSize: "13px", color: C.slate500, marginBottom: "24px", lineHeight: 1.6 }}>
-                      Nuestra IA identificó tu producto como <strong style={{ color: C.slate700 }}>{unsupportedCategoryName}</strong>.
-                      Por ahora ComerxIA funciona con <strong style={{ color: C.slate700 }}>Vehículos</strong>, <strong style={{ color: C.slate700 }}>Inmuebles</strong> y <strong style={{ color: C.slate700 }}>Servicios</strong> —
+                      Identificamos tu producto como <strong style={{ color: C.slate700 }}>{unsupportedCategoryName}</strong>.
+                      Por ahora ComerxIA es solo para <strong style={{ color: C.slate700 }}>Vehículos</strong>: autos, motos, camionetas, camiones y más —
                       pero ya estamos trabajando para sumar más. ¡Gracias por la paciencia!
                     </div>
                     <button
@@ -1690,7 +1692,7 @@ export default function NewListingPage() {
                       animation: "spin 0.8s linear infinite",
                     }} />
                     <div style={{ fontSize: "13px", fontWeight: 600, color: C.slate700, marginBottom: "2px" }}>
-                      Analizando imagen con IA...
+                      Analizando tu foto...
                     </div>
                     <div style={{ fontSize: "12px", color: C.slate400 }}>
                       Completando los datos automáticamente
@@ -1727,7 +1729,7 @@ export default function NewListingPage() {
                     {/* AI badge */}
                     <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "linear-gradient(135deg, rgba(99,102,241,.35), rgba(139,92,246,.35))", border: "1px solid rgba(165,180,252,.4)", borderRadius: "20px", padding: "4px 12px", marginBottom: "14px" }}>
                       <span style={{ fontSize: "11px" }}>✨</span>
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(199,210,254,.95)", letterSpacing: "0.4px" }}>Análisis con IA incluido</span>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(199,210,254,.95)", letterSpacing: "0.4px" }}>Completado automático incluido</span>
                     </div>
 
                     {/* Camera icon with glow */}
@@ -1739,10 +1741,10 @@ export default function NewListingPage() {
                     </div>
 
                     <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", marginBottom: "4px" }}>
-                      {dragOver ? "¡Soltá las fotos aquí!" : "Subí tus fotos"}
+                      {dragOver ? "¡Soltá las fotos aquí!" : "Subí las fotos de tu vehículo"}
                     </div>
                     <div style={{ fontSize: "12px", color: "rgba(199,210,254,.75)", marginBottom: "6px" }}>
-                      La IA detectará categoría, título y descripción automáticamente
+                      Detectamos categoría, título y descripción automáticamente
                     </div>
                     <div style={{ fontSize: "11px", color: "rgba(148,163,184,.65)", marginBottom: "18px" }}>
                       Arrastrá o seleccioná desde tu dispositivo
@@ -1891,7 +1893,7 @@ export default function NewListingPage() {
                           background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
                           color: "#fff", borderRadius: "20px", padding: "3px 8px",
                           flexShrink: 0,
-                        }}>✦ IA</span>
+                        }}>✦ Auto</span>
                         <span style={{ fontSize: "12px", color: C.slate600, fontWeight: 500, lineHeight: 1.3 }}>
                           Datos completados automáticamente — revisá y editá antes de publicar
                         </span>

@@ -9,10 +9,11 @@ import Link from "next/link";
 import { OrderSelect } from "@/components/ui/OrderSelect";
 import { FilterPanel, type FilterValues } from "@/components/listings/FilterPanel";
 import { CategorySidebar } from "@/components/layout/CategorySidebar";
+import { ENABLED_CATEGORY_IDS, isCategorySlugEnabled } from "@/lib/site-config";
 
 const PAGE_SIZE = 24;
 
-const CAT_IDS = [1,2,3,4,5,6,7,8,9,10,21,22,23,24,25,26];
+const CAT_IDS = ENABLED_CATEGORY_IDS;
 
 // Counts cacheados 5 min — HEAD queries, cero egress de datos. Clave incluye province.
 const getCategoryCounts = unstable_cache(
@@ -25,7 +26,7 @@ const getCategoryCounts = unstable_cache(
           .select("*", { count: "exact", head: true })
           .eq("status", "active")
           .eq("category_id", id);
-        if (province) q = q.ilike("neighborhood", `%${province}`);
+        if (province) q = (q as any).or(`city.ilike.%${province}%,neighborhood.ilike.%${province}%`);
         const { count } = await q;
         return [id, count ?? 0] as [number, number];
       })
@@ -62,10 +63,11 @@ async function _fetchListings(p: ListingsParams) {
   let query = supabase
     .from("listings")
     .select(`id, title, price, currency, condition, neighborhood, created_at, bumped_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`, { count: "exact" })
-    .eq("status", "active");
+    .eq("status", "active")
+    .in("category_id", ENABLED_CATEGORY_IDS);
 
   if (p.q)         query = query.ilike("title", `%${p.q}%`);
-  if (p.location)  query = query.ilike("neighborhood", `%${p.location}%`);
+  if (p.location)  query = (query as any).or(`city.ilike.%${p.location}%,neighborhood.ilike.%${p.location}%`);
   if (categoryId)  query = query.eq("category_id", categoryId);
   if (p.condition) query = query.eq("condition", p.condition);
   if (p.price_min) query = query.gte("price", Number(p.price_min));
@@ -108,7 +110,7 @@ function fetchListings(p: ListingsParams) {
 
 const CATEGORIES = [
   { name: "Vehículos",                 slug: "vehicles",      icon: "🚗",  active: true  },
-  { name: "Inmuebles",                 slug: "real-estate",   icon: "🏠",  active: true  },
+  { name: "Inmuebles",                 slug: "real-estate",   icon: "🏠",  active: false },
   { name: "Celulares",                 slug: "phones",        icon: "📱",  active: false },
   { name: "Tecnología",                slug: "electronics",   icon: "💻",  active: false },
   { name: "Electrodomésticos",         slug: "appliances",    icon: "🧊",  active: false },
@@ -123,21 +125,21 @@ const CATEGORIES = [
   { name: "Mascotas",                  slug: "pets",          icon: "🐾",  active: false },
   { name: "Servicios",                 slug: "services",      icon: "🛠️", active: false },
   { name: "Otros",                     slug: "other",         icon: "📦",  active: false },
-];
+].map((c) => ({ ...c, active: isCategorySlugEnabled(c.slug) }));
 
 
 export const metadata: Metadata = {
-  title: "Todos los avisos — Comprar y vender en Argentina",
-  description: "Encontrá los mejores avisos clasificados de Argentina. Autos, motos, inmuebles, electrónica, ropa y mucho más. Comprá y vendé con ComerxIA.",
-  keywords: ["avisos clasificados argentina", "comprar usado", "vender online", "clasificados gratis argentina"],
+  title: "Todos los avisos — Autos y motos en Argentina",
+  description: "Encontrá autos, motos, camionetas y más en toda la Argentina. Comprá y vendé con ComerxIA, gratis y sin comisiones.",
+  keywords: ["autos usados argentina", "motos usadas argentina", "camionetas usadas", "clasificados de autos argentina", "clasificados gratis argentina"],
   alternates: { canonical: "https://comerxia.com.ar/listings" },
   openGraph: {
     title: "Todos los avisos — ComerxIA",
-    description: "Encontrá los mejores avisos clasificados de Argentina.",
+    description: "Encontrá autos, motos y camionetas de toda la Argentina.",
     url: "https://comerxia.com.ar/listings",
     type: "website",
   },
-  twitter: { card: "summary", title: "Todos los avisos — ComerxIA", description: "Clasificados de Argentina." },
+  twitter: { card: "summary", title: "Todos los avisos — ComerxIA", description: "Autos y motos de Argentina." },
 };
 
 export default async function ListingsPage({

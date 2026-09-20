@@ -1,5 +1,6 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { NextResponse } from "next/server";
+import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
 
 export async function GET(request: Request) {
   try {
@@ -14,12 +15,12 @@ export async function GET(request: Request) {
         "id,title,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,listing_images(url,position),categories(name,slug)"
       )
       .eq("status", "active")
+      .in("category_id", ENABLED_CATEGORY_IDS)
       .order("created_at", { ascending: false })
       .limit(8);
 
     if (province) {
-      // neighborhood se guarda como "Localidad, Provincia" o solo "Provincia"
-      query = query.ilike("neighborhood", `%${province}`);
+      query = (query as any).or(`city.ilike.%${province}%,neighborhood.ilike.%${province}%`);
     }
 
     const { data, error } = await query;

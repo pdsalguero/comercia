@@ -7,7 +7,8 @@ import type { SubcatPill } from "@/components/ui/SubcategoryPills";
 import { FilterPanel } from "@/components/listings/FilterPanel";
 import { BrandSearchList } from "@/components/listings/BrandSearchList";
 import { ProvinceSelectNav } from "@/components/ui/ProvinceSelectNav";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { DEFAULT_CATEGORY_SLUG, isCategorySlugEnabled } from "@/lib/site-config";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { RE_LOCATIONS, ALL_RE_ZONES } from "@/lib/re-locations";
@@ -438,77 +439,77 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
     if (sp.phone_ram) query = query.eq("attributes->>ram" as any, sp.phone_ram);
     if (sp.phone_os) query = query.eq("attributes->>os" as any, sp.phone_os);
     if (sp.phone_sim) query = query.eq("attributes->>sim_type" as any, sp.phone_sim);
-    if (sp.phone_province) query = query.ilike("neighborhood", `%${sp.phone_province}%`);
+    if (sp.phone_province) query = (query as any).or(`city.ilike.%${sp.phone_province}%,neighborhood.ilike.%${sp.phone_province}%`);
   }
   if (isElectronics) {
     if (sp.tech_type) query = query.eq("attributes->>sub_category" as any, sp.tech_type);
     else if (sp.tech_group && TECH_GROUPS[sp.tech_group]) query = query.in("attributes->>sub_category" as any, TECH_GROUPS[sp.tech_group].items);
     if (sp.tech_brand) query = query.eq("attributes->>brand" as any, sp.tech_brand);
-    if (sp.tech_province) query = query.ilike("neighborhood", `%${sp.tech_province}%`);
+    if (sp.tech_province) query = (query as any).or(`city.ilike.%${sp.tech_province}%,neighborhood.ilike.%${sp.tech_province}%`);
     if (sp.tech_condition) query = query.eq("condition", sp.tech_condition);
   }
   if (isAppliances) {
     if (sp.appliance_type) query = query.eq("attributes->>sub_category" as any, sp.appliance_type);
     if (sp.appliance_brand) query = query.eq("attributes->>brand" as any, sp.appliance_brand);
     if (sp.appliance_condition) query = query.eq("condition", sp.appliance_condition);
-    if (sp.appliance_province) query = query.ilike("neighborhood", `%${sp.appliance_province}%`);
+    if (sp.appliance_province) query = (query as any).or(`city.ilike.%${sp.appliance_province}%,neighborhood.ilike.%${sp.appliance_province}%`);
   }
   if (isClothing) {
     if (sp.clothing_type) query = query.eq("attributes->>sub_category" as any, sp.clothing_type);
     if (sp.clothing_gender) query = query.eq("attributes->>gender" as any, sp.clothing_gender);
     if (sp.clothing_brand) query = query.eq("attributes->>brand" as any, sp.clothing_brand);
     if (sp.clothing_condition) query = query.eq("condition", sp.clothing_condition);
-    if (sp.clothing_province) query = query.ilike("neighborhood", `%${sp.clothing_province}%`);
+    if (sp.clothing_province) query = (query as any).or(`city.ilike.%${sp.clothing_province}%,neighborhood.ilike.%${sp.clothing_province}%`);
   }
   if (isBabies) {
     if (sp.baby_type) query = query.eq("attributes->>sub_category" as any, sp.baby_type);
     if (sp.baby_brand) query = query.eq("attributes->>brand" as any, sp.baby_brand);
     if (sp.baby_condition) query = query.eq("condition", sp.baby_condition);
-    if (sp.baby_province) query = query.ilike("neighborhood", `%${sp.baby_province}%`);
+    if (sp.baby_province) query = (query as any).or(`city.ilike.%${sp.baby_province}%,neighborhood.ilike.%${sp.baby_province}%`);
   }
   if (isBeauty) {
     if (sp.beauty_type) query = query.eq("attributes->>sub_category" as any, sp.beauty_type);
     if (sp.beauty_brand) query = query.eq("attributes->>brand" as any, sp.beauty_brand);
     if (sp.beauty_condition) query = query.eq("condition", sp.beauty_condition);
-    if (sp.beauty_province) query = query.ilike("neighborhood", `%${sp.beauty_province}%`);
+    if (sp.beauty_province) query = (query as any).or(`city.ilike.%${sp.beauty_province}%,neighborhood.ilike.%${sp.beauty_province}%`);
   }
   if (isHomeGarden) {
     if (sp.hg_type) query = query.eq("attributes->>sub_category" as any, sp.hg_type);
     if (sp.hg_brand) query = query.eq("attributes->>brand" as any, sp.hg_brand);
     if (sp.hg_condition) query = query.eq("condition", sp.hg_condition);
-    if (sp.hg_province) query = query.ilike("neighborhood", `%${sp.hg_province}%`);
+    if (sp.hg_province) query = (query as any).or(`city.ilike.%${sp.hg_province}%,neighborhood.ilike.%${sp.hg_province}%`);
   }
   if (isSports) {
     if (sp.sport_type) query = query.eq("attributes->>sub_category" as any, sp.sport_type);
     if (sp.sport_brand) query = query.eq("attributes->>brand" as any, sp.sport_brand);
     if (sp.sport_condition) query = query.eq("condition", sp.sport_condition);
-    if (sp.sport_province) query = query.ilike("neighborhood", `%${sp.sport_province}%`);
+    if (sp.sport_province) query = (query as any).or(`city.ilike.%${sp.sport_province}%,neighborhood.ilike.%${sp.sport_province}%`);
   }
   if (isTools) {
     if (sp.tool_type) query = query.eq("attributes->>sub_category" as any, sp.tool_type);
     if (sp.tool_brand) query = query.eq("attributes->>brand" as any, sp.tool_brand);
     if (sp.tool_condition) query = query.eq("condition", sp.tool_condition);
-    if (sp.tool_province) query = query.ilike("neighborhood", `%${sp.tool_province}%`);
+    if (sp.tool_province) query = (query as any).or(`city.ilike.%${sp.tool_province}%,neighborhood.ilike.%${sp.tool_province}%`);
   }
   if (isToys) {
     if (sp.toy_type) query = query.eq("attributes->>sub_category" as any, sp.toy_type);
     if (sp.toy_brand) query = query.eq("attributes->>brand" as any, sp.toy_brand);
     if (sp.toy_condition) query = query.eq("condition", sp.toy_condition);
-    if (sp.toy_province) query = query.ilike("neighborhood", `%${sp.toy_province}%`);
+    if (sp.toy_province) query = (query as any).or(`city.ilike.%${sp.toy_province}%,neighborhood.ilike.%${sp.toy_province}%`);
   }
   if (isBooks) {
     if (sp.book_type) query = query.eq("attributes->>sub_category" as any, sp.book_type);
     if (sp.book_condition) query = query.eq("condition", sp.book_condition);
-    if (sp.book_province) query = query.ilike("neighborhood", `%${sp.book_province}%`);
+    if (sp.book_province) query = (query as any).or(`city.ilike.%${sp.book_province}%,neighborhood.ilike.%${sp.book_province}%`);
   }
   if (isPets) {
     if (sp.pet_type) query = query.eq("attributes->>sub_category" as any, sp.pet_type);
-    if (sp.pet_province) query = query.ilike("neighborhood", `%${sp.pet_province}%`);
+    if (sp.pet_province) query = (query as any).or(`city.ilike.%${sp.pet_province}%,neighborhood.ilike.%${sp.pet_province}%`);
   }
   if (isServices) {
     if (sp.serv_type) query = query.eq("attributes->>sub_category" as any, sp.serv_type);
     if (sp.serv_sub) query = query.eq("attributes->>sub_type" as any, sp.serv_sub);
-    if (sp.serv_province) query = query.ilike("neighborhood", `%${sp.serv_province}%`);
+    if (sp.serv_province) query = (query as any).or(`city.ilike.%${sp.serv_province}%,neighborhood.ilike.%${sp.serv_province}%`);
   }
   if (slug === "other") {
     if (sp.other_type) query = query.eq("attributes->>sub_category" as any, sp.other_type);
@@ -599,12 +600,12 @@ export async function generateMetadata(
   if (!meta) return { title: "Categoría" };
   return {
     title: `${meta.name} en Argentina — Avisos clasificados`,
-    description: `Comprá y vendé ${meta.name.toLowerCase()} en Argentina. Los mejores avisos clasificados en ComerxIA, el marketplace con inteligencia artificial.`,
+    description: `Comprá y vendé ${meta.name.toLowerCase()} en Argentina. Los mejores avisos clasificados en ComerxIA, el marketplace de toda la Argentina.`,
     keywords: [`${meta.name.toLowerCase()} argentina`, `comprar ${meta.name.toLowerCase()}`, `vender ${meta.name.toLowerCase()}`, "clasificados argentina"],
     alternates: { canonical: `https://comerxia.com.ar/category/${slug}` },
     openGraph: {
       title: `${meta.name} en Argentina | ComerxIA`,
-      description: `Encontrá ${meta.name.toLowerCase()} en ComerxIA. Marketplace con IA.`,
+      description: `Encontrá ${meta.name.toLowerCase()} en ComerxIA. Comprá y vendé en todo el país.`,
       url: `https://comerxia.com.ar/category/${slug}`,
       type: "website",
     },
@@ -628,6 +629,9 @@ export default async function CategoryPage({
 
   const meta = CATEGORY_META[slug];
   if (!meta) notFound();
+
+  // Etapa actual: solo Vehículos. Las demás categorías redirigen (temporal, 307).
+  if (!isCategorySlugEnabled(slug)) redirect(`/category/${DEFAULT_CATEGORY_SLUG}`);
 
   const isVehicles = slug === "vehicles";
   const isRealEstate = slug === "real-estate";
@@ -3010,16 +3014,16 @@ export default async function CategoryPage({
             basePath={`/category/${slug}`}
           />}
 
-          {/* Publicar con IA widget */}
+          {/* Publicar con una foto widget */}
           <div style={{
             background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
             borderRadius: "10px", padding: "16px", color: "#fff",
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "4px" }}>✨ Publicar con IA</div>
+            <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "4px" }}>✨ Publicá con una foto</div>
             <div style={{ fontSize: "12px", opacity: 0.85, marginBottom: "12px", lineHeight: 1.4 }}>
-              Describí tu artículo y la IA completa título, precio y categoría.
+              Subí una foto y completamos título, precio y categoría por vos.
             </div>
-            <a href="/publish" style={{ textDecoration: "none" }}>
+            <a href="/listings/new" style={{ textDecoration: "none" }}>
               <div style={{
                 background: "#fff", color: "#6366f1", borderRadius: "6px",
                 padding: "8px 12px", fontSize: "12px", fontWeight: 700,
