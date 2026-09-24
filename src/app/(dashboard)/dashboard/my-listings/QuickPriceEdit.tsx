@@ -70,7 +70,7 @@ export function QuickPriceEdit({ listingId, price, currency, onSave }: Props) {
         style={{
           background: '#1d6fb8', color: '#fff', border: 'none',
           borderRadius: '5px', padding: '3px 7px',
-          fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+          fontSize: '12px', fontWeight: 700, cursor: 'pointer',
         }}
       >
         {saving ? '...' : '✓'}
@@ -80,7 +80,7 @@ export function QuickPriceEdit({ listingId, price, currency, onSave }: Props) {
         style={{
           background: '#f1f5f9', color: '#64748b', border: 'none',
           borderRadius: '5px', padding: '3px 7px',
-          fontSize: '11px', cursor: 'pointer',
+          fontSize: '12px', cursor: 'pointer',
         }}
       >
         ✕

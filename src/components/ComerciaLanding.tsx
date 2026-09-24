@@ -291,7 +291,7 @@ export function CuyoRodadosLanding() {
         <div style={{
           position: "absolute", bottom: "28px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-          color: "rgba(255,255,255,0.3)", fontSize: "11px",
+          color: "rgba(255,255,255,0.3)", fontSize: "12px",
           animation: "bounce 2s infinite",
         }}>
           <span>Conocé más</span>
@@ -364,7 +364,7 @@ export function CuyoRodadosLanding() {
                   display: "inline-flex", alignItems: "center", gap: "5px",
                   background: "#fff7ed", border: "1px solid #fed7aa",
                   borderRadius: "6px", padding: "4px 10px",
-                  fontSize: "11px", fontWeight: 700, color: "#ea580c",
+                  fontSize: "12px", fontWeight: 700, color: "#ea580c",
                 }}>
                   <Star size={10} />
                   {f.highlight}

@@ -155,9 +155,11 @@ export function ListingListCard({
               position: "absolute", top: "8px", left: "8px",
               background: badge.bg, color: badge.fg,
               borderRadius: "20px", padding: "2px 8px",
-              fontSize: "10px", fontWeight: 800, whiteSpace: "nowrap",
+              fontSize: "12px", fontWeight: 800, whiteSpace: "nowrap",
             }}>
-              {badge.label}
+              {/* "👑 Premium": en celular solo se ve el ícono (la foto es chica); el texto queda para lectores */}
+              <span aria-hidden="true">{badge.label.split(" ")[0]}</span>
+              <span className="llc-badge-text"> {badge.label.split(" ").slice(1).join(" ")}</span>
             </div>
           )}
 
@@ -169,6 +171,7 @@ export function ListingListCard({
             <>
               <button
                 type="button"
+                className="tap-44"
                 aria-label="Foto anterior"
                 onClick={prevPhoto}
                 style={{
@@ -182,6 +185,7 @@ export function ListingListCard({
               </button>
               <button
                 type="button"
+                className="tap-44"
                 aria-label="Foto siguiente"
                 onClick={nextPhoto}
                 style={{
@@ -201,7 +205,7 @@ export function ListingListCard({
               position: "absolute", bottom: "8px", right: "8px",
               background: "rgba(15,23,42,0.72)", color: "#fff",
               borderRadius: "20px", padding: "3px 8px",
-              fontSize: "11px", fontWeight: 700,
+              fontSize: "12px", fontWeight: 700,
               display: "flex", alignItems: "center", gap: "4px",
             }}>
               <Camera size={11} strokeWidth={2.2} />
@@ -232,7 +236,7 @@ export function ListingListCard({
 
           {/* Tienda oficial */}
           {is_store && (
-            <div style={{ fontSize: "11px", color: "#3b82f6", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}>
+            <div style={{ fontSize: "12px", color: "#3b82f6", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"/>
                 <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
@@ -246,7 +250,7 @@ export function ListingListCard({
             <div style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" }}>
               {breadcrumbs.map((chip, i) => {
                 const chipStyle: React.CSSProperties = {
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontWeight: 600,
                   borderRadius: "4px",
                   padding: "1px 6px",
@@ -278,7 +282,7 @@ export function ListingListCard({
           {/* Condition + Location */}
           <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
             {condition && CONDITION_LABELS[condition] && (
-              <span style={{ fontSize: "11.5px", color: "#22c55e", fontWeight: 600 }}>
+              <span style={{ fontSize: "12px", color: "#22c55e", fontWeight: 600 }}>
                 {CONDITION_LABELS[condition]}
               </span>
             )}
@@ -338,21 +342,21 @@ export function ListingListCard({
                 const hasBump = bumped_at && new Date(bumped_at).getTime() - new Date(created_at).getTime() > 3600 * 1000;
                 return hasBump ? (
                   <>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", color: "#cbd5e1" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", color: "#cbd5e1" }}>
                       <Clock size={11} strokeWidth={2} /> {timeAgo(created_at)}
                     </span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", color: "#94a3b8" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", color: "#94a3b8" }}>
                       <ArrowUp size={11} strokeWidth={2.2} /> act. {timeAgo(bumped_at!)}
                     </span>
                   </>
                 ) : (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", color: "#cbd5e1" }}>
                     <Clock size={11} strokeWidth={2} /> {timeAgo(created_at)}
                   </span>
                 );
               })()}
               {view_count != null && view_count > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", color: "#cbd5e1" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", color: "#cbd5e1" }}>
                   <Eye size={11} strokeWidth={2} /> {plural(view_count, "vista", "vistas")}
                 </span>
               )}

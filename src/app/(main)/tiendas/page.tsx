@@ -321,7 +321,7 @@ export default async function TiendasPage() {
                               position: "absolute", top: "8px", right: "8px",
                               background: "#2563eb", color: "#fff",
                               borderRadius: "20px", padding: "2px 8px",
-                              fontSize: "10px", fontWeight: 700,
+                              fontSize: "12px", fontWeight: 700,
                               display: "flex", alignItems: "center", gap: "3px",
                               zIndex: 2,
                             }}>
@@ -368,7 +368,7 @@ export default async function TiendasPage() {
                               </div>
                               {store.listing_count > 0 && (
                                 <div style={{
-                                  fontSize: "11px",
+                                  fontSize: "12px",
                                   color: store.sample_image ? "rgba(255,255,255,0.85)" : "#64748b",
                                   textShadow: store.sample_image ? "0 1px 3px rgba(0,0,0,0.5)" : "none",
                                 }}>
@@ -408,7 +408,7 @@ export default async function TiendasPage() {
                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                           </svg>
                           <span style={{
-                            fontSize: "11px", color: "#94a3b8",
+                            fontSize: "12px", color: "#94a3b8",
                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                           }}>
                             {store.store_description
@@ -416,7 +416,7 @@ export default async function TiendasPage() {
                               : typeLabel}
                           </span>
                           <span style={{
-                            marginLeft: "auto", fontSize: "11px",
+                            marginLeft: "auto", fontSize: "12px",
                             color: "#cbd5e1", fontWeight: 600,
                           }}>
                             {">"}

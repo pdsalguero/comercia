@@ -71,7 +71,7 @@ export function ReportButton({ listingId, isLoggedIn }: Props) {
         style={{
           display: "flex", alignItems: "center", gap: "5px",
           background: "none", border: "none", cursor: "pointer",
-          fontSize: "11px", color: "#94a3b8", fontFamily: "inherit",
+          fontSize: "12px", color: "#94a3b8", fontFamily: "inherit",
           padding: "6px 0", textDecoration: "none",
         }}
       >

@@ -64,7 +64,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
           <span style={{
             background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
             color: "#fff", borderRadius: "5px", padding: "1px 7px",
-            fontSize: "9px", fontWeight: 800,
+            fontSize: "12px", fontWeight: 800,
           }}>PREMIUM</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

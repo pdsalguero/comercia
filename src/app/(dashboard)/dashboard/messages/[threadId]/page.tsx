@@ -144,7 +144,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>{otherName}</div>
           {listing && (
-            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               Re: {listing.title}
             </div>
           )}
@@ -163,10 +163,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                 <img src={listing.cover} alt="" style={{ width: "32px", height: "32px", borderRadius: "4px", objectFit: "cover", flexShrink: 0 }} />
               )}
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "11px", color: "#0f172a", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: "12px", color: "#0f172a", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {listing.title}
                 </div>
-                <div style={{ fontSize: "11px", color: "#1d6fb8", fontWeight: 700 }}>
+                <div style={{ fontSize: "12px", color: "#1d6fb8", fontWeight: 700 }}>
                   ${listing.price.toLocaleString("es-AR")}
                 </div>
               </div>
@@ -202,7 +202,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", margin: "12px 0 8px" }}>
                   <span style={{
                     background: "rgba(255,255,255,0.85)", color: "#64748b",
-                    fontSize: "11px", fontWeight: 600,
+                    fontSize: "12px", fontWeight: 600,
                     padding: "3px 12px", borderRadius: "20px",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                   }}>
@@ -224,7 +224,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                             width: "28px", height: "28px", borderRadius: "50%",
                             background: "#1d6fb8", color: "#fff",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: "11px", fontWeight: 700,
+                            fontSize: "12px", fontWeight: 700,
                           }}>
                             {otherProfile?.avatar_url
                               ? <img src={otherProfile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
@@ -250,7 +250,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                       }}>
                         <div>{msg.content}</div>
                         <div style={{
-                          fontSize: "10px", marginTop: "3px",
+                          fontSize: "12px", marginTop: "3px",
                           opacity: 0.6, textAlign: "right",
                           display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "3px",
                         }}>

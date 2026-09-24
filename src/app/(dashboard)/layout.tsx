@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { VerifyIdentityModal } from '@/components/auth/VerifyIdentityModal'
+import { Heart, Home, LayoutList, MessageSquare, Settings, ShieldCheck, Star, Store, type LucideIcon } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,17 +17,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const navItems = [
-  { label: '🏠 Inicio',          href: '/dashboard' },
-  { label: '📋 Mis avisos',       href: '/dashboard/my-listings' },
-  { label: '🏪 Mi Tienda',        href: '/dashboard/store' },
-  { label: '❤️ Favoritos',        href: '/dashboard/favorites' },
-  { label: '💬 Mensajes',         href: '/dashboard/messages' },
-  { label: '⚙️ Configuración',    href: '/dashboard/settings' },
-  { label: '⭐ Planes Pro',       href: '/upgrade' },
+// Íconos de línea (los mismos del resto del sitio) en vez de emojis; son decorativos (aria-hidden).
+const navItems: { label: string; href: string; Icon: LucideIcon }[] = [
+  { label: 'Inicio',          href: '/dashboard',             Icon: Home },
+  { label: 'Mis avisos',      href: '/dashboard/my-listings', Icon: LayoutList },
+  { label: 'Mi Tienda',       href: '/dashboard/store',       Icon: Store },
+  { label: 'Favoritos',       href: '/dashboard/favorites',   Icon: Heart },
+  { label: 'Mensajes',        href: '/dashboard/messages',    Icon: MessageSquare },
+  { label: 'Configuración',   href: '/dashboard/settings',    Icon: Settings },
+  { label: 'Planes Pro',      href: '/upgrade',               Icon: Star },
 ]
 
-const adminNavItem = { label: '🛡️ Admin',  href: '/admin' }
+const adminNavItem = { label: 'Admin', href: '/admin', Icon: ShieldCheck }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -84,7 +86,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   <span style={{
                     position: 'absolute', top: 0, right: 0,
                     background: '#ef4444', color: '#fff',
-                    fontSize: '10px', fontWeight: 700,
+                    fontSize: '12px', fontWeight: 700,
                     minWidth: '18px', height: '18px', borderRadius: '20px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '0 4px', border: '2px solid #fff',
@@ -100,11 +102,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 @{profile?.username ?? ''}
               </div>
               {(unreadCount ?? 0) > 0 ? (
-                <span style={{ background: '#fef2f2', color: '#ef4444', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>
-                  💬 {unreadCount} mensaje{(unreadCount ?? 0) !== 1 ? 's' : ''} sin leer
+                <span style={{ background: '#fef2f2', color: '#ef4444', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>
+                  <MessageSquare size={12} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: '4px' }} />
+                  {unreadCount} mensaje{(unreadCount ?? 0) !== 1 ? 's' : ''} sin leer
                 </span>
               ) : profile?.is_pro ? (
-                <span style={{ background: '#fff159', color: '#333', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>
+                <span style={{ background: '#fff159', color: '#333', padding: '2px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>
                   ⭐ PRO
                 </span>
               ) : null}
@@ -127,11 +130,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     fontWeight: item.href === '/admin' ? 700 : 400,
                   }}
                   className="hover:bg-gray-50">
-                    <span>{item.label}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <item.Icon size={16} strokeWidth={2} aria-hidden="true" />
+                      {item.label}
+                    </span>
                     {item.href === '/dashboard/messages' && (unreadCount ?? 0) > 0 && (
                       <span style={{
                         background: '#ef4444', color: '#fff',
-                        fontSize: '11px', fontWeight: 700,
+                        fontSize: '12px', fontWeight: 700,
                         padding: '1px 7px', borderRadius: '20px',
                         minWidth: '20px', textAlign: 'center',
                       }}>
@@ -141,7 +147,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     {item.href === '/dashboard/my-listings' && (listingsCount ?? 0) > 0 && (
                       <span style={{
                         background: '#f1f5f9', color: '#64748b',
-                        fontSize: '11px', fontWeight: 700,
+                        fontSize: '12px', fontWeight: 700,
                         padding: '1px 7px', borderRadius: '20px',
                         minWidth: '20px', textAlign: 'center',
                       }}>
@@ -151,7 +157,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     {item.href === '/dashboard/favorites' && (favoritesCount ?? 0) > 0 && (
                       <span style={{
                         background: '#fef2f2', color: '#ef4444',
-                        fontSize: '11px', fontWeight: 700,
+                        fontSize: '12px', fontWeight: 700,
                         padding: '1px 7px', borderRadius: '20px',
                         minWidth: '20px', textAlign: 'center',
                       }}>
@@ -193,24 +199,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 {navItems.map(item => (
                   <Link key={item.href} href={item.href} style={{ textDecoration: 'none', flexShrink: 0 }}>
                     <div style={{
-                      padding: '9px 12px', fontSize: '12px',
+                      padding: '0 12px', minHeight: '44px', fontSize: '13px',
                       color: '#475569', fontWeight: 600,
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
                     }}
                     className="hover:text-indigo-600"
                     >
+                      <item.Icon size={14} strokeWidth={2} aria-hidden="true" />
                       {item.label}
                       {item.href === '/dashboard/messages' && (unreadCount ?? 0) > 0 && (
                         <span style={{
                           background: '#ef4444', color: '#fff',
-                          fontSize: '10px', fontWeight: 700,
+                          fontSize: '12px', fontWeight: 700,
                           padding: '0 5px', borderRadius: '20px',
                         }}>{unreadCount}</span>
                       )}
                       {item.href === '/dashboard/my-listings' && (listingsCount ?? 0) > 0 && (
                         <span style={{
                           background: '#f1f5f9', color: '#64748b',
-                          fontSize: '10px', fontWeight: 700,
+                          fontSize: '12px', fontWeight: 700,
                           padding: '0 5px', borderRadius: '20px',
                         }}>{listingsCount}</span>
                       )}

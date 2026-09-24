@@ -5,7 +5,8 @@ import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
 import { formatListingPrice, favoriteStatus } from "@/lib/listing-display";
 import { listingUrl } from "@/lib/listing-url";
-import { conditionLabel } from "@/lib/labels";
+import { conditionLabel, plural } from "@/lib/labels";
+import { Heart, ImageOff } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Favoritos", description: "Los avisos que guardaste en CuyoRodados." };
@@ -48,17 +49,18 @@ export default async function FavoritesPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", margin: 0 }}>
-            ❤️ Mis favoritos
+          <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+            <Heart size={20} color="#e11d48" fill="#e11d48" aria-hidden="true" />
+            Mis favoritos
           </h1>
           <p style={{ fontSize: "13px", color: "#64748b", margin: "4px 0 0" }}>
             {favorites.length > 0
-              ? `${favorites.length} aviso${favorites.length !== 1 ? "s" : ""} guardado${favorites.length !== 1 ? "s" : ""}`
+              ? plural(favorites.length, "aviso guardado", "avisos guardados")
               : "Todavía no guardaste ningún aviso"}
           </p>
         </div>
         {favorites.length > 0 && (
-          <Link href="/listings" style={{ textDecoration: "none" }}>
+          <Link href="/category/vehicles" style={{ textDecoration: "none" }}>
             <button style={{
               background: "#1d6fb8", color: "#fff", border: "none",
               borderRadius: "8px", padding: "8px 16px",
@@ -76,14 +78,16 @@ export default async function FavoritesPage() {
           background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0",
           padding: "64px 24px", textAlign: "center",
         }}>
-          <div style={{ fontSize: "52px", marginBottom: "12px" }}>🤍</div>
+          <div style={{ marginBottom: "12px", display: "flex", justifyContent: "center", color: "#cbd5e1" }}>
+            <Heart size={48} strokeWidth={1.5} aria-hidden="true" />
+          </div>
           <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a", marginBottom: "8px" }}>
             No tenés favoritos todavía
           </div>
           <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "24px", maxWidth: "320px", margin: "0 auto 24px" }}>
-            Guardá avisos que te interesan tocando el ❤️ en cualquier publicación.
+            Guardá avisos que te interesan tocando el corazón en cualquier publicación.
           </p>
-          <Link href="/listings">
+          <Link href="/category/vehicles">
             <button style={{
               background: "#1d6fb8", color: "#fff", border: "none",
               borderRadius: "8px", padding: "12px 28px",
@@ -121,14 +125,14 @@ export default async function FavoritesPage() {
                   <div style={{ height: "170px", background: "#f1f5f9", position: "relative", overflow: "hidden" }}>
                     {img
                       ? <img src={img} alt={listing.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
+                      : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}><ImageOff size={36} aria-hidden="true" /></div>
                     }
                     {(isPaused || isUnavailable) && (
                       <div style={{
                         position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}>
-                        <span style={{ background: "#1e293b", color: "#fff", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700 }}>
+                        <span style={{ background: "#1e293b", color: "#fff", borderRadius: "6px", padding: "4px 10px", fontSize: "12px", fontWeight: 700 }}>
                           {isUnavailable ? "No disponible" : "Aviso pausado"}
                         </span>
                       </div>
@@ -150,12 +154,12 @@ export default async function FavoritesPage() {
                     </div>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                       {listing.condition && (
-                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: 600 }}>
+                        <span style={{ fontSize: "12px", color: "#22c55e", fontWeight: 600 }}>
                           {conditionLabel(listing.condition)}
                         </span>
                       )}
                       {listing.neighborhood && (
-                        <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {listing.neighborhood}</span>
+                        <span style={{ fontSize: "12px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {listing.neighborhood}</span>
                       )}
                     </div>
                   </div>

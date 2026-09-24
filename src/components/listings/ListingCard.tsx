@@ -168,7 +168,7 @@ export function ListingCard({
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#eab308,#fde047)",
               color: "#713f12", borderRadius: "20px", padding: "3px 10px",
-              fontSize: "10px", fontWeight: 800,
+              fontSize: "12px", fontWeight: 800,
               boxShadow: "0 2px 8px rgba(234,179,8,0.5)",
             }}>
               👑 PREMIUM
@@ -179,7 +179,7 @@ export function ListingCard({
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#1d6fb8,#4d94d1)",
               color: "#fff", borderRadius: "20px", padding: "3px 10px",
-              fontSize: "10px", fontWeight: 800,
+              fontSize: "12px", fontWeight: 800,
               boxShadow: "0 2px 8px rgba(29,111,184,0.45)",
             }}>
               🚀 DESTACADO
@@ -190,7 +190,7 @@ export function ListingCard({
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#c2410c,#ea580c)",
               color: "#fff", borderRadius: "20px", padding: "3px 10px",
-              fontSize: "10px", fontWeight: 800,
+              fontSize: "12px", fontWeight: 800,
               boxShadow: "0 2px 8px rgba(194,65,12,0.4)",
             }}>
               ⭐ ESENCIAL
@@ -203,7 +203,7 @@ export function ListingCard({
               background: "rgba(255,255,255,0.92)",
               backdropFilter: "blur(6px)",
               color: "#0f172a", borderRadius: "20px", padding: "3px 9px 3px 6px",
-              fontSize: "11px", fontWeight: 700,
+              fontSize: "12px", fontWeight: 700,
               display: "flex", alignItems: "center", gap: "5px",
               boxShadow: "0 1px 6px rgba(0,0,0,0.18)",
               letterSpacing: "0.01em",
@@ -228,6 +228,7 @@ export function ListingCard({
             <>
               <button
                 type="button"
+                className="tap-44"
                 aria-label="Foto anterior"
                 onClick={prevPhoto}
                 style={{
@@ -241,6 +242,7 @@ export function ListingCard({
               </button>
               <button
                 type="button"
+                className="tap-44"
                 aria-label="Foto siguiente"
                 onClick={nextPhoto}
                 style={{
@@ -261,7 +263,7 @@ export function ListingCard({
               background: "rgba(15,23,42,0.72)",
               backdropFilter: "blur(6px)",
               color: "#fff", borderRadius: "20px", padding: "3px 8px",
-              fontSize: "11px", fontWeight: 700,
+              fontSize: "12px", fontWeight: 700,
               display: "flex", alignItems: "center", gap: "4px",
             }}>
               <Camera size={11} strokeWidth={2.2} />
@@ -316,7 +318,7 @@ export function ListingCard({
             </div>
           )}
           {subSpec && (
-            <div className="lc-meta" style={{ fontSize: "11px", color: "#888", marginBottom: "2px" }}>
+            <div className="lc-meta" style={{ fontSize: "12px", color: "#888", marginBottom: "2px" }}>
               {String(subSpec)}
             </div>
           )}
@@ -349,7 +351,7 @@ export function ListingCard({
                       display: "inline-flex", alignItems: "center", height: "18px",
                       background: "linear-gradient(135deg,#22c55e,#16a34a)",
                       color: "#fff", borderRadius: "5px",
-                      padding: "0 7px", fontSize: "10px", fontWeight: 800,
+                      padding: "0 7px", fontSize: "12px", fontWeight: 800,
                       letterSpacing: "0.3px", whiteSpace: "nowrap",
                     }}>
                       Publicado hoy
@@ -359,7 +361,7 @@ export function ListingCard({
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                       </svg>
-                      <span style={{ fontSize: "11px", whiteSpace: "nowrap" }}>{dateLabel}</span>
+                      <span style={{ fontSize: "12px", whiteSpace: "nowrap" }}>{dateLabel}</span>
                     </div>
                   )
                 )}

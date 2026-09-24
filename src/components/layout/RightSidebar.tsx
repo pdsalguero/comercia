@@ -17,7 +17,7 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
         <div style={{ fontSize: "36px", lineHeight: 1 }}>📸</div>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "15px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>Publicá con una foto</div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+          <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
             Sacá una foto de tu vehículo<br />y armamos todo el aviso<br />por vos
           </div>
         </div>
@@ -34,7 +34,7 @@ export async function RightSidebar({ showPublicar = true }: { showPublicar?: boo
         </Link>
         <div style={{ display: "flex", gap: "10px" }}>
           {["✓ Gratis", "✓ 30 seg."].map(t => (
-            <span key={t} style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{t}</span>
+            <span key={t} style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{t}</span>
           ))}
         </div>
       </div>

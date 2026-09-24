@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { storageImg } from "@/lib/storage-image";
 import Image from "next/image";
+import { ImageOff } from "lucide-react";
 
 // Alto de la foto principal: 420px en pantallas altas, más bajo en notebooks (~58% del alto visible,
 // mínimo 300px) para que la ficha no quede toda ocupada por la galería. En celular lo pisa globals.css.
@@ -185,7 +186,8 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
   if (images.length === 0) {
     return (
       <div className="gallery-main" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: GALLERY_HEIGHT, background: "#f5f5f5", borderRadius: "8px" }}>
-        <span style={{ fontSize: "72px" }}>📦</span>
+        <ImageOff size={64} strokeWidth={1.25} color="#cbd5e1" aria-hidden="true" />
+        <span className="sr-only">Aviso sin fotos</span>
       </div>
     );
   }
@@ -296,7 +298,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             <div style={{
               position: "absolute", bottom: "10px", right: "12px",
               background: "rgba(0,0,0,.5)", color: "#fff",
-              fontSize: "11px", fontWeight: 600, padding: "3px 8px", borderRadius: "20px",
+              fontSize: "12px", fontWeight: 600, padding: "3px 8px", borderRadius: "20px",
             }}>
               {active + 1} / {images.length}
             </div>
@@ -468,7 +470,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
             <div style={{
               position: "absolute", bottom: images.length > 1 ? "80px" : "16px",
               left: "50%", transform: "translateX(-50%)", zIndex: 10,
-              color: "rgba(255,255,255,.5)", fontSize: "11px",
+              color: "rgba(255,255,255,.5)", fontSize: "12px",
               pointerEvents: "none", whiteSpace: "nowrap",
             }}>
               <span className="hidden md:inline">Rueda del mouse para hacer zoom</span>

@@ -156,7 +156,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
   };
 
   const subLabel: React.CSSProperties = {
-    fontSize: "11px", fontWeight: 700, color: "#888",
+    fontSize: "12px", fontWeight: 700, color: "#888",
     textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: "5px",
   };
 
@@ -506,7 +506,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
           {activeCount > 0 && (
             <span style={{
               background: "#f97316", color: "#fff", borderRadius: "20px",
-              fontSize: "11px", fontWeight: 700, padding: "1px 7px",
+              fontSize: "12px", fontWeight: 700, padding: "1px 7px",
             }}>{activeCount}</span>
           )}
         </div>
@@ -544,7 +544,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
         {activeCount > 0 && (
           <span style={{
             background: "#f97316", color: "#fff", borderRadius: "50%",
-            width: 18, height: 18, fontSize: 10, fontWeight: 700,
+            width: 18, height: 18, fontSize: 12, fontWeight: 700,
             display: "inline-flex", alignItems: "center", justifyContent: "center",
           }}>
             {activeCount}
@@ -576,7 +576,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                 {activeCount > 0 && (
                   <span style={{
                     marginLeft: "8px", background: "#f97316", color: "#fff",
-                    borderRadius: "20px", fontSize: "11px", fontWeight: 700, padding: "1px 7px",
+                    borderRadius: "20px", fontSize: "12px", fontWeight: 700, padding: "1px 7px",
                   }}>{activeCount}</span>
                 )}
               </span>

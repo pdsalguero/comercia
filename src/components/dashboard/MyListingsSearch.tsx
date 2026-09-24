@@ -92,7 +92,7 @@ export function MyListingsSearch({ q, statusFilter, statusCounts = {}, total = 0
                 <span style={{
                   background: isActive ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
                   color: isActive ? '#fff' : '#475569',
-                  fontSize: '11px', fontWeight: 700,
+                  fontSize: '12px', fontWeight: 700,
                   padding: '0 6px', borderRadius: '20px',
                   lineHeight: '18px', minWidth: '18px', textAlign: 'center',
                 }}>

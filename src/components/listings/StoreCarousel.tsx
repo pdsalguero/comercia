@@ -68,7 +68,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
           <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", display: "flex", alignItems: "center", gap: "6px" }}>
             <Store size={17} strokeWidth={1.9} color="#1d6fb8" /> Concesionarias
           </span>
-          <span style={{ background: "#dbeafe", color: "#1d4ed8", borderRadius: "5px", padding: "1px 7px", fontSize: "9px", fontWeight: 800 }}>NUEVO</span>
+          <span style={{ background: "#dbeafe", color: "#1d4ed8", borderRadius: "5px", padding: "1px 7px", fontSize: "12px", fontWeight: 800 }}>NUEVO</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {/* Dots + arrows — desktop only */}
@@ -144,7 +144,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                       position: "absolute", top: "6px", right: "6px",
                       background: "#2563eb", color: "#fff",
                       borderRadius: "20px", padding: "2px 7px",
-                      fontSize: "9px", fontWeight: 800,
+                      fontSize: "12px", fontWeight: 800,
                       display: "flex", alignItems: "center", gap: "3px",
                     }}>
                       <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -158,7 +158,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                   <div style={{ fontWeight: 800, fontSize: "12px", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.3px" }}>
                     {store.store_name}
                   </div>
-                  <div style={{ fontSize: "11px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: "2px" }}>
+                  <div style={{ fontSize: "12px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: "2px" }}>
                     {store.store_description
                       ? store.store_description.slice(0, 45)
                       : store.listing_count > 0

@@ -173,7 +173,7 @@ function FieldInput({
             {field.label}
           </span>
           {field.hint && (
-            <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+            <span style={{ fontSize: "12px", color: "#94a3b8" }}>
               ({field.hint})
             </span>
           )}

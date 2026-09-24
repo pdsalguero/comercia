@@ -22,14 +22,14 @@
   margin: 0;
 }
 
-/* El recorte horizontal va solo en <html>: si el <body> también lo tiene, pasa a ser un contenedor
-   de scroll y el encabezado `position: sticky` nunca queda fijo arriba al desplazarse. */
-html {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+/* Recorte horizontal con `clip`, no con `hidden`: `hidden` convierte al elemento en contenedor de scroll
+   (y el encabezado `position: sticky` deja de quedar fijo) y Safari de iPhone lo ignora en <html>, así
+   que igual se podía desplazar la página de costado. `clip` recorta sin crear scroll. Lo que desborda se
+   corrige en su origen; esto es la red de seguridad. */
+html,
 body {
-  max-width: 100vw;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -443,7 +443,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 999px;
   background: #f97316;
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 18px;
   text-align: center;
@@ -662,6 +662,14 @@ details.sf > summary::marker { display: none; }
 
 /* ── Celulares angostos: el nombre "CuyoRodados" es largo y empujaba "Publicar" y el menú fuera de
    pantalla. Se achica el logo del header (zoom reduce también el espacio que ocupa, no solo el dibujo). ── */
+/* En celular la fila del header es logo + "Publicar" (98 px) + menú (44 px): con la separación de 16 px
+   no entraba en 390 px (el menú quedaba 5 px afuera). Separación de 8 px y logo al 90 %. */
+@media (max-width: 767px) {
+  .navbar-row { gap: 8px !important; }
+}
+@media (max-width: 420px) {
+  .nav-logo { zoom: 0.9; }
+}
 @media (max-width: 389px) {
   .nav-logo { zoom: 0.8; }
 }
@@ -1189,8 +1197,13 @@ details.sf > summary::marker { display: none; }
   }
 
   .listing-list-card .llc-badge {
-    font-size: 8px !important;
+    font-size: 12px !important;
     padding: 1px 5px !important;
+  }
+  /* Texto del sello oculto a la vista pero no para lectores de pantalla (no chocaba con el corazón) */
+  .listing-list-card .llc-badge-text {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
   }
 
   /* ── Dashboard mobile ── */
@@ -1247,7 +1260,7 @@ details.sf > summary::marker { display: none; }
   }
 
   .dashboard-kpi-card .kpi-label {
-    font-size: 11px !important;
+    font-size: 12px !important;
     margin-top: 3px !important;
   }
 
@@ -1352,4 +1365,45 @@ details.sidebar-section > summary svg { transition: transform 0.2s; }
 .llc-chip-link:hover {
   text-decoration: underline;
   filter: brightness(0.94);
+}
+
+/* ── Áreas táctiles en celular (mínimo 44×44) ──────────────────────────────────────────────────────
+   Controles de formulario con alto mínimo de 44 px. Para botones chicos que no conviene agrandar a la
+   vista (corazón, flechas de fotos), `.tap-44` extiende el área que responde al toque con un
+   pseudo-elemento invisible, sin cambiar el dibujo. */
+.tap-44 { position: relative; }
+@media (max-width: 768px) {
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]) {
+    min-height: 44px;
+  }
+  .tap-44::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  .filter-btn-mobile,
+  .hero-smart-search-btn,
+  .hero-more-btn {
+    min-height: 44px;
+  }
+  .hero-smart-search-btn { min-width: 44px; justify-content: center; }
+  /* Botones con alto fijo en su estilo (tarjetas del panel): en celular pasan a 44 px */
+  .tap-h-44 {
+    height: auto !important;
+    min-height: 44px;
+  }
+}
+
+/* Datos del vehículo en la ficha: 3 columnas, 2 en celular (con 3 se cortaban "Combustible" y los valores) */
+.detail-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 600px) {
+  .detail-specs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

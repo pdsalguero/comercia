@@ -19,6 +19,10 @@ import { Dialog } from "@/components/ui/Dialog";
 import { parsePriceInput } from "@/lib/price-input";
 import { CONDITION_OPTIONS, FUEL_OPTIONS, TRANSMISSION_OPTIONS, normalizeSpecValue, plural } from "@/lib/labels";
 import { canonicalModel } from "@/lib/model-normalize";
+import {
+  AlertTriangle, Camera, Car, CircleDollarSign, FileText, FolderOpen, PartyPopper, Send, Sparkles, Store, User,
+  type LucideIcon,
+} from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────
 type Step = "upload" | "analyzing" | "form" | "publishing" | "promo" | "done";
@@ -93,7 +97,7 @@ const C = {
 const T = {
   // Labels
   lbl: {
-    fontSize: "10px",
+    fontSize: "12px",
     fontWeight: 700,
     color: C.slate400,
     textTransform: "uppercase" as const,
@@ -166,7 +170,7 @@ function SelectWrap({ children }: { children: React.ReactNode }) {
           top: "50%",
           transform: "translateY(-50%)",
           color: C.slate300,
-          fontSize: "10px",
+          fontSize: "12px",
           pointerEvents: "none",
         }}
       >
@@ -200,7 +204,7 @@ function Field({
         {children}
       </div>
       {invalid && (
-        <div role="alert" style={{ fontSize: "11.5px", color: C.red, fontWeight: 600, marginTop: "4px" }}>
+        <div role="alert" style={{ fontSize: "12px", color: C.red, fontWeight: 600, marginTop: "4px" }}>
           Completá este campo
         </div>
       )}
@@ -208,14 +212,14 @@ function Field({
   );
 }
 
-function CardTitle({ icon, label }: { icon: string; label: string }) {
+function CardTitle({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
         gap: "8px",
-        fontSize: "10px",
+        fontSize: "12px",
         fontWeight: 700,
         color: C.slate400,
         textTransform: "uppercase" as const,
@@ -233,11 +237,11 @@ function CardTitle({ icon, label }: { icon: string; label: string }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "13px",
+          color: "#fff",
           flexShrink: 0,
         }}
       >
-        {icon}
+        <Icon size={15} strokeWidth={2.2} aria-hidden="true" />
       </div>
       {label}
     </div>
@@ -260,7 +264,7 @@ function Badge({
   return (
     <span
       style={{
-        fontSize: "10px",
+        fontSize: "12px",
         fontWeight: 700,
         padding: "3px 9px",
         borderRadius: "20px",
@@ -424,7 +428,7 @@ function CategoryPicker({ value, onChange }: { value: number; onChange: (id: num
             <span style={{ fontSize: "13.5px", color: C.slate400, flex: 1, textAlign: "left" }}>Seleccioná...</span>
           </>
         )}
-        <span style={{ fontSize: "10px", color: C.slate300 }}>▼</span>
+        <span style={{ fontSize: "12px", color: C.slate300 }}>▼</span>
       </button>
 
       {open && rect && (() => {
@@ -525,7 +529,7 @@ function TechGroupPicker({ value, onChange }: { value: string; onChange: (key: s
             <span style={{ fontSize: "13.5px", color: C.slate400, flex: 1, textAlign: "left" }}>Seleccioná...</span>
           </>
         )}
-        <span style={{ fontSize: "10px", color: C.slate300 }}>▼</span>
+        <span style={{ fontSize: "12px", color: C.slate300 }}>▼</span>
       </button>
 
       {open && rect && (() => {
@@ -609,7 +613,7 @@ function CheckItem({
         }}
       >
         {value && (
-          <span style={{ color: C.white, fontSize: "9px", fontWeight: 900 }}>
+          <span style={{ color: C.white, fontSize: "12px", fontWeight: 900 }}>
             ✓
           </span>
         )}
@@ -655,7 +659,7 @@ function StepBar({ current, formFilled }: { current: Step; formFilled?: boolean 
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              fontSize: "11px",
+              fontSize: "12px",
               fontWeight: active ? 700 : 500,
               color: active
                 ? C.blue
@@ -675,7 +679,7 @@ function StepBar({ current, formFilled }: { current: Step; formFilled?: boolean 
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "8px",
+                fontSize: "12px",
                 fontWeight: 800,
                 background: active
                   ? C.blue
@@ -1264,7 +1268,7 @@ export default function NewListingPage() {
           </svg>
           <div>
             <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", letterSpacing: "-0.2px", lineHeight: 1.2 }}>Completá tu aviso</div>
-            <div style={{ fontSize: "10px", color: "rgba(148,198,233,.7)", fontWeight: 500, marginTop: "1px" }}>
+            <div style={{ fontSize: "12px", color: "rgba(148,198,233,.7)", fontWeight: 500, marginTop: "1px" }}>
               {Math.round((passed / checks.length) * 100)}% completo
             </div>
           </div>
@@ -1296,16 +1300,17 @@ export default function NewListingPage() {
 
           {/* Error */}
           {error && (
-            <div style={{ background: C.redBg, border: `1px solid #fecaca`, borderRadius: "10px", padding: "10px 12px", marginBottom: "12px", fontSize: "12px", color: C.red, lineHeight: 1.4 }}>
-              ⚠️ {error}
+            <div role="alert" style={{ background: C.redBg, border: `1px solid #fecaca`, borderRadius: "10px", padding: "10px 12px", marginBottom: "12px", fontSize: "12px", color: C.red, lineHeight: 1.4 }}>
+              <AlertTriangle size={14} aria-hidden="true" style={{ verticalAlign: "-2px", marginRight: "6px" }} />
+              {error}
             </div>
           )}
 
           {/* Progress bar */}
           <div style={{ marginBottom: "10px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-              <span style={{ fontSize: "11px", color: C.slate500, fontWeight: 500 }}>Completud del aviso</span>
-              <span style={{ fontSize: "11px", fontWeight: 700, color: passed >= 5 ? "#15803d" : C.blue }}>{Math.round((passed / checks.length) * 100)}%</span>
+              <span style={{ fontSize: "12px", color: C.slate500, fontWeight: 500 }}>Completud del aviso</span>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: passed >= 5 ? "#15803d" : C.blue }}>{Math.round((passed / checks.length) * 100)}%</span>
             </div>
             <div style={{ height: "5px", background: C.slate100, borderRadius: "100px", overflow: "hidden" }}>
               <div style={{
@@ -1321,13 +1326,13 @@ export default function NewListingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px", marginBottom: "12px" }}>
             {checks.map((item) => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <span style={{ fontSize: "11px", color: item.ok ? "#16a34a" : C.slate300 }}>{item.ok ? "✓" : "○"}</span>
-                <span style={{ fontSize: "11px", color: item.ok ? C.slate600 : C.slate400, fontWeight: item.ok ? 600 : 400 }}>{item.label}</span>
+                <span style={{ fontSize: "12px", color: item.ok ? "#16a34a" : C.slate300 }}>{item.ok ? "✓" : "○"}</span>
+                <span style={{ fontSize: "12px", color: item.ok ? C.slate600 : C.slate400, fontWeight: item.ok ? 600 : 400 }}>{item.label}</span>
               </div>
             ))}
           </div>
 
-          <p style={{ fontSize: "11px", color: C.slate400, textAlign: "center", lineHeight: 1.5, margin: "0" }}>
+          <p style={{ fontSize: "12px", color: C.slate400, textAlign: "center", lineHeight: 1.5, margin: "0" }}>
             Al publicar aceptás los{" "}
             <Link href="/terms" style={{ color: C.blue, textDecoration: "none", fontWeight: 600 }}>términos y condiciones</Link>.
           </p>
@@ -1376,7 +1381,9 @@ export default function NewListingPage() {
               boxShadow: "0 20px 60px rgba(15,23,42,.25)",
             }}
           >
-            <div style={{ fontSize: "32px", textAlign: "center", marginBottom: "12px" }} aria-hidden="true">⚠️</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px", color: "#f59e0b" }}>
+              <AlertTriangle size={32} strokeWidth={1.75} aria-hidden="true" />
+            </div>
             <h2 id="publish-missing-title" style={{ fontSize: "16px", fontWeight: 800, color: "#1e293b", textAlign: "center", margin: "0 0 6px" }}>
               Faltan datos obligatorios
             </h2>
@@ -1442,7 +1449,9 @@ export default function NewListingPage() {
           }}>
             {/* Glow orbs */}
             <div style={{ position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)", pointerEvents: "none" }} />
-            <div style={{ fontSize: "52px", lineHeight: 1, marginBottom: "12px", animation: "aiRevealStar 3s ease forwards" }}>✨</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px", color: "#c4b5fd", animation: "aiRevealStar 3s ease forwards" }}>
+              <Sparkles size={48} strokeWidth={1.5} aria-hidden="true" />
+            </div>
             <div style={{ fontSize: "20px", fontWeight: 900, color: "#fff", marginBottom: "6px", letterSpacing: "-0.3px" }}>
               ¡Tu aviso está casi listo!
             </div>
@@ -1461,7 +1470,7 @@ export default function NewListingPage() {
                 </span>
               ))}
             </div>
-            <div style={{ marginTop: "18px", fontSize: "11px", color: "rgba(148,163,184,0.6)", fontWeight: 500 }}>
+            <div style={{ marginTop: "18px", fontSize: "12px", color: "rgba(148,163,184,0.6)", fontWeight: 500 }}>
               Revisá y editá antes de publicar
             </div>
           </div>
@@ -1501,7 +1510,8 @@ export default function NewListingPage() {
             animation: "floatIn .2s ease",
           }}
         >
-          🚀 ¡Publicar Aviso!
+          <Send size={16} aria-hidden="true" />
+          ¡Publicar Aviso!
         </button>
       )}
       <style>{`
@@ -1528,7 +1538,7 @@ export default function NewListingPage() {
           alignItems: "center", gap: "12px",
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: "11px", color: C.slate500, marginBottom: "3px" }}>
+            <div style={{ fontSize: "12px", color: C.slate500, marginBottom: "3px" }}>
               Aviso <strong style={{ color: passed >= 5 ? "#16a34a" : C.blue }}>{Math.round((passed / checks.length) * 100)}% completo</strong>
             </div>
             <div style={{ height: "4px", background: C.slate100, borderRadius: "100px", overflow: "hidden" }}>
@@ -1574,7 +1584,7 @@ export default function NewListingPage() {
             {/* ░░ 01 PHOTOS ░░ */}
             <div style={T.card}>
               <div style={T.cardHead}>
-                <CardTitle icon="📷" label="Subí tus fotos" />
+                <CardTitle icon={Camera} label="Subí tus fotos" />
                 <Badge
                   status={
                     photos.length >= 3
@@ -1682,15 +1692,15 @@ export default function NewListingPage() {
 
                     {/* AI badge */}
                     <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "linear-gradient(135deg, rgba(29,111,184,.35), rgba(139,92,246,.35))", border: "1px solid rgba(165,180,252,.4)", borderRadius: "20px", padding: "4px 12px", marginBottom: "14px" }}>
-                      <span style={{ fontSize: "11px" }}>✨</span>
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(199,210,254,.95)", letterSpacing: "0.4px" }}>Completado automático incluido</span>
+                      <Sparkles size={13} color="rgba(199,210,254,.95)" aria-hidden="true" />
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(199,210,254,.95)", letterSpacing: "0.4px" }}>Completado automático incluido</span>
                     </div>
 
                     {/* Camera icon with glow */}
                     <div style={{ position: "relative", display: "inline-flex", marginBottom: "12px" }}>
                       <div style={{ position: "absolute", inset: "-8px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,111,184,.35) 0%, transparent 70%)" }} />
                       <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "linear-gradient(135deg, #1d6fb8, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(29,111,184,.5)", position: "relative" }}>
-                        <span style={{ fontSize: "26px", lineHeight: 1 }}>📷</span>
+                        <Camera size={26} color="#fff" aria-hidden="true" />
                       </div>
                     </div>
 
@@ -1700,7 +1710,7 @@ export default function NewListingPage() {
                     <div style={{ fontSize: "12px", color: "rgba(199,210,254,.75)", marginBottom: "6px" }}>
                       Detectamos categoría, título y datos del vehículo automáticamente
                     </div>
-                    <div style={{ fontSize: "11px", color: "rgba(148,163,184,.65)", marginBottom: "18px" }}>
+                    <div style={{ fontSize: "12px", color: "rgba(148,163,184,.65)", marginBottom: "18px" }}>
                       Arrastrá o seleccioná desde tu dispositivo · al menos 1 foto
                     </div>
 
@@ -1714,10 +1724,12 @@ export default function NewListingPage() {
                           borderRadius: "10px", padding: "11px 28px",
                           fontSize: "13px", fontWeight: 700, cursor: "pointer",
                           boxShadow: "0 4px 16px rgba(29,111,184,.5)",
-                          letterSpacing: "0.2px",
+                          letterSpacing: "0.2px", minHeight: "44px",
+                          display: "inline-flex", alignItems: "center", gap: "8px",
                         }}
                       >
-                        📂 Elegir fotos
+                        <FolderOpen size={16} aria-hidden="true" />
+                        Elegir fotos
                       </button>
                       <button
                         type="button"
@@ -1728,10 +1740,12 @@ export default function NewListingPage() {
                           color: "#fff", border: "1.5px solid rgba(255,255,255,0.25)",
                           borderRadius: "10px", padding: "11px 28px",
                           fontSize: "13px", fontWeight: 700, cursor: "pointer",
-                          letterSpacing: "0.2px",
+                          letterSpacing: "0.2px", minHeight: "44px",
+                          display: "inline-flex", alignItems: "center", gap: "8px",
                         }}
                       >
-                        📷 Tomar foto
+                        <Camera size={16} aria-hidden="true" />
+                        Tomar foto
                       </button>
                     </div>
 
@@ -1739,7 +1753,7 @@ export default function NewListingPage() {
                     <div style={{ display: "flex", gap: "6px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" as const }}>
                       {/* Sin "Sin registro": publicar requiere cuenta */}
                       {["Gratis", "30 segundos"].map(tag => (
-                        <span key={tag} style={{ fontSize: "10px", fontWeight: 600, color: "rgba(148,163,184,.7)", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: "20px", padding: "3px 10px" }}>{tag}</span>
+                        <span key={tag} style={{ fontSize: "12px", fontWeight: 600, color: "rgba(148,163,184,.7)", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: "20px", padding: "3px 10px" }}>{tag}</span>
                       ))}
                     </div>
                   </div>
@@ -1778,7 +1792,7 @@ export default function NewListingPage() {
                             <div style={{
                               position: "absolute", bottom: 0, left: 0, right: 0,
                               background: C.blue, color: C.white,
-                              fontSize: "9px", fontWeight: 800, textAlign: "center",
+                              fontSize: "12px", fontWeight: 800, textAlign: "center",
                               padding: "3px", letterSpacing: ".5px",
                             }}>PORTADA</div>
                           )}
@@ -1795,7 +1809,7 @@ export default function NewListingPage() {
                             <div style={{
                               position: "absolute", bottom: "5px", left: "5px",
                               background: "rgba(15,23,42,.6)", color: "rgba(255,255,255,.9)",
-                              fontSize: "9px", fontWeight: 700, borderRadius: "6px",
+                              fontSize: "12px", fontWeight: 700, borderRadius: "6px",
                               padding: "2px 6px",
                             }}>{i + 1}</div>
                           )}
@@ -1812,7 +1826,7 @@ export default function NewListingPage() {
                           color: C.slate300,
                         }}>
                           <span style={{ fontSize: "28px", lineHeight: 1 }}>+</span>
-                          <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: ".5px", color: C.slate300 }}>AGREGAR</span>
+                          <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: ".5px", color: C.slate300 }}>AGREGAR</span>
                         </button>
                       )}
                     </div>
@@ -1843,7 +1857,7 @@ export default function NewListingPage() {
                         padding: "9px 14px",
                       }}>
                         <span style={{
-                          fontSize: "9px", fontWeight: 800, letterSpacing: "0.8px",
+                          fontSize: "12px", fontWeight: 800, letterSpacing: "0.8px",
                           textTransform: "uppercase" as const,
                           background: "linear-gradient(135deg, #1d6fb8, #8b5cf6)",
                           color: "#fff", borderRadius: "20px", padding: "3px 8px",
@@ -1880,7 +1894,7 @@ export default function NewListingPage() {
             {/* ░░ 02 BASIC DATA ░░ */}
             <div style={T.card}>
               <div style={T.cardHead}>
-                <CardTitle icon="📝" label="02 · Datos básicos" />
+                <CardTitle icon={FileText} label="02 · Datos básicos" />
                 <Badge
                   status={
                     title.length > 5 && description.length > 20
@@ -1915,7 +1929,7 @@ export default function NewListingPage() {
                     />
                     <div
                       style={{
-                        fontSize: "10px",
+                        fontSize: "12px",
                         color: C.slate300,
                         textAlign: "right",
                         marginTop: "3px",
@@ -1965,7 +1979,7 @@ export default function NewListingPage() {
             <div style={T.card}>
               <div style={T.cardHead}>
                 <CardTitle
-                  icon={catConfig?.icon ?? "📋"}
+                  icon={Car}
                   label="03 · Detalles del vehículo"
                 />
                 <Badge
@@ -2277,7 +2291,7 @@ export default function NewListingPage() {
                               style={{ paddingRight: "36px" }}
                               min={0}
                             />
-                            <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>cc</span>
+                            <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>cc</span>
                           </div>
                         </Field>
                       )}
@@ -2300,7 +2314,7 @@ export default function NewListingPage() {
                             placeholder="0"
                             style={{ paddingRight: attrs.sub_category === "nautica" ? "44px" : "36px" }}
                           />
-                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
+                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: C.slate300, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
                             {attrs.sub_category === "nautica" ? "hs" : "km"}
                           </span>
                         </div>
@@ -2388,7 +2402,7 @@ export default function NewListingPage() {
                           <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                             <span>Datos adicionales</span>
                             {(attrs.version || attrs.color || attrs.engine || attrs.traction || attrs.doors || attrs.patente) && (
-                              <span style={{ fontSize: "10px", background: C.blue, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontWeight: 700 }}>
+                              <span style={{ fontSize: "12px", background: C.blue, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontWeight: 700 }}>
                                 {[attrs.version, attrs.color, attrs.engine, attrs.traction, attrs.doors, attrs.patente].filter(Boolean).length} completados
                               </span>
                             )}
@@ -2464,7 +2478,7 @@ export default function NewListingPage() {
                             <div style={{ gridColumn: "span 2" }}>
                               <label style={T.lbl}>Tipo de vendedor</label>
                               <div style={{ display: "flex", gap: "8px" }}>
-                                {[["particular", "👤 Particular"], ["concesionaria", "🏢 Tienda / Concesionaria"]].map(([v, l]) => {
+                                {([["particular", "Particular", User], ["concesionaria", "Tienda / Concesionaria", Store]] as const).map(([v, l, Icon]) => {
                                   const isLocked = userIsStore && v === "particular";
                                   const isActive = attrs.seller_type === v;
                                   return (
@@ -2484,16 +2498,20 @@ export default function NewListingPage() {
                                         cursor: isLocked ? "not-allowed" : "pointer",
                                         fontFamily: "inherit", transition: "all .1s",
                                         textDecoration: isLocked ? "line-through" : "none",
+                                        minHeight: "44px",
+                                        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px",
                                       }}
+                                      aria-pressed={isActive}
                                     >
+                                      <Icon size={15} aria-hidden="true" />
                                       {l}
                                     </button>
                                   );
                                 })}
                               </div>
                               {userIsStore && (
-                                <div style={{ fontSize: "11px", color: C.slate400, marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
-                                  <span>🏪</span> Publicás como tienda — la opción "Particular" no está disponible
+                                <div style={{ fontSize: "12px", color: C.slate400, marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                                  <Store size={13} aria-hidden="true" /> Publicás como tienda — la opción "Particular" no está disponible
                                 </div>
                               )}
                             </div>
@@ -2535,13 +2553,13 @@ export default function NewListingPage() {
                                         display: "flex", alignItems: "center", gap: "5px",
                                       }}
                                     >
-                                      {active && <span style={{ fontSize: "10px" }}>●</span>}
+                                      {active && <span style={{ fontSize: "12px" }}>●</span>}
                                       {l}
                                     </button>
                                   );
                                 })}
                               </div>
-                              <div style={{ fontSize: "11px", color: C.slate400, marginTop: "8px" }}>Tocá para activar o desactivar</div>
+                              <div style={{ fontSize: "12px", color: C.slate400, marginTop: "8px" }}>Tocá para activar o desactivar</div>
                             </div>
                           </div>
                         )}
@@ -2663,7 +2681,7 @@ export default function NewListingPage() {
                             />
                           )}
                           {field.hint && (
-                            <div style={{ fontSize: "11px", color: C.slate400, marginTop: "4px" }}>{field.hint}</div>
+                            <div style={{ fontSize: "12px", color: C.slate400, marginTop: "4px" }}>{field.hint}</div>
                           )}
                         </Field>
                       ))}
@@ -2749,14 +2767,14 @@ export default function NewListingPage() {
                       <Field label="Sup. cubierta">
                         <div style={{ position: "relative" }}>
                           <FocusInp type="number" value={attrs.m2_covered ?? ""} onChange={(e) => handleAttr("m2_covered", e.target.value)} placeholder="80" style={{ paddingRight: "36px" }}/>
-                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700 }}>m²</span>
+                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: C.slate300, fontWeight: 700 }}>m²</span>
                         </div>
                       </Field>
 
                       <Field label="Sup. total">
                         <div style={{ position: "relative" }}>
                           <FocusInp type="number" value={attrs.m2_total ?? ""} onChange={(e) => handleAttr("m2_total", e.target.value)} placeholder="200" style={{ paddingRight: "36px" }}/>
-                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: C.slate300, fontWeight: 700 }}>m²</span>
+                          <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: C.slate300, fontWeight: 700 }}>m²</span>
                         </div>
                       </Field>
 
@@ -2795,7 +2813,7 @@ export default function NewListingPage() {
                         <Field label="Expensas mensuales">
                           <div style={{ position: "relative" }}>
                             <FocusInp type="number" value={attrs.expenses ?? ""} onChange={(e) => handleAttr("expenses", e.target.value)} placeholder="0" style={{ paddingLeft: "28px" }}/>
-                            <span style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "11px", color: C.slate400, fontWeight: 700 }}>$</span>
+                            <span style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: C.slate400, fontWeight: 700 }}>$</span>
                           </div>
                         </Field>
                       )}
@@ -2859,7 +2877,7 @@ export default function NewListingPage() {
                       <div style={{ gridColumn: "span 2" }}>
                         <label style={{ ...T.lbl, display: "block", marginBottom: "8px" }}>
                           Ubicación exacta
-                          <span style={{ fontSize: "11px", color: C.slate400, fontWeight: 400, marginLeft: "8px" }}>Solo visible para interesados</span>
+                          <span style={{ fontSize: "12px", color: C.slate400, fontWeight: 400, marginLeft: "8px" }}>Solo visible para interesados</span>
                         </label>
                         <PropertyLocation
                           lat={attrs.lat ? Number(attrs.lat) : undefined}
@@ -2916,7 +2934,7 @@ export default function NewListingPage() {
             {/* ░░ 04 PRECIO ░░ */}
             <div style={T.card}>
               <div style={T.cardHead}>
-                <CardTitle icon="💰" label="04 · Precio" />
+                <CardTitle icon={CircleDollarSign} label="04 · Precio" />
                 <Badge
                   status={price === "0" ? "partial" : price ? "ok" : "pending"}
                   label={price === "0" ? "Consultar" : price ? `${currency === "ARS" ? "$" : "U$S"} ${Number(price).toLocaleString("es-AR")}` : "Sin precio"}
@@ -2983,7 +3001,7 @@ export default function NewListingPage() {
 
                 {/* Precio a consultar — opción prominente */}
                 <div style={{ marginTop: "14px", borderTop: `1px solid ${C.slate100}`, paddingTop: "14px" }}>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: C.slate400, textTransform: "uppercase" as const, letterSpacing: "0.5px", marginBottom: "10px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: C.slate400, textTransform: "uppercase" as const, letterSpacing: "0.5px", marginBottom: "10px" }}>
                     ¿No querés mostrar el precio?
                   </div>
                   <button
@@ -3005,7 +3023,7 @@ export default function NewListingPage() {
                       display: "flex", alignItems: "center", justifyContent: "center",
                       transition: "all .12s",
                     }}>
-                      {price === "0" && <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900 }}>✓</span>}
+                      {price === "0" && <span style={{ color: "#fff", fontSize: "12px", fontWeight: 900 }}>✓</span>}
                     </div>
                     <div style={{ textAlign: "left" as const, flex: 1 }}>
                       <div style={{ fontSize: "14px", fontWeight: 700, color: price === "0" ? "#fff" : C.slate800 }}>
@@ -3016,7 +3034,7 @@ export default function NewListingPage() {
                       </div>
                     </div>
                     {price === "0" && (
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,.9)", background: "rgba(255,255,255,.15)", borderRadius: "20px", padding: "3px 10px", flexShrink: 0 }}>
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,.9)", background: "rgba(255,255,255,.15)", borderRadius: "20px", padding: "3px 10px", flexShrink: 0 }}>
                         Activo
                       </span>
                     )}
@@ -3088,8 +3106,8 @@ export default function NewListingPage() {
             <div style={{
               width: "60px", height: "60px", margin: "0 auto 16px",
               borderRadius: "50%", background: C.blue50,
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px",
-            }}>🎉</div>
+              display: "flex", alignItems: "center", justifyContent: "center", color: C.blue,
+            }}><PartyPopper size={28} aria-hidden="true" /></div>
             <div style={{ fontWeight: 900, fontSize: "22px", color: C.slate900, marginBottom: "8px" }}>
               ¡Aviso publicado!
             </div>
@@ -3139,7 +3157,7 @@ export default function NewListingPage() {
                 {plan.popular && (
                   <div style={{
                     position: "absolute", top: "-1px", left: "50%", transform: "translateX(-50%)",
-                    background: plan.gradient, color: "#fff", fontSize: "10px", fontWeight: 800,
+                    background: plan.gradient, color: "#fff", fontSize: "12px", fontWeight: 800,
                     padding: "3px 12px", borderRadius: "0 0 8px 8px", whiteSpace: "nowrap" as const,
                   }}>
                     MÁS ELEGIDO
@@ -3149,16 +3167,16 @@ export default function NewListingPage() {
                 <div style={{ background: plan.colorLight, padding: "16px 16px 12px", borderBottom: `1px solid ${plan.colorBorder}` }}>
                   <div style={{
                     display: "inline-block", background: plan.gradient, color: "#fff",
-                    borderRadius: "6px", padding: "3px 9px", fontSize: "11px", fontWeight: 800, marginBottom: "10px",
+                    borderRadius: "6px", padding: "3px 9px", fontSize: "12px", fontWeight: 800, marginBottom: "10px",
                   }}>
                     {plan.badge}
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "4px" }}>
                     <div style={{ fontSize: "15px", fontWeight: 800, color: "#111" }}>{plan.name}</div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
-                      <span style={{ fontSize: "11px", color: "#888" }}>$</span>
+                      <span style={{ fontSize: "12px", color: "#888" }}>$</span>
                       <span style={{ fontSize: "22px", fontWeight: 900, color: plan.color, lineHeight: 1 }}>{plan.price}</span>
-                      <span style={{ fontSize: "10px", color: "#aaa" }}>ARS</span>
+                      <span style={{ fontSize: "12px", color: "#aaa" }}>ARS</span>
                     </div>
                   </div>
                 </div>
@@ -3166,7 +3184,7 @@ export default function NewListingPage() {
                 <div style={{ padding: "12px 16px" }}>
                   <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
                     {plan.features.map(f => (
-                      <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "6px", fontSize: "11px", color: "#444" }}>
+                      <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "6px", fontSize: "12px", color: "#444" }}>
                         <span style={{ color: plan.color, fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
                       </li>
                     ))}
@@ -3239,10 +3257,10 @@ export default function NewListingPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "28px",
+                color: "#fff",
               }}
             >
-              🎉
+              <PartyPopper size={28} aria-hidden="true" />
             </div>
             <div
               style={{

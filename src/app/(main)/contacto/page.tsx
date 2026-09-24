@@ -99,7 +99,7 @@ export default function ContactPage() {
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "16px" }}>
             <div>
               <label style={lbl}>Nombre <span style={{ color: "#ef4444" }}>*</span></label>
               <input style={inp} value={form.name} onChange={e => set("name", e.target.value)} placeholder="Tu nombre completo" required />
@@ -110,7 +110,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "16px" }}>
             <div>
               <label style={lbl}>Teléfono / WhatsApp</label>
               <input style={inp} type="tel" value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="+54 264 000-0000" />
@@ -164,7 +164,8 @@ export default function ContactPage() {
       </div>
 
       {/* Contact channels */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "20px" }}>
+      {/* En columnas solo si entran: en celular van una debajo de la otra (antes el de WhatsApp llegaba a 447 px) */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: "12px", marginTop: "20px" }}>
         <a href="mailto:contacto@cuyorodados.com.ar" style={{ textDecoration: "none" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: "12px",
@@ -181,8 +182,8 @@ export default function ContactPage() {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#1d6fb8", textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>contacto@cuyorodados.com.ar</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#1d6fb8", textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</div>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", overflowWrap: "anywhere" }}>contacto@cuyorodados.com.ar</div>
             </div>
           </div>
         </a>
@@ -203,8 +204,8 @@ export default function ContactPage() {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.5px" }}>WhatsApp</div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>+54 9 264 511-5818</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.5px" }}>WhatsApp</div>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", overflowWrap: "anywhere" }}>+54 9 264 511-5818</div>
             </div>
           </div>
         </a>

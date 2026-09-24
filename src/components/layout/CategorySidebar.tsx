@@ -121,7 +121,7 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
               {enabled ? (
                 <span
                   style={{
-                    fontSize: "10px",
+                    fontSize: "12px",
                     color: isActive ? "#1d6fb8" : "#94a3b8",
                     background: isActive ? "#d5e6f6" : "#f1f5f9",
                     borderRadius: "4px",
@@ -134,7 +134,7 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
               ) : (
                 <span
                   style={{
-                    fontSize: "9px",
+                    fontSize: "12px",
                     color: "#a78bfa",
                     background: "#f5f3ff",
                     borderRadius: "4px",
@@ -170,10 +170,10 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
           }}
         >
           <div style={{ fontSize: "16px", marginBottom: "2px" }}>🚀</div>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", marginBottom: "2px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#7c3aed", marginBottom: "2px" }}>
             ¡Más categorías en camino!
           </div>
-          <div style={{ fontSize: "10px", color: "#8b5cf6", lineHeight: 1.4 }}>
+          <div style={{ fontSize: "12px", color: "#8b5cf6", lineHeight: 1.4 }}>
             Estamos trabajando para traerte todo en un solo lugar.
           </div>
         </div>
@@ -200,7 +200,7 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
         </div>
         <div
           style={{
-            fontSize: "11px",
+            fontSize: "12px",
             color: "#b45309",
             lineHeight: 1.5,
             marginBottom: "10px",

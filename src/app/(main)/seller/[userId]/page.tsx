@@ -343,7 +343,7 @@ export default async function SellerPage({
                   {displayName ?? "Vendedor"}
                 </h1>
                 {profile.is_store && (
-                  <span style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.3px" }}>
+                  <span style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "12px", fontWeight: 700, letterSpacing: "0.3px" }}>
                     TIENDA
                   </span>
                 )}
@@ -352,13 +352,13 @@ export default async function SellerPage({
               {/* Line 2: verified badges + member since */}
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "3px", flexWrap: "wrap" }}>
                 {profile.identity_verified && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                     Vendedor Identificado
                   </span>
                 )}
                 {profile.store_verified && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                     {profile.is_store ? "Tienda verificada" : "Verificado"}
                   </span>
@@ -473,7 +473,7 @@ export default async function SellerPage({
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                         {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1d6fb8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}
-                        <span style={{ fontSize: "10px", color: active ? "#1d6fb8" : "#94a3b8", background: active ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
+                        <span style={{ fontSize: "12px", color: active ? "#1d6fb8" : "#94a3b8", background: active ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
                           {cat.count}
                         </span>
                       </div>
@@ -504,7 +504,7 @@ export default async function SellerPage({
                                 <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: tipoActive ? "#1d6fb8" : "#cbd5e1", flexShrink: 0 }} />
                                 <span style={{ fontSize: "12px", color: tipoActive ? "#1d6fb8" : "#475569", fontWeight: tipoActive ? 700 : 400 }}>{label}</span>
                               </div>
-                              <span style={{ fontSize: "10px", color: tipoActive ? "#1d6fb8" : "#94a3b8", background: tipoActive ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
+                              <span style={{ fontSize: "12px", color: tipoActive ? "#1d6fb8" : "#94a3b8", background: tipoActive ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
                                 {count}
                               </span>
                             </div>
@@ -675,18 +675,18 @@ export default async function SellerPage({
                       {subPills.length > 0 && (
                         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "4px" }}>
                           {subPills.map((p, i) => (
-                            <span key={i} style={{ fontSize: "11px", color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
+                            <span key={i} style={{ fontSize: "12px", color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
                           ))}
                         </div>
                       )}
                       <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                         {l.condition && (
-                          <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: 600 }}>
+                          <span style={{ fontSize: "12px", color: "#22c55e", fontWeight: 600 }}>
                             {l.condition === "new" ? "Nuevo" : l.condition === "like_new" ? "Como nuevo" : "Usado"}
                           </span>
                         )}
                         {l.neighborhood && (
-                          <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                          <span style={{ fontSize: "12px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}>
                             <PinIcon size={10} /> {l.neighborhood}
                           </span>
                         )}
@@ -723,7 +723,7 @@ export default async function SellerPage({
                 </span>
                 <div>
                   <StarRating rating={avgRating} size={15} />
-                  <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "1px" }}>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "1px" }}>
                     {reviewCount} {reviewCount === 1 ? "calificación" : "calificaciones"}
                   </div>
                 </div>
@@ -772,14 +772,14 @@ export default async function SellerPage({
                         {review.reviewer?.full_name ?? "Usuario"}
                       </span>
                       {review.reviewer_id === currentUser?.id && (
-                        <span style={{ fontSize: "10px", background: "#eff6ff", color: "#2563eb", borderRadius: "4px", padding: "1px 6px", fontWeight: 700 }}>
+                        <span style={{ fontSize: "12px", background: "#eff6ff", color: "#2563eb", borderRadius: "4px", padding: "1px 6px", fontWeight: 700 }}>
                           Tu calificación
                         </span>
                       )}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "2px" }}>
                       <StarRating rating={review.rating} size={12} />
-                      <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                      <span style={{ fontSize: "12px", color: "#94a3b8" }}>
                         {new Date(review.created_at).toLocaleDateString("es-AR", { year: "numeric", month: "long", day: "numeric" })}
                       </span>
                     </div>

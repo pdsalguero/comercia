@@ -12,7 +12,7 @@ export function PriceDropBadge({ pct, size = "sm" }: { pct: number; size?: "sm" 
         display: "inline-flex", alignItems: "center", gap: "3px", flexShrink: 0,
         background: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0",
         borderRadius: "999px", padding: size === "md" ? "2px 8px" : "1px 6px",
-        fontSize: size === "md" ? "12px" : "11px", fontWeight: 700, letterSpacing: 0, lineHeight: 1.4,
+        fontSize: size === "md" ? "13px" : "12px", fontWeight: 700, letterSpacing: 0, lineHeight: 1.4,
       }}
     >
       <TrendingDown size={size === "md" ? 13 : 12} strokeWidth={2.5} aria-hidden="true" />

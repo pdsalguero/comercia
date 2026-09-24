@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 
 const INPUT = {
   width: '100%',
@@ -47,8 +48,10 @@ function LoginForm() {
       return
     }
 
+    // Solo rutas internas: un ?redirect=https://… llevaba a cualquier sitio después de ingresar
     const redirect = searchParams.get('redirect')
-    router.push(redirect ?? '/')
+    const safe = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
+    router.push(safe)
     router.refresh()
   }
 
@@ -83,9 +86,13 @@ function LoginForm() {
 
       <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
-          <label style={LABEL}>Email</label>
+          <label htmlFor="login-email" style={LABEL}>Email</label>
           <input
+            id="login-email"
+            name="email"
             type="email"
+            autoComplete="email"
+            inputMode="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
@@ -96,13 +103,15 @@ function LoginForm() {
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <label style={{ ...LABEL, marginBottom: 0 }}>Contraseña</label>
+            <label htmlFor="login-password" style={{ ...LABEL, marginBottom: 0 }}>Contraseña</label>
             <Link href="/forgot-password" style={{ fontSize: '13px', color: '#3483fa', textDecoration: 'none' }}>
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          <input
-            type="password"
+          <PasswordInput
+            id="login-password"
+            name="password"
+            autoComplete="current-password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required

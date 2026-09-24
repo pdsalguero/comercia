@@ -17,7 +17,7 @@ export function Footer() {
             <Link href="/" style={{ textDecoration: "none", display: "inline-block", marginBottom: "6px" }}>
               <Logo height={22} tone="light" />
             </Link>
-            <p style={{ fontSize: "11px", color: "#94a3b8", lineHeight: 1.4, margin: "0 0 8px" }}>
+            <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4, margin: "0 0 8px" }}>
               Autos y motos en Mendoza, San Juan y San Luis.
             </p>
             <a
@@ -31,14 +31,14 @@ export function Footer() {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4d94d1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
               </svg>
-              <span style={{ fontSize: "11px", color: "#4d94d1", fontWeight: 600 }}>contacto@cuyorodados.com.ar</span>
+              <span style={{ fontSize: "12px", color: "#4d94d1", fontWeight: 600 }}>contacto@cuyorodados.com.ar</span>
             </a>
           </div>
 
           {/* Links compactos en 3 grupos */}
           <div className="footer-links">
             <div>
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Explorar</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Explorar</div>
               {[
                 { label: "Avisos", href: "/listings" },
                 { label: "Concesionarias", href: "/tiendas" },
@@ -53,12 +53,12 @@ export function Footer() {
             </div>
 
             <div>
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Mi cuenta</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Mi cuenta</div>
               <FooterAccountLinks />
             </div>
 
             <div>
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Soporte</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Soporte</div>
               {[
                 { label: "Contáctenos", href: "/contacto" },
                 { label: "Términos", href: "/terminos" },
@@ -83,7 +83,7 @@ export function Footer() {
           <div style={{
             background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.20)",
             borderRadius: "5px", padding: "2px 8px",
-            fontSize: "10px", fontWeight: 700, color: "#f97316",
+            fontSize: "12px", fontWeight: 700, color: "#f97316",
           }}>
             Sin comisiones
           </div>

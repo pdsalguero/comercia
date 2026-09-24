@@ -58,7 +58,7 @@ export function MostVisitedCarousel({ items }: { items: Item[] }) {
             <img src={storageImg(item.cover, 400)} alt={item.title} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
             <div style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.55)", borderRadius: "6px", padding: "2px 7px", display: "flex", alignItems: "center", gap: "4px" }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span style={{ fontSize: "10px", fontWeight: 700, color: "#fff" }}>{item.view_count.toLocaleString("es-AR")}</span>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>{item.view_count.toLocaleString("es-AR")}</span>
             </div>
           </div>
         )}
@@ -75,7 +75,7 @@ export function MostVisitedCarousel({ items }: { items: Item[] }) {
             <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "4px" }}>Precio a consultar</div>
           )}
           {item.neighborhood && (
-            <div style={{ fontSize: "11px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "3px" }}>
+            <div style={{ fontSize: "12px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "3px" }}>
               <PinIcon size={10} /> {item.neighborhood}
             </div>
           )}

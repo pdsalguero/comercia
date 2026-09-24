@@ -61,12 +61,12 @@ export function VehicleNavMenu({ label, href, tipo, className }: VehicleNavMenuP
       className="hover:bg-indigo-50 hover:text-indigo-700"
     >
       <span>{b.label}</span>
-      {b.count > 0 && <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 600 }}>{b.count}</span>}
+      {b.count > 0 && <span style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 600 }}>{b.count}</span>}
     </Link>
   );
 
   const groupTitle = (text: string) => (
-    <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.6px", textTransform: "uppercase", padding: "6px 10px 4px" }}>
+    <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.6px", textTransform: "uppercase", padding: "6px 10px 4px" }}>
       {text}
     </div>
   );

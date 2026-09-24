@@ -83,20 +83,22 @@ export function DetailTabs({ description, specRows, boolTags, tabLabel }: Props)
           <div style={{ padding: "12px 16px 8px", fontSize: "13px", fontWeight: 700, color: "#1e293b", textTransform: "uppercase", letterSpacing: "0.4px" }}>
             {tabLabel}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
-            {specRows.map(([label, value], i) => (
+          {/* 3 columnas; 2 en celular (globals.css .detail-specs-grid). Las líneas divisorias son sombras
+              internas para no depender de cuántas columnas haya. */}
+          <div className="detail-specs-grid" style={{ overflow: "hidden" }}>
+            {specRows.map(([label, value]) => (
               <div key={label} style={{
                 padding: "10px 16px",
-                borderBottom: "1px solid #f1f5f9",
-                borderRight: (i + 1) % 3 !== 0 ? "1px solid #f1f5f9" : "none",
+                minWidth: 0,
+                boxShadow: "inset -1px -1px 0 #f1f5f9",
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "3px", color: "#94a3b8" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "3px", color: "#94a3b8", minWidth: 0 }}>
                   {SPEC_ICONS[label] ?? DEFAULT_ICON}
-                  <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700, color: "#94a3b8" }}>
+                  <span style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700, color: "#94a3b8", overflowWrap: "anywhere" }}>
                     {label}
                   </span>
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b", textTransform: "capitalize" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b", textTransform: "capitalize", overflowWrap: "anywhere" }}>
                   {String(value).replace(/_/g, " ")}
                 </div>
               </div>

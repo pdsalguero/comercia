@@ -59,7 +59,7 @@ export function BrandSearchList({ brands, activeBrand, baseHref, topN = 5 }: Pro
             }}>
               <span>{b.label}</span>
               <span style={{
-                fontSize: "11px", fontWeight: 600, padding: "1px 6px",
+                fontSize: "12px", fontWeight: 600, padding: "1px 6px",
                 borderRadius: "20px",
                 background: active ? "#dbeafe" : "#f1f5f9",
                 color: active ? "#2563eb" : "#888",

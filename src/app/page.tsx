@@ -267,7 +267,7 @@ export default async function HomePage() {
                     {s.icon}
                   </div>
                   <span style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap" }}>{s.value}</span>
-                  <span style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap" }}>{s.label}</span>
+                  <span style={{ fontSize: "12px", color: "#94a3b8", whiteSpace: "nowrap" }}>{s.label}</span>
                 </div>
               ))}
             </div>

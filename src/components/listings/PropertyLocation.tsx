@@ -110,7 +110,7 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
             style={S.input}
           />
           {loading && (
-            <span style={{ fontSize: "11px", color: "#94a3b8" }}>buscando...</span>
+            <span style={{ fontSize: "12px", color: "#94a3b8" }}>buscando...</span>
           )}
           {!loading && lat && (
             <button
@@ -159,7 +159,7 @@ export function PropertyLocation({ lat, lng, addressStr, onChange }: Props) {
           />
           <div style={{
             padding: "7px 12px", background: "#f8fafc",
-            fontSize: "11px", color: "#94a3b8",
+            fontSize: "12px", color: "#94a3b8",
             display: "flex", alignItems: "center", gap: "4px",
           }}>
             <PinIcon size={10} /> {lat?.toFixed(5)}, {lng?.toFixed(5)}

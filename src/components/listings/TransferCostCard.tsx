@@ -47,7 +47,7 @@ export function TransferCostCard({ price, currency, kind, dolarVenta, dolarFecha
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px" }}>
                 <span style={{ fontWeight: 700, fontSize: "14px", color: "#1e293b" }}>
                   {r.label}
-                  {here && <span style={{ fontSize: "11px", fontWeight: 600, color: "#2563eb", marginLeft: "6px" }}>donde está el vehículo</span>}
+                  {here && <span style={{ fontSize: "12px", fontWeight: 600, color: "#2563eb", marginLeft: "6px" }}>donde está el vehículo</span>}
                 </span>
                 <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", whiteSpace: "nowrap" }}>{ars(r.total)}</span>
               </div>
@@ -59,7 +59,7 @@ export function TransferCostCard({ price, currency, kind, dolarVenta, dolarFecha
         })}
       </div>
 
-      <p style={{ fontSize: "11.5px", color: "#94a3b8", margin: "10px 0 0", lineHeight: 1.5 }}>
+      <p style={{ fontSize: "12px", color: "#94a3b8", margin: "10px 0 0", lineHeight: 1.5 }}>
         Calculado sobre el precio publicado{isUsd ? `, pasado a pesos con el ${dolarQuoteLabel(dolarVenta!, dolarFecha)}` : ""}. El Registro y la provincia cobran
         sobre el mayor entre ese precio y la{" "}
         <a href="https://www.dnrpa.gov.ar/valuacion/cons_valuacion.php" target="_blank" rel="noopener noreferrer" style={{ color: "#64748b" }}>

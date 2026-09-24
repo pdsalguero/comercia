@@ -23,7 +23,7 @@ const inp: React.CSSProperties = {
   transition: "border-color 0.15s",
 };
 const lbl: React.CSSProperties = {
-  fontSize: "11px",
+  fontSize: "12px",
   fontWeight: 700,
   color: "#64748b",
   display: "block",
@@ -50,7 +50,7 @@ function Sel({ children }: { children: React.ReactNode }) {
           transform: "translateY(-50%)",
           pointerEvents: "none",
           color: "#94a3b8",
-          fontSize: "11px",
+          fontSize: "12px",
         }}
       >
         ▾
@@ -108,7 +108,7 @@ function Checkbox({
         }}
       >
         {value && (
-          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900 }}>✓</span>
+          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 900 }}>✓</span>
         )}
       </div>
       <span style={{ fontSize: "13px", color: "#374151" }}>{label}</span>
@@ -340,7 +340,7 @@ export function VehicleFields({ subCategory, attributes, onChange }: VehicleFiel
                 right: "10px",
                 top: "50%",
                 transform: "translateY(-50%)",
-                fontSize: "11px",
+                fontSize: "12px",
                 color: "#94a3b8",
                 fontWeight: 700,
               }}
@@ -432,7 +432,7 @@ export function VehicleFields({ subCategory, attributes, onChange }: VehicleFiel
       >
         <div
           style={{
-            fontSize: "11px",
+            fontSize: "12px",
             fontWeight: 700,
             color: "#94a3b8",
             marginBottom: "10px",

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getMyProfile, markEmailVerified } from './actions'
+import { BadgeCheck, CheckCircle2, Settings, ShieldCheck, TrendingUp, User, type LucideIcon } from 'lucide-react'
 
 type Tab = 'perfil' | 'verificacion' | 'cuenta'
 type VerifyStep = 'idle' | 'code'
@@ -147,10 +148,10 @@ export default function SettingsPage() {
     setVerifyLoading(false)
   }
 
-  const TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: 'perfil',       label: 'Perfil',         icon: '👤' },
-    { id: 'verificacion', label: 'Verificación',    icon: identityVerified ? '✅' : '🛡️' },
-    { id: 'cuenta',       label: 'Cuenta',          icon: '⚙️' },
+  const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
+    { id: 'perfil',       label: 'Perfil',         Icon: User },
+    { id: 'verificacion', label: 'Verificación',   Icon: identityVerified ? BadgeCheck : ShieldCheck },
+    { id: 'cuenta',       label: 'Cuenta',         Icon: Settings },
   ]
 
   return (
@@ -172,7 +173,7 @@ export default function SettingsPage() {
               transition: 'color 0.15s',
             }}
           >
-            <span>{t.icon}</span>
+            <t.Icon size={16} aria-hidden="true" />
             <span>{t.label}</span>
             {t.id === 'verificacion' && identityVerified && (
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#2563eb', flexShrink: 0 }} />
@@ -246,7 +247,7 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <label style={labelStyle}>Teléfono / WhatsApp</label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', userSelect: 'none' }}>
-                  <span style={{ fontSize: '11px', color: showPhone ? '#16a34a' : '#94a3b8', fontWeight: 600 }}>
+                  <span style={{ fontSize: '12px', color: showPhone ? '#16a34a' : '#94a3b8', fontWeight: 600 }}>
                     {showPhone ? 'Visible' : 'Oculto'}
                   </span>
                   <div
@@ -294,7 +295,7 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
               <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0 }}>Vendedor Identificado</h2>
               {identityVerified && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 700 }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   Verificado
                 </span>
@@ -321,14 +322,14 @@ export default function SettingsPage() {
           ) : verifyStep === 'idle' ? (
             /* Benefits + start */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: '12px' }}>
                 {[
-                  { icon: '🛡️', title: 'Más confianza', desc: 'Los compradores prefieren vendedores verificados' },
-                  { icon: '✅', title: 'Badge visible', desc: 'Aparece en tu perfil y publicaciones' },
-                  { icon: '📈', title: 'Mejor posición', desc: 'Tus avisos tienen mejor alcance' },
+                  { Icon: ShieldCheck, title: 'Más confianza', desc: 'Los compradores prefieren vendedores verificados' },
+                  { Icon: BadgeCheck, title: 'Badge visible', desc: 'Aparece en tu perfil y publicaciones' },
+                  { Icon: TrendingUp, title: 'Mejor posición', desc: 'Tus avisos tienen mejor alcance' },
                 ].map((item, i) => (
                   <div key={i} style={{ padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: '22px', marginBottom: '6px' }}>{item.icon}</div>
+                    <item.Icon size={22} color="#2563eb" strokeWidth={1.75} aria-hidden="true" style={{ marginBottom: '6px' }} />
                     <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', marginBottom: '3px' }}>{item.title}</div>
                     <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.4 }}>{item.desc}</div>
                   </div>
@@ -346,12 +347,13 @@ export default function SettingsPage() {
             /* Enter code */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '420px' }}>
               <div style={{ padding: '12px 16px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0', fontSize: '13px', color: '#15803d' }}>
-                ✅ Código enviado a <strong>{email}</strong>. Revisá tu bandeja de entrada.
+                <CheckCircle2 size={15} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: '6px' }} />
+                Código enviado a <strong>{email}</strong>. Revisá tu bandeja de entrada.
               </div>
               <div>
-                <label style={{ ...labelStyle, display: 'block', marginBottom: '8px' }}>Ingresá el código que recibiste por email</label>
+                <label htmlFor="settings-otp" style={{ ...labelStyle, display: 'block', marginBottom: '8px' }}>Ingresá el código que recibiste por email</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <input type="text" value={otpCode}
+                  <input id="settings-otp" type="text" inputMode="numeric" autoComplete="one-time-code" value={otpCode}
                     onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                     placeholder="12345678" maxLength={8}
                     style={{ ...inputStyle, flex: 1, fontSize: '22px', letterSpacing: '0.4em', textAlign: 'center', fontWeight: 700 }} />
@@ -398,7 +400,8 @@ export default function SettingsPage() {
             </div>
             {passwordStep === 'sent' ? (
               <div style={{ fontSize: '13px', color: '#15803d', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
-                ✅ Link enviado. Revisá tu bandeja de entrada.
+                <CheckCircle2 size={15} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: '6px' }} />
+                Link enviado. Revisá tu bandeja de entrada.
               </div>
             ) : (
               <>

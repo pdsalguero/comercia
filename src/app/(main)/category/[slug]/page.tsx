@@ -1280,7 +1280,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details open className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Tipo de vehículo <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Tipo de vehículo <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {VEHICLE_TYPES.map((t) => {
                 const active = sp.type === t.value;
@@ -1297,7 +1297,7 @@ export default async function CategoryPage({
                     }}>
                       <span>{t.label}</span>
                       <span style={{
-                        fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px",
+                        fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px",
                         background: active ? "#dbeafe" : "#f1f5f9",
                         color: active ? "#2563eb" : count > 0 ? "#888" : "#c2c8d1",
                       }}>{count}</span>
@@ -1313,7 +1313,7 @@ export default async function CategoryPage({
                     color: "#94a3b8", borderLeft: "3px solid transparent",
                   }}>
                     <span>Otros</span>
-                    <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: "#f1f5f9", color: "#888" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: "#f1f5f9", color: "#888" }}>
                       {otherVehicleCount}
                     </span>
                   </div>
@@ -1326,7 +1326,7 @@ export default async function CategoryPage({
           {isVehicles && (sp.type === "moto" || sp.moto_subtipo) && (typeCounts["moto"] ?? 0) > 0 && (
             <details open className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Tipo de moto <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Tipo de moto <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {MOTO_SUBTIPOS.filter(s => (motoSubtipoCounts[s.value] ?? 0) > 0).map(s => {
                 const active = sp.moto_subtipo === s.value;
@@ -1341,7 +1341,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{s.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {motoSubtipoCounts[s.value]}
                       </span>
                     </div>
@@ -1356,7 +1356,7 @@ export default async function CategoryPage({
             bodyTypeOptions(sp.type).some(o => (bodyTypeCounts[`${sp.type}:${o.value}`] ?? 0) > 0) && (
             <details open className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Carrocería <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Carrocería <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {bodyTypeOptions(sp.type).filter(o => (bodyTypeCounts[`${sp.type}:${o.value}`] ?? 0) > 0).map(o => {
                 const active = sp.body_type === o.value;
@@ -1371,7 +1371,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{o.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {bodyTypeCounts[`${sp.type}:${o.value}`]}
                       </span>
                     </div>
@@ -1385,7 +1385,7 @@ export default async function CategoryPage({
           {isVehicles && Object.keys(brandCounts).length > 0 && (
             <details open className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Marca <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Marca <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               <BrandSearchList
                 brands={(() => {
@@ -1409,7 +1409,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details open={!!(sp.price_min || sp.price_max)} className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Precio <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Precio <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               <form method="GET" action={`/category/${slug}`}>
                 {Object.entries(sp).map(([k, v]) =>
@@ -1435,7 +1435,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details open={!!(sp.year_from || sp.year_to)} className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Año <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Año <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               <form method="GET" action={`/category/${slug}`}>
                 {Object.entries(sp).map(([k, v]) =>
@@ -1463,7 +1463,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Kilómetros (máx.) <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Kilómetros (máx.) <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               <form method="GET" action={`/category/${slug}`}>
                 {Object.entries(sp).map(([k, v]) =>
@@ -1492,7 +1492,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Combustible <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Combustible <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {FUELS.map(f => {
                 const active = sp.fuel === f.value;
@@ -1517,7 +1517,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Transmisión <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Transmisión <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {TRANSMISSIONS.map(t => {
                 const active = sp.transmission === t.value;
@@ -1542,7 +1542,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Vendedor <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Vendedor <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {[{ value: "particular", label: "Particular" }, { value: "concesionaria", label: "Concesionaria" }].map(s => {
                 const active = sp.seller_type === s.value;
@@ -1567,7 +1567,7 @@ export default async function CategoryPage({
           {isVehicles && sp.v_province && RE_LOCATIONS[sp.v_province] && (
             <details className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Localidad <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Localidad <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {RE_LOCATIONS[sp.v_province].zones
                 .filter(z => (vZoneCounts[z.value] ?? 0) > 0)
@@ -1584,7 +1584,7 @@ export default async function CategoryPage({
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
                         <span>{z.label}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {vZoneCounts[z.value]}
                         </span>
                       </div>
@@ -1598,7 +1598,7 @@ export default async function CategoryPage({
           {isVehicles && (
             <details className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
-                Condición <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+                Condición <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
               {[
                 { value: "new", label: "Nuevo" },
@@ -1645,7 +1645,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{g.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {techGroupCounts[k]}
                       </span>
                     </div>
@@ -1694,7 +1694,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {techTypeCounts[t.value]}
                       </span>
                     </div>
@@ -1724,7 +1724,7 @@ export default async function CategoryPage({
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {count}
                         </span>
                       </div>
@@ -1755,7 +1755,7 @@ export default async function CategoryPage({
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {count}
                         </span>
                       </div>
@@ -1787,7 +1787,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {phoneTypeCounts[t.value]}
                       </span>
                     </div>
@@ -1819,7 +1819,7 @@ export default async function CategoryPage({
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
                         <span>{label}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {count}
                         </span>
                       </div>
@@ -1958,7 +1958,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {applianceTypeCounts[t.value]}
                       </span>
                     </div>
@@ -1981,7 +1981,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ appliance_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2002,7 +2002,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ appliance_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{applianceConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{applianceConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2023,7 +2023,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ appliance_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2044,7 +2044,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ hg_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{hgTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{hgTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2063,7 +2063,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ hg_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2082,7 +2082,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ hg_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{hgConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{hgConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2101,7 +2101,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ hg_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2122,7 +2122,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ sport_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{sportTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{sportTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2141,7 +2141,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ sport_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2160,7 +2160,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ sport_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{sportConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{sportConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2179,7 +2179,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ sport_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2200,7 +2200,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ tool_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toolTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toolTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2219,7 +2219,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ tool_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2238,7 +2238,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ tool_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toolConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toolConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2257,7 +2257,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ tool_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2278,7 +2278,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ toy_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toyTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toyTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2297,7 +2297,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ toy_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2316,7 +2316,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ toy_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toyConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{toyConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2335,7 +2335,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ toy_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2356,7 +2356,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ book_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{bookTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{bookTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2374,7 +2374,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ book_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{bookConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{bookConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2393,7 +2393,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ book_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2414,7 +2414,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ pet_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{petTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{petTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2433,7 +2433,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ pet_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2454,7 +2454,7 @@ export default async function CategoryPage({
                   <Link key={t.value} href={buildUrl({ serv_type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{servTypeCounts[t.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{servTypeCounts[t.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2473,7 +2473,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ serv_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2494,7 +2494,7 @@ export default async function CategoryPage({
                   <Link key={o.value} href={buildUrl({ clothing_type: active ? undefined : o.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{o.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingTypeCounts[o.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingTypeCounts[o.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2512,7 +2512,7 @@ export default async function CategoryPage({
                   <Link key={o.value} href={buildUrl({ clothing_gender: active ? undefined : o.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "9px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{o.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingGenderCounts[o.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingGenderCounts[o.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2531,7 +2531,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ clothing_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2550,7 +2550,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ clothing_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{clothingConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2569,7 +2569,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ clothing_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2599,7 +2599,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {babyTypeCounts[t.value]}
                       </span>
                     </div>
@@ -2620,7 +2620,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ baby_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2639,7 +2639,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ baby_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{babyConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{babyConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2658,7 +2658,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ baby_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2688,7 +2688,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {beautyTypeCounts[t.value]}
                       </span>
                     </div>
@@ -2709,7 +2709,7 @@ export default async function CategoryPage({
                     <Link key={brand} href={buildUrl({ beauty_brand: active ? undefined : brand })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span style={{ textTransform: "capitalize" }}>{brand}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2728,7 +2728,7 @@ export default async function CategoryPage({
                   <Link key={c.value} href={buildUrl({ beauty_condition: active ? undefined : c.value })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{beautyConditionCounts[c.value]}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{beautyConditionCounts[c.value]}</span>
                     </div>
                   </Link>
                 );
@@ -2747,7 +2747,7 @@ export default async function CategoryPage({
                     <Link key={prov} href={buildUrl({ beauty_province: active ? undefined : prov })} style={{ textDecoration: "none" }}>
                       <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent" }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>{count}</span>
                       </div>
                     </Link>
                   );
@@ -2777,7 +2777,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{t.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {reTypeCounts[t.value]}
                       </span>
                     </div>
@@ -2998,7 +2998,7 @@ export default async function CategoryPage({
                         borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                       }}>
                         <span>{prov}</span>
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {count}
                         </span>
                       </div>
@@ -3065,7 +3065,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {techConditionCounts[c.value]}
                       </span>
                     </div>
@@ -3095,7 +3095,7 @@ export default async function CategoryPage({
                     }}>
                       <span>{t.label}</span>
                       {(otherTypeCounts[t.value] ?? 0) > 0 && (
-                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                           {otherTypeCounts[t.value]}
                         </span>
                       )}
@@ -3131,7 +3131,7 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       <span>{c.label}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
                         {otherConditionCounts[c.value]}
                       </span>
                     </div>
@@ -3629,7 +3629,7 @@ function Chip({ label, href }: { label: string; href: string }) {
         borderRadius: "20px", padding: "4px 10px",
         fontSize: "12px", fontWeight: 600, cursor: "pointer",
       }}>
-        {label} <span style={{ fontSize: "11px" }}>✕</span>
+        {label} <span style={{ fontSize: "12px" }}>✕</span>
       </span>
     </Link>
   );

@@ -70,11 +70,15 @@ export default function ForgotPasswordPage() {
           )}
 
           <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>
+            <label htmlFor="forgot-email" style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>
               Email
             </label>
             <input
+              id="forgot-email"
+              name="email"
               type="email"
+              autoComplete="email"
+              inputMode="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required

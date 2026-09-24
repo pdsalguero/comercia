@@ -6,6 +6,11 @@ import { useRouter } from 'next/navigation'
 import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
 import { absoluteUrl } from '@/lib/site-url'
 import { listingUrl } from '@/lib/listing-url'
+import { plural } from '@/lib/labels'
+import {
+  Camera, CheckCircle2, Clock, Eye, ImageOff, Inbox, Link2, MessageSquare, MoreHorizontal, Pause,
+  Pencil, Play, Star, Trash2, TrendingUp, type LucideIcon,
+} from 'lucide-react'
 
 // ─── Destacar Modal ────────────────────────────────────────────────────────────
 
@@ -105,7 +110,7 @@ function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: ()
                 <span style={{
                   position: 'absolute', top: '-10px', right: '16px',
                   background: plan.color, color: '#fff',
-                  fontSize: '11px', fontWeight: 700,
+                  fontSize: '12px', fontWeight: 700,
                   padding: '2px 10px', borderRadius: '20px',
                 }}>
                   MÁS ELEGIDO
@@ -116,7 +121,7 @@ function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: ()
                   <div style={{ fontSize: '14px', fontWeight: 700, color: plan.color }}>
                     {plan.badge} · {plan.days} días
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
                     {plan.perks.join(' · ')}
                   </div>
                 </div>
@@ -175,19 +180,21 @@ function MoreMenu({
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
-  const items = [
+  const items: { label: string; Icon: LucideIcon; onClick: () => void; danger?: boolean }[] = [
     {
-      label: status === 'active' ? '⏸ Pausar aviso' : '▶ Activar aviso',
+      label: status === 'active' ? 'Pausar aviso' : 'Activar aviso',
+      Icon: status === 'active' ? Pause : Play,
       onClick: () => { onToggleStatus(); onClose() },
     },
     {
-      label: '🔗 Copiar link',
+      label: 'Copiar link',
+      Icon: Link2,
       onClick: () => {
         navigator.clipboard.writeText(absoluteUrl(listingUrl(listingId, title)))
         onClose()
       },
     },
-    { label: '🗑 Eliminar', onClick: () => { onDelete(); onClose() }, danger: true },
+    { label: 'Eliminar', Icon: Trash2, onClick: () => { onDelete(); onClose() }, danger: true },
   ]
 
   const top = anchor ? anchor.top - 4 : 0
@@ -211,14 +218,15 @@ function MoreMenu({
           key={i}
           onClick={item.onClick}
           style={{
-            display: 'block', width: '100%', textAlign: 'left',
-            padding: '10px 14px', fontSize: '13px',
+            display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left',
+            padding: '0 14px', minHeight: '44px', fontSize: '13px',
             background: 'none', border: 'none', cursor: 'pointer',
             color: item.danger ? '#ef4444' : '#1e293b',
             borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none',
           }}
           className="hover:bg-gray-50"
         >
+          <item.Icon size={15} aria-hidden="true" />
           {item.label}
         </button>
       ))}
@@ -326,7 +334,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
           <div style={{
             position: 'absolute', top: '8px', left: '8px', zIndex: 2,
             background: '#FF8C00', color: '#fff',
-            fontSize: '10px', fontWeight: 700,
+            fontSize: '12px', fontWeight: 700,
             padding: '2px 8px', borderRadius: '20px',
           }}>
             {TIER_LABEL[listing.destacado_tipo ?? ''] ?? '⭐ Esencial'}
@@ -338,8 +346,8 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
           {listing.cover_url
             ? <img src={listing.cover_url} alt={listing.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>
-                📦
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                <ImageOff size={32} aria-hidden="true" />
               </div>
             )
           }
@@ -372,9 +380,9 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
             padding: '7px 4px',
           }}>
             {[
-              { icon: '👁', value: listing.view_count, label: 'vistas' },
-              { icon: '💬', value: listing.msg_count,  label: 'msgs' },
-              { icon: '📈', value: `${conv}%`,         label: 'conv' },
+              { Icon: Eye,           value: listing.view_count, label: 'vistas' },
+              { Icon: MessageSquare, value: listing.msg_count,  label: 'mensajes' },
+              { Icon: TrendingUp,    value: `${conv}%`,         label: 'conversión' },
             ].map((m, i) => (
               <div key={i} style={{
                 display: 'flex', flexDirection: 'column',
@@ -382,22 +390,23 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                 borderRight: i < 2 ? '1px solid #e2e8f0' : 'none',
                 lineHeight: 1,
               }}>
-                <span style={{ fontSize: '13px' }}>{m.icon}</span>
+                <m.Icon size={14} color="#64748b" aria-hidden="true" />
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', marginTop: '2px' }}>
                   {m.value}
                 </span>
-                <span style={{ fontSize: '10px', color: '#94a3b8', marginTop: '1px' }}>{m.label}</span>
+                <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '1px' }}>{m.label}</span>
               </div>
             ))}
           </div>
 
           {/* Days online + status */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-              ⏱ {daysOnline(listing.created_at)}d online
+            <span style={{ fontSize: '12px', color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Clock size={12} aria-hidden="true" />
+              {plural(daysOnline(listing.created_at), 'día', 'días')} online
             </span>
             <span style={{
-              fontSize: '11px', fontWeight: 600,
+              fontSize: '12px', fontWeight: 600,
               padding: '2px 8px', borderRadius: '20px',
               background: badge.bg, color: badge.color,
             }}>
@@ -417,9 +426,10 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                   fontSize: '12px', fontWeight: 600, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                 }}
-                  className="hover:bg-gray-100"
+                  className="hover:bg-gray-100 tap-h-44"
                 >
-                  🖊️ Editar
+                  <Pencil size={13} aria-hidden="true" />
+                  Editar
                 </button>
               </Link>
 
@@ -435,10 +445,12 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                     background: '#f8fafc', cursor: 'pointer', color: '#64748b',
                     fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
-                  className="hover:bg-gray-100"
+                  className="hover:bg-gray-100 tap-h-44"
                   aria-label="Más opciones"
+                  aria-haspopup="menu"
+                  aria-expanded={showMenu}
                 >
-                  ⋯
+                  <MoreHorizontal size={16} aria-hidden="true" />
                 </button>
                 {showMenu && (
                   <MoreMenu
@@ -460,6 +472,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
               const onCooldown = cooldown > 0;
               return (
                 <button
+                  className="tap-h-44"
                   onClick={() => !onCooldown && !bumping && handleBump()}
                   disabled={onCooldown || bumping}
                   style={{
@@ -481,7 +494,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
 
             {/* Row 3 — Destacar full width */}
             <button
-              className="dlc-destacar-btn"
+              className="dlc-destacar-btn tap-h-44"
               onClick={() => !listing.destacado_activo && setShowModal(true)}
               disabled={listing.destacado_activo}
               style={{
@@ -495,7 +508,9 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                 transition: 'opacity 0.15s',
               }}
             >
-              {listing.destacado_activo ? '✓ Destacado activo' : '⭐ Destacar aviso'}
+              {listing.destacado_activo
+                ? <><CheckCircle2 size={14} aria-hidden="true" />Destacado activo</>
+                : <><Star size={14} aria-hidden="true" />Destacar aviso</>}
             </button>
           </div>
 
@@ -517,7 +532,9 @@ export function ListingsGrid({ listings, onToggleStatus, onDelete }: ListingsGri
   if (listings.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '48px 24px', color: '#94a3b8' }}>
-        <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+        <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center', color: '#cbd5e1' }}>
+          <Inbox size={44} strokeWidth={1.5} aria-hidden="true" />
+        </div>
         <p style={{ fontSize: '16px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
           Todavía no publicaste ningún aviso
         </p>
@@ -529,8 +546,10 @@ export function ListingsGrid({ listings, onToggleStatus, onDelete }: ListingsGri
             background: '#1E5BA8', color: '#fff', border: 'none',
             borderRadius: '8px', padding: '10px 24px',
             fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+            minHeight: '44px', display: 'inline-flex', alignItems: 'center', gap: '8px',
           }}>
-            📸 Publicar con una foto
+            <Camera size={16} aria-hidden="true" />
+            Publicar con una foto
           </button>
         </Link>
       </div>

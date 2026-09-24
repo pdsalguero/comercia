@@ -292,17 +292,17 @@ export default async function TiendaPage({
               <h1 style={{ fontSize: "18px", fontWeight: 800, color: "#1e293b", margin: 0, lineHeight: 1.2 }}>
                 {storeName}
               </h1>
-              <span style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.4px" }}>
+              <span style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "12px", fontWeight: 700, letterSpacing: "0.4px" }}>
                 TIENDA
               </span>
               {profile.store_verified && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", fontWeight: 700, color: "#15803d", background: "#dcfce7", borderRadius: "20px", padding: "2px 8px" }}>
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   Verificada
                 </span>
               )}
               {profile.identity_verified && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", fontWeight: 700, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "2px 8px" }}>
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   ID Verificado
                 </span>
@@ -311,24 +311,24 @@ export default async function TiendaPage({
 
             {/* Stats row */}
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 {plural(totalListings, "publicación", "publicaciones")}
               </span>
               {reviewCount > 0 ? (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#92400e", background: "#fef3c7", borderRadius: "20px", padding: "3px 10px", border: "1px solid #fde68a" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600, color: "#92400e", background: "#fef3c7", borderRadius: "20px", padding: "3px 10px", border: "1px solid #fde68a" }}>
                   ★ {avgRating.toFixed(1)} · {reviewCount} reseñas
                 </span>
               ) : (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#94a3b8", background: "#f8fafc", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600, color: "#94a3b8", background: "#f8fafc", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
                   sin reseñas
                 </span>
               )}
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "3px 10px", border: "1px solid #bfdbfe" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600, color: "#1d4ed8", background: "#dbeafe", borderRadius: "20px", padding: "3px 10px", border: "1px solid #bfdbfe" }}>
                 {storeTypeLabel}
               </span>
               {memberSince && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
                   Miembro desde {new Date(profile.created_at).getFullYear()}
                 </span>
               )}
@@ -404,7 +404,7 @@ export default async function TiendaPage({
                   <Link key={cat.id} href={buildUrl(base, sp, { cat: active ? undefined : String(cat.id) })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span>{CATEGORY_NAMES[cat.slug] ?? cat.name}</span>
-                      <span style={{ fontSize: "11px", color: active ? "#93c5fd" : "#94a3b8" }}>{cat.count}</span>
+                      <span style={{ fontSize: "12px", color: active ? "#93c5fd" : "#94a3b8" }}>{cat.count}</span>
                     </div>
                   </Link>
                 );
@@ -430,7 +430,7 @@ export default async function TiendaPage({
                   <Link key={tipo} href={buildUrl(base, sp, { tipo: active ? undefined : tipo })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span>{label}</span>
-                      <span style={{ fontSize: "11px", color: active ? "#93c5fd" : "#94a3b8" }}>{count}</span>
+                      <span style={{ fontSize: "12px", color: active ? "#93c5fd" : "#94a3b8" }}>{count}</span>
                     </div>
                   </Link>
                 );
@@ -499,7 +499,7 @@ export default async function TiendaPage({
               <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
                 Filtros
-                {hasFilters && <span style={{ background: "#f97316", color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 10, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>}
+                {hasFilters && <span style={{ background: "#f97316", color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>}
               </span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
             </summary>
@@ -508,7 +508,7 @@ export default async function TiendaPage({
               {/* Categories */}
               {categories.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Categoría</div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Categoría</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     <Link href={buildUrl(base, sp, { cat: undefined })} style={{ textDecoration: "none" }}>
                       <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${!sp.cat ? "#2563eb" : "#e2e8f0"}`, background: !sp.cat ? "#eff6ff" : "#fff", color: !sp.cat ? "#2563eb" : "#475569", fontWeight: !sp.cat ? 700 : 400 }}>Todas</span>
@@ -528,7 +528,7 @@ export default async function TiendaPage({
               {/* Tipos */}
               {tipos.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Tipo</div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Tipo</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
                       <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${!sp.tipo ? "#2563eb" : "#e2e8f0"}`, background: !sp.tipo ? "#eff6ff" : "#fff", color: !sp.tipo ? "#2563eb" : "#475569", fontWeight: !sp.tipo ? 700 : 400 }}>Todos</span>
@@ -548,7 +548,7 @@ export default async function TiendaPage({
 
               {/* Condition */}
               <div>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Condición</div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Condición</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {[{ value: "", label: "Todos" }, { value: "new", label: "Nuevo" }, { value: "like_new", label: "Como nuevo" }, { value: "used", label: "Usado" }].map(opt => {
                     const active = (sp.condition ?? "") === opt.value;
@@ -564,7 +564,7 @@ export default async function TiendaPage({
               {/* Price */}
               <form method="GET" action={base}>
                 {Object.entries(sp).map(([k, v]) => v && k !== "price_min" && k !== "price_max" ? <input key={k} type="hidden" name={k} value={v} /> : null)}
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Precio</div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Precio</div>
                 <div style={{ display: "flex", gap: "6px", alignItems: "center", width: "100%", minWidth: 0 }}>
                   <input name="price_min" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_min} placeholder="Mín" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
                   <span style={{ color: "#94a3b8", flexShrink: 0 }}>–</span>
@@ -700,18 +700,18 @@ export default async function TiendaPage({
                         {subPills.length > 0 && (
                           <div style={{ display: "flex", gap: "4px", marginBottom: "4px" }}>
                             {subPills.map((p, i) => (
-                              <span key={i} style={{ fontSize: "11px", color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
+                              <span key={i} style={{ fontSize: "12px", color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
                             ))}
                           </div>
                         )}
                         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                           {l.condition && (
-                            <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: 600 }}>
+                            <span style={{ fontSize: "12px", color: "#22c55e", fontWeight: 600 }}>
                               {l.condition === "new" ? "Nuevo" : l.condition === "like_new" ? "Como nuevo" : "Usado"}
                             </span>
                           )}
                           {l.neighborhood && (
-                            <span style={{ fontSize: "11px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
+                            <span style={{ fontSize: "12px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                               <PinIcon size={10} /> {l.neighborhood}
                             </span>
                           )}
@@ -739,7 +739,7 @@ export default async function TiendaPage({
                 <span style={{ fontSize: "26px", fontWeight: 900, color: "#f59e0b", lineHeight: 1 }}>{avgRating.toFixed(1)}</span>
                 <div>
                   <StarRating rating={avgRating} size={15} />
-                  <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "1px" }}>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "1px" }}>
                     {reviewCount} {reviewCount === 1 ? "calificación" : "calificaciones"}
                   </div>
                 </div>
@@ -770,12 +770,12 @@ export default async function TiendaPage({
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                       <span style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b" }}>{review.reviewer?.full_name ?? "Usuario"}</span>
                       {review.reviewer_id === currentUser?.id && (
-                        <span style={{ fontSize: "10px", background: "#eff6ff", color: "#2563eb", borderRadius: "4px", padding: "1px 6px", fontWeight: 700 }}>Tu calificación</span>
+                        <span style={{ fontSize: "12px", background: "#eff6ff", color: "#2563eb", borderRadius: "4px", padding: "1px 6px", fontWeight: 700 }}>Tu calificación</span>
                       )}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "2px" }}>
                       <StarRating rating={review.rating} size={12} />
-                      <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                      <span style={{ fontSize: "12px", color: "#94a3b8" }}>
                         {new Date(review.created_at).toLocaleDateString("es-AR", { year: "numeric", month: "long", day: "numeric" })}
                       </span>
                     </div>

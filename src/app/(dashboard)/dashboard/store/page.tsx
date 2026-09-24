@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const STORE_TYPES = [
   { value: "particular",   label: "Vendedor particular" },
@@ -206,7 +207,8 @@ export default function StorePage() {
 
           {saved && (
             <div style={{ background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "#16a34a", marginBottom: "16px" }}>
-              ✅ Tienda guardada correctamente
+              <CheckCircle2 size={15} aria-hidden="true" style={{ verticalAlign: "-3px", marginRight: "6px" }} />
+              Tienda guardada correctamente
               {isStore && storeSlug && (
                 <span> · <Link href={`/tienda/${storeSlug}`} target="_blank" style={{ color: "#2563eb", fontWeight: 700 }}>Ver tienda →</Link></span>
               )}
@@ -214,7 +216,8 @@ export default function StorePage() {
           )}
           {error && (
             <div style={{ background: "#fee2e2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "#dc2626", marginBottom: "16px" }}>
-              ⚠️ {error}
+              <AlertTriangle size={15} aria-hidden="true" style={{ verticalAlign: "-3px", marginRight: "6px" }} />
+              {error}
             </div>
           )}
 
@@ -275,7 +278,7 @@ export default function StorePage() {
                 placeholder="Ej: 2640000000"
                 style={inputStyle}
               />
-              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>Sin espacios ni guiones. Solo números.</div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>Sin espacios ni guiones. Solo números.</div>
             </div>
 
             <div style={{ gridColumn: "1 / -1" }}>
@@ -288,7 +291,7 @@ export default function StorePage() {
                 placeholder="Ej: Av. Libertador 1234, San Juan"
                 style={inputStyle}
               />
-              <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>Opcional. Se mostrará en la página de tu tienda.</div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>Opcional. Se mostrará en la página de tu tienda.</div>
             </div>
           </div>
 
@@ -351,13 +354,13 @@ export default function StorePage() {
                       <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
                       <polyline points="21 15 16 10 5 21"/>
                     </svg>
-                    <span style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>Subir logo</span>
+                    <span style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>Subir logo</span>
                   </>
                 )}
               </div>
               {storeLogo && (
                 <button type="button" onClick={() => setStoreLogo("")}
-                  style={{ marginTop: "6px", fontSize: "11px", color: "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                  style={{ marginTop: "6px", fontSize: "12px", color: "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                   ✕ Quitar logo
                 </button>
               )}
@@ -401,13 +404,13 @@ export default function StorePage() {
                       <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
                       <polyline points="21 15 16 10 5 21"/>
                     </svg>
-                    <span style={{ fontSize: "11px", color: "#94a3b8" }}>Subir banner · Recomendado 1200×300 px</span>
+                    <span style={{ fontSize: "12px", color: "#94a3b8" }}>Subir banner · Recomendado 1200×300 px</span>
                   </>
                 )}
               </div>
               {storeBanner && (
                 <button type="button" onClick={() => setStoreBanner("")}
-                  style={{ marginTop: "6px", fontSize: "11px", color: "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                  style={{ marginTop: "6px", fontSize: "12px", color: "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                   ✕ Quitar banner
                 </button>
               )}

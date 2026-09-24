@@ -7,18 +7,22 @@ import { DashboardRefresher } from '@/components/dashboard/DashboardRefresher'
 import { getDolarOficial } from '@/lib/dolar'
 import { plural } from '@/lib/labels'
 import type { Metadata } from 'next'
+import type { Recommendation, TopListing, ListingSummary } from './actions'
+import {
+  AlertTriangle, Banknote, Camera, Eye, ImageOff, LayoutList, Lightbulb, MessageSquare, Star,
+  TrendingDown, TrendingUp, type LucideIcon,
+} from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Resumen', description: 'Tus avisos, vistas y mensajes en CuyoRodados.' }
-import type { Recommendation, TopListing, ListingSummary } from './actions'
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 
 function KpiCard({
-  label, value, icon, color, suffix, href,
+  label, value, icon: Icon, color, suffix, href,
 }: {
   label: string
   value: number
-  icon: string
+  icon: LucideIcon
   color: string
   suffix?: string
   href?: string
@@ -31,7 +35,9 @@ function KpiCard({
       cursor: href ? 'pointer' : 'default',
       transition: 'box-shadow 0.15s',
     }}>
-      <div style={{ fontSize: '28px', marginBottom: '6px' }}>{icon}</div>
+      <div style={{ marginBottom: '8px', color, display: 'flex', justifyContent: 'center' }}>
+        <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
+      </div>
       <div style={{ fontSize: '32px', fontWeight: 900, color, lineHeight: 1 }}>
         {value.toLocaleString('es-AR')}{suffix}
       </div>
@@ -48,11 +54,11 @@ function KpiCard({
 
 // ─── Recommendations ──────────────────────────────────────────────────────────
 
-const REC_CONFIG: Record<string, { icon: string; bg: string; border: string; color: string }> = {
-  low_views:       { icon: '📉', bg: '#fff7ed', border: '#fed7aa', color: '#c2410c' },
-  high_conversion: { icon: '🚀', bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d' },
-  expiring:        { icon: '⚠️', bg: '#fef2f2', border: '#fecaca', color: '#dc2626' },
-  pro_active:      { icon: '⭐', bg: '#fefce8', border: '#fde68a', color: '#92400e' },
+const REC_CONFIG: Record<string, { Icon: LucideIcon; bg: string; border: string; color: string }> = {
+  low_views:       { Icon: TrendingDown,  bg: '#fff7ed', border: '#fed7aa', color: '#c2410c' },
+  high_conversion: { Icon: TrendingUp,    bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d' },
+  expiring:        { Icon: AlertTriangle, bg: '#fef2f2', border: '#fecaca', color: '#dc2626' },
+  pro_active:      { Icon: Star,          bg: '#fefce8', border: '#fde68a', color: '#92400e' },
 }
 
 function RecommendationCard({ rec }: { rec: Recommendation }) {
@@ -63,7 +69,7 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
       padding: '12px 14px', borderRadius: '10px',
       background: cfg.bg, border: `1px solid ${cfg.border}`,
     }}>
-      <span style={{ fontSize: '18px', flexShrink: 0 }}>{cfg.icon}</span>
+      <cfg.Icon size={18} strokeWidth={2} color={cfg.color} aria-hidden="true" style={{ flexShrink: 0, marginTop: '1px' }} />
       <div style={{ flex: 1 }}>
         <p style={{ margin: 0, fontSize: '13px', color: cfg.color, fontWeight: 500, lineHeight: '1.4' }}>
           {rec.message}
@@ -135,23 +141,23 @@ function TopList({ items, emptyMsg, accent }: { items: TopListing[]; emptyMsg: s
                 width: '24px', height: '24px', borderRadius: '50%',
                 background: rank.bg, color: rank.color,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '11px', fontWeight: 800, flexShrink: 0,
+                fontSize: '12px', fontWeight: 800, flexShrink: 0,
                 boxShadow: isTop ? `0 2px 6px ${accent}40` : 'none',
               }}>{i + 1}</div>
               {l.cover_url
                 ? <img src={l.cover_url} alt="" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #e2e8f0' }} />
-                : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f1f5f9', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📦</div>
+                : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f1f5f9', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}><ImageOff size={18} aria-hidden="true" /></div>
               }
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {l.title}
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '3px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', color: '#64748b' }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     {l.view_count.toLocaleString('es-AR')}
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: '#64748b' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', color: '#64748b' }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     {l.msg_count}
                   </span>
@@ -266,20 +272,20 @@ async function DolarCard() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>💵</span>
+          <Banknote size={15} color="#16a34a" aria-hidden="true" />
           <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Dólar BNA</span>
         </div>
-        {fecha && <span style={{ fontSize: '10px', color: '#cbd5e1' }}>Act. {fecha}</span>}
+        {fecha && <span style={{ fontSize: '12px', color: '#cbd5e1' }}>Act. {fecha}</span>}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '8px 12px' }}>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Compra</div>
+          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '2px' }}>Compra</div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
             ${dolar.compra.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
         <div style={{ background: '#eff6ff', borderRadius: '8px', padding: '8px 12px' }}>
-          <div style={{ fontSize: '11px', color: '#93c5fd', marginBottom: '2px' }}>Venta</div>
+          <div style={{ fontSize: '12px', color: '#93c5fd', marginBottom: '2px' }}>Venta</div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E5BA8' }}>
             ${dolar.venta.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
@@ -341,19 +347,21 @@ export default async function DashboardPage() {
               border: 'none', borderRadius: '8px',
               padding: '10px 20px', fontWeight: 800,
               fontSize: '14px', cursor: 'pointer',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'nowrap', minHeight: '44px',
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
             }}>
-              📸 Publicar con una foto
+              <Camera size={16} aria-hidden="true" />
+              Publicar con una foto
             </button>
           </Link>
         </div>
 
         {/* ── KPIs ── */}
         <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-          <KpiCard label="Avisos activos"    value={stats.activeListings}  icon="📋" color="#1E5BA8" href="/dashboard/my-listings" />
-          <KpiCard label="Mensajes sin leer" value={stats.unreadMessages}  icon="💬" color="#16a34a" href="/dashboard/messages" />
-          <KpiCard label="Vistas totales"    value={stats.totalViews}      icon="👁️" color="#FF8C00" />
-          <KpiCard label="Conversión"        value={stats.conversionRate}  icon="📈" color="#7c3aed" suffix="%" />
+          <KpiCard label="Avisos activos"    value={stats.activeListings}  icon={LayoutList}    color="#1E5BA8" href="/dashboard/my-listings" />
+          <KpiCard label="Mensajes sin leer" value={stats.unreadMessages}  icon={MessageSquare} color="#16a34a" href="/dashboard/messages" />
+          <KpiCard label="Vistas totales"    value={stats.totalViews}      icon={Eye}           color="#FF8C00" />
+          <KpiCard label="Conversión"        value={stats.conversionRate}  icon={TrendingUp}    color="#7c3aed" suffix="%" />
         </div>
 
         {/* ── Chart + Recommendations ── */}
@@ -380,8 +388,9 @@ export default async function DashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <DolarCard />
             <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-              <h2 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                💡 Recomendaciones
+              <h2 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Lightbulb size={17} color="#f59e0b" aria-hidden="true" />
+                Recomendaciones
               </h2>
               {recommendations.length === 0 ? (
                 <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>

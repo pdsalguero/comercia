@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { FOUNDER_PROGRAM } from '@/lib/site-config'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { normalizeUsernameInput, validateFullName, validateUsername, USERNAME_MAX } from '@/lib/registration'
 
 const INPUT = {
@@ -139,7 +140,7 @@ export default function RegisterPage() {
                 marginBottom: '5px',
                 transition: 'background 0.3s',
               }} />
-              <span style={{ fontSize: '11px', fontWeight: 600, color: active ? '#3483fa' : '#94a3b8' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: active ? '#3483fa' : '#94a3b8' }}>
                 {label}
               </span>
             </div>
@@ -229,9 +230,13 @@ export default function RegisterPage() {
         {step === 2 && (
           <>
             <div>
-              <label style={LABEL}>Email</label>
+              <label htmlFor="reg-email" style={LABEL}>Email</label>
               <input
+                id="reg-email"
+                name="email"
                 type="email"
+                autoComplete="email"
+                inputMode="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="tu@email.com"
@@ -241,9 +246,12 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label style={LABEL}>Contraseña</label>
-              <input
-                type="password"
+              <label htmlFor="reg-password" style={LABEL}>Contraseña</label>
+              <PasswordInput
+                id="reg-password"
+                name="new-password"
+                autoComplete="new-password"
+                aria-describedby={password ? 'reg-password-strength' : undefined}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
@@ -261,15 +269,18 @@ export default function RegisterPage() {
                       }} />
                     ))}
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>
+                  <span id="reg-password-strength" style={{ fontSize: '12px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>
                 </div>
               )}
             </div>
 
             <div>
-              <label style={LABEL}>Confirmar contraseña</label>
-              <input
-                type="password"
+              <label htmlFor="reg-password-confirm" style={LABEL}>Confirmar contraseña</label>
+              <PasswordInput
+                id="reg-password-confirm"
+                name="confirm-password"
+                autoComplete="new-password"
+                aria-invalid={!!confirm && confirm !== password}
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="Repetí tu contraseña"

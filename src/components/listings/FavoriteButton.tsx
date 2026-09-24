@@ -57,6 +57,7 @@ export function FavoriteButton({ listingId, variant = "card" }: Props) {
   // card variant — small circle
   return (
     <button
+      className="tap-44"
       onClick={handleClick}
       disabled={isPending || !ready}
       aria-pressed={favorited}

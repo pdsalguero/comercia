@@ -202,14 +202,14 @@ export function PlanCards({ listingId, freeCredits = 0 }: Props) {
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                 <div style={{
                   display: "inline-block", background: tier.gradient, color: "#fff",
-                  borderRadius: "6px", padding: "3px 9px", fontSize: "11px", fontWeight: 800,
+                  borderRadius: "6px", padding: "3px 9px", fontSize: "12px", fontWeight: 800,
                 }}>
                   {tier.badge}
                 </div>
                 {tier.popular && (
                   <div style={{
                     background: tier.gradient, color: "#fff", borderRadius: "20px",
-                    padding: "2px 9px", fontSize: "10px", fontWeight: 700,
+                    padding: "2px 9px", fontSize: "12px", fontWeight: 700,
                   }}>
                     MÁS ELEGIDO
                   </div>
@@ -251,7 +251,7 @@ export function PlanCards({ listingId, freeCredits = 0 }: Props) {
                         {d} días
                       </span>
                       {isBest && (
-                        <span style={{ fontSize: "9px", background: "#ecfdf5", color: "#10b981", padding: "1px 5px", borderRadius: "4px", fontWeight: 700 }}>
+                        <span style={{ fontSize: "12px", background: "#ecfdf5", color: "#10b981", padding: "1px 5px", borderRadius: "4px", fontWeight: 700 }}>
                           MEJOR PRECIO
                         </span>
                       )}
@@ -260,7 +260,7 @@ export function PlanCards({ listingId, freeCredits = 0 }: Props) {
                       <div style={{ fontSize: "15px", fontWeight: 800, color: isSelected ? tier.color : "#0f172a" }}>
                         ${p.toLocaleString("es-AR")}
                       </div>
-                      <div style={{ fontSize: "10px", color: "#94a3b8" }}>
+                      <div style={{ fontSize: "12px", color: "#94a3b8" }}>
                         ${ppd.toLocaleString("es-AR")}/día
                       </div>
                     </div>

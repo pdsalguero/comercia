@@ -18,6 +18,7 @@ import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
 import { brandLabel } from "@/lib/brand-label";
 import { vehiclesHref } from "@/lib/vehicle-landing";
+import { BedDouble, Calendar, Cog, Fuel, Gauge, Home, ImageOff, KeyRound, Ruler, type LucideIcon } from "lucide-react";
 import { absoluteUrl } from "@/lib/site-url";
 import { CONDITION_LABELS, VEHICLE_TYPE_LABELS, fuelLabel, transmissionLabel, plural, timeAgo } from "@/lib/labels";
 import { greetingName } from "@/lib/listing-display";
@@ -291,17 +292,18 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   const quickSpecs = listing.category_id === 3
     ? [
-        attrs.sub_category  && { icon: "🏠", label: "Tipo",          value: RE_SUBCAT[attrs.sub_category] ?? attrs.sub_category },
-        attrs.re_operation  && { icon: "🔑", label: "Operación",     value: RE_OPERATION[attrs.re_operation] ?? attrs.re_operation },
-        attrs.m2_covered    && { icon: "📐", label: "Sup. cubierta", value: `${attrs.m2_covered} m²` },
-        attrs.bedrooms      && { icon: "🛏️", label: "Dormitorios",  value: String(attrs.bedrooms) },
-      ].filter(Boolean) as { icon: string; label: string; value: string }[]
+        attrs.sub_category  && { Icon: Home,      label: "Tipo",          value: RE_SUBCAT[attrs.sub_category] ?? attrs.sub_category },
+        attrs.re_operation  && { Icon: KeyRound,  label: "Operación",     value: RE_OPERATION[attrs.re_operation] ?? attrs.re_operation },
+        attrs.m2_covered    && { Icon: Ruler,     label: "Sup. cubierta", value: `${attrs.m2_covered} m²` },
+        attrs.bedrooms      && { Icon: BedDouble, label: "Dormitorios",   value: String(attrs.bedrooms) },
+      ].filter(Boolean) as { Icon: LucideIcon; label: string; value: string }[]
     : [
-        attrs.year         && { icon: "📅", label: "Año",         value: String(attrs.year) },
-        attrs.km           && { icon: "🛣️", label: "Kilometraje", value: `${Number(attrs.km).toLocaleString("es-AR")} km` },
-        attrs.fuel         && { icon: "⛽", label: "Combustible", value: fuelLabel(attrs.fuel) },
-        attrs.transmission && { icon: "⚙️", label: "Transmisión", value: transmissionLabel(attrs.transmission) },
-      ].filter(Boolean) as { icon: string; label: string; value: string }[];
+        // Mismos íconos que las tarjetas del listado (ListingCard)
+        attrs.year         && { Icon: Calendar, label: "Año",         value: String(attrs.year) },
+        attrs.km           && { Icon: Gauge,    label: "Kilometraje", value: `${Number(attrs.km).toLocaleString("es-AR")} km` },
+        attrs.fuel         && { Icon: Fuel,     label: "Combustible", value: fuelLabel(attrs.fuel) },
+        attrs.transmission && { Icon: Cog,      label: "Transmisión", value: transmissionLabel(attrs.transmission) },
+      ].filter(Boolean) as { Icon: LucideIcon; label: string; value: string }[];
 
   const realEstateSpecs = [
     ["Tipo",           attrs.sub_category  ? RE_SUBCAT[attrs.sub_category] ?? attrs.sub_category : null],
@@ -379,14 +381,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const sellerName = profile?.full_name?.trim() || (profile?.username ? `@${profile.username.trim()}` : "Usuario");
   const sellerInitial = (profile?.full_name?.[0] ?? profile?.username?.[0] ?? "?").toUpperCase();
 
-  // Feature badges for bottom of right card
-  const featureBadges = [
-    { show: true,                    icon: "🤝", label: "Entrega a coordinar" },
-    { show: !!attrs.financing,       icon: "💳", label: "Se puede financiar" },
-    { show: !!attrs.accepts_trade,   icon: "🔄", label: "Acepta permuta" },
-    { show: !!attrs.negotiable_price,icon: "💬", label: "Precio negociable" },
-  ].filter(b => b.show);
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -423,7 +417,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       }}>
         {/* Precio */}
         <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-          <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Precio</span>
+          <span style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Precio</span>
           <span style={{ fontSize: "16px", fontWeight: 700, color: listing.price ? "#1a1a1a" : "#64748b", marginLeft: "6px" }}>
             {listing.price ? `${currencySymbol} ${Number(listing.price).toLocaleString("es-AR")}` : "A consultar"}
           </span>
@@ -675,7 +669,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       <span style={{
                         display: "inline-flex", alignItems: "center", gap: "4px",
                         background: badge.bg, color: badge.color,
-                        fontSize: "11px", fontWeight: 800, letterSpacing: "0.3px",
+                        fontSize: "12px", fontWeight: 800, letterSpacing: "0.3px",
                         padding: "4px 10px", borderRadius: "20px",
                         boxShadow: badge.shadow,
                       }}>
@@ -690,8 +684,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 {quickSpecs.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "0" }}>
                     {quickSpecs.map((spec) => (
-                      <span key={spec.label} style={{ background: "#f1f5f9", borderRadius: "4px", padding: "4px 8px", fontSize: "12px", color: "#475569" }}>
-                        {spec.icon} <strong style={{ textTransform: "capitalize" }}>{spec.value}</strong>
+                      <span key={spec.label} title={spec.label} style={{ background: "#f1f5f9", borderRadius: "4px", padding: "4px 8px", fontSize: "12px", color: "#475569", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                        <spec.Icon size={13} aria-hidden="true" />
+                        <span className="sr-only">{spec.label}: </span>
+                        <strong style={{ textTransform: "capitalize" }}>{spec.value}</strong>
                       </span>
                     ))}
                   </div>
@@ -700,7 +696,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
               {/* Price block — fondo gris suave, elemento dominante */}
               <div style={{ background: "#f8fafc", borderTop: "1px solid #f1f5f9", borderBottom: "1px solid #f1f5f9", padding: "16px 20px", marginTop: "14px" }}>
-                <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.7px", textTransform: "uppercase", marginBottom: "4px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.7px", textTransform: "uppercase", marginBottom: "4px" }}>
                   Precio
                 </div>
                 {listing.price ? (
@@ -805,7 +801,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                         </svg>
                       )}
                     </div>
-                    <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>
                       {profile?.is_store
                         ? (profile.store_type === "inmobiliaria" ? "Inmobiliaria"
                           : profile.store_type === "automotora" ? "Automotora"
@@ -821,7 +817,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                         {profile.identity_verified && (
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: "3px",
-                            fontSize: "10px", fontWeight: 700,
+                            fontSize: "12px", fontWeight: 700,
                             color: "#1d4ed8", background: "#dbeafe",
                             borderRadius: "20px", padding: "2px 7px",
                           }}>
@@ -832,7 +828,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                         {profile.store_verified && (
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: "3px",
-                            fontSize: "10px", fontWeight: 700,
+                            fontSize: "12px", fontWeight: 700,
                             color: "#15803d", background: "#dcfce7",
                             borderRadius: "20px", padding: "2px 7px",
                           }}>
@@ -886,7 +882,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", marginBottom: "1px" }}>
                       ✦ Destacá tu aviso
                     </div>
-                    <div style={{ fontSize: "11px", color: "#a16207" }}>Hasta 5× más consultas</div>
+                    <div style={{ fontSize: "12px", color: "#a16207" }}>Hasta 5× más consultas</div>
                   </div>
                   <Link
                     href={`/upgrade?listing_id=${listing.id}`}
@@ -933,7 +929,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                         {thumb
                           // eslint-disable-next-line @next/next/no-img-element
                           ? <img src={storageImg(thumb, 400, 75, 282)} alt={r.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px" }}>📦</div>
+                          : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}><ImageOff size={32} aria-hidden="true" /></div>
                         }
                         <FavoriteButton listingId={r.id} variant="card" />
                       </div>
@@ -944,11 +940,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                           </div>
                         )}
                         {metaParts.length > 0 && (
-                          <div style={{ fontSize: "11px", color: "#888", marginBottom: "10px", textTransform: "capitalize" }}>
+                          <div style={{ fontSize: "12px", color: "#888", marginBottom: "10px", textTransform: "capitalize" }}>
                             {metaParts.join(" · ")}
                           </div>
                         )}
-                        <div style={{ fontSize: "11px", color: "#666", marginBottom: "2px" }}>Precio</div>
+                        <div style={{ fontSize: "12px", color: "#666", marginBottom: "2px" }}>Precio</div>
                         {r.price ? (
                           <div style={{ fontSize: "18px", fontWeight: 700, color: "#1a1a1a", letterSpacing: "-0.5px" }}>
                             {rCurrency} {Number(r.price).toLocaleString("es-AR")}
@@ -956,7 +952,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                         ) : (
                           <div style={{ fontSize: "13px", color: "#999" }}>Precio a consultar</div>
                         )}
-                        <div style={{ fontSize: "11px", color: "#999", marginTop: "10px", display: "flex", alignItems: "center", gap: "3px" }}>
+                        <div style={{ fontSize: "12px", color: "#999", marginTop: "10px", display: "flex", alignItems: "center", gap: "3px" }}>
                           <PinIcon size={10} /> {r.neighborhood ?? ""}
                         </div>
                       </div>

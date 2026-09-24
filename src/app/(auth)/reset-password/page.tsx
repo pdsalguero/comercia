@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -89,11 +90,13 @@ export default function ResetPasswordPage() {
         )}
 
         <div>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>
+          <label htmlFor="reset-password" style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>
             Nueva contraseña
           </label>
-          <input
-            type="password"
+          <PasswordInput
+            id="reset-password"
+            name="new-password"
+            autoComplete="new-password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
@@ -111,17 +114,20 @@ export default function ResetPasswordPage() {
                   }} />
                 ))}
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>
             </div>
           )}
         </div>
 
         <div>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>
+          <label htmlFor="reset-password-confirm" style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>
             Confirmar contraseña
           </label>
-          <input
-            type="password"
+          <PasswordInput
+            id="reset-password-confirm"
+            name="confirm-password"
+            autoComplete="new-password"
+            aria-invalid={!!confirm && confirm !== password}
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             required

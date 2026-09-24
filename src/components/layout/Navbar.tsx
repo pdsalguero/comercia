@@ -229,6 +229,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
         }}
       >
         <div
+          className="navbar-row"
           style={{
             maxWidth: "1200px",
             margin: "0 auto",
@@ -554,7 +555,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
                           <span style={{ flex: 1 }}>{label}</span>
                           {showUnread && unreadCount > 0 && (
                             <span style={{
-                              background: "#ef4444", color: "#fff", fontSize: "10px", fontWeight: 700,
+                              background: "#ef4444", color: "#fff", fontSize: "12px", fontWeight: 700,
                               padding: "1px 6px", borderRadius: "20px",
                             }}>
                               {unreadCount}
@@ -628,7 +629,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
                   background: "rgba(255,255,255,0.25)",
                   borderRadius: "4px",
                   padding: "1px 5px",
-                  fontSize: "10px",
+                  fontSize: "12px",
                   fontWeight: 700,
                   letterSpacing: "0.5px",
                 }}>GRATIS</span>
@@ -642,7 +643,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
               style={{
                 background: "linear-gradient(135deg, #f97316, #fb923c)",
                 color: "#fff", border: "none", borderRadius: "8px",
-                padding: "8px 12px", fontWeight: 800, fontSize: "13px",
+                padding: "0 12px", minHeight: "44px", fontWeight: 800, fontSize: "13px",
                 cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
                 boxShadow: "0 2px 10px rgba(249,115,22,0.35)", whiteSpace: "nowrap",
               }}
@@ -654,10 +655,17 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
 
           {/* Mobile hamburger */}
           <button
-            className="flex md:hidden items-center p-2"
+            className="flex md:hidden items-center justify-center"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={menuOpen}
             style={{
+              // 44×44 de área táctil con estilo propio (la clase p-2 no se aplicaba y quedaba en 24×24)
+              width: "44px",
+              height: "44px",
+              flexShrink: 0,
+              marginRight: "-8px", // el dibujo queda alineado con el borde; el área táctil usa el padding
+              padding: 0,
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -741,7 +749,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
                       {unreadCount > 0 && (
                         <span style={{
                           background: "#ef4444", color: "#fff",
-                          fontSize: "10px", fontWeight: 700,
+                          fontSize: "12px", fontWeight: 700,
                           padding: "1px 5px", borderRadius: "20px", flexShrink: 0,
                         }}>
                           {unreadCount}
@@ -860,7 +868,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
             {/* Mi cuenta (el panel ya está en la tarjeta del usuario, arriba) */}
             {user && (
               <div style={{ padding: "0 18px 12px", borderTop: "1px solid #f1f5f9", paddingTop: "12px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.5px", textTransform: "uppercase", padding: "0 10px 6px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.5px", textTransform: "uppercase", padding: "0 10px 6px" }}>
                   Mi cuenta
                 </div>
                 {ACCOUNT_LINKS.slice(1).map(({ label, href, Icon, showUnread }) => (
@@ -875,7 +883,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
                       <Icon size={18} strokeWidth={1.75} />
                       <span style={{ flex: 1 }}>{label}</span>
                       {showUnread && unreadCount > 0 && (
-                        <span style={{ background: "#ef4444", color: "#fff", fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "20px" }}>
+                        <span style={{ background: "#ef4444", color: "#fff", fontSize: "12px", fontWeight: 700, padding: "1px 6px", borderRadius: "20px" }}>
                           {unreadCount}
                         </span>
                       )}
@@ -908,7 +916,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
               textAlign: "center",
             }}>
               <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>Comprá y vendé autos y motos</div>
-              <div style={{ fontSize: "11px", color: "#b9d4ee" }}>Sacá una foto • Publicá • Vendé</div>
+              <div style={{ fontSize: "12px", color: "#b9d4ee" }}>Sacá una foto • Publicá • Vendé</div>
             </div>
           </div>
         </>

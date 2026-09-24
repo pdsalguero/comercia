@@ -52,13 +52,13 @@ export function SubcategoryPills({ pills, allHref, allCount, isAllActive }: Prop
     >
       <a href={allHref} style={pillStyle(isAllActive)}>
         Todos
-        <span style={{ opacity: 0.6, fontSize: "10px" }}>{allCount}</span>
+        <span style={{ opacity: 0.6, fontSize: "12px" }}>{allCount}</span>
       </a>
 
       {pills.map((pill) => (
         <a key={pill.href} href={pill.href} style={pillStyle(pill.active)}>
           {pill.name}
-          <span style={{ opacity: 0.6, fontSize: "10px" }}>{pill.count}</span>
+          <span style={{ opacity: 0.6, fontSize: "12px" }}>{pill.count}</span>
         </a>
       ))}
     </div>

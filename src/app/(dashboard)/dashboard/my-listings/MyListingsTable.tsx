@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "./DeleteButton";
 import { QuickPriceEdit } from "./QuickPriceEdit";
+import { AlertTriangle, ArrowUp, ImageOff, Pause, Play, SearchX, Trash2, type LucideIcon } from "lucide-react";
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Activo", paused: "Pausado", sold: "Vendido", expired: "Vencido", draft: "Borrador",
@@ -55,11 +56,11 @@ function completeness(listing: Listing): string | null {
 
 type ConfirmState = { action: string; ids: string[] } | null;
 
-const CONFIRM_CONFIG: Record<string, { title: string; icon: string; confirmLabel: string; confirmColor: string; confirmBg: string; isDanger: boolean }> = {
-  delete:   { title: "Eliminar avisos",    icon: "🗑",  confirmLabel: "Sí, eliminar",    confirmColor: "#fff",     confirmBg: "#ef4444", isDanger: true },
-  pause:    { title: "Pausar avisos",      icon: "⏸",  confirmLabel: "Sí, pausar",      confirmColor: "#92400e",  confirmBg: "#fef3c7", isDanger: false },
-  activate: { title: "Activar avisos",     icon: "▶",  confirmLabel: "Sí, activar",     confirmColor: "#14532d",  confirmBg: "#dcfce7", isDanger: false },
-  bump:     { title: "Actualizar avisos",  icon: "↑",  confirmLabel: "Sí, actualizar",  confirmColor: "#1e3a8a",  confirmBg: "#dbeafe", isDanger: false },
+const CONFIRM_CONFIG: Record<string, { title: string; Icon: LucideIcon; confirmLabel: string; confirmColor: string; confirmBg: string; isDanger: boolean }> = {
+  delete:   { title: "Eliminar avisos",    Icon: Trash2,  confirmLabel: "Sí, eliminar",    confirmColor: "#fff",     confirmBg: "#ef4444", isDanger: true },
+  pause:    { title: "Pausar avisos",      Icon: Pause,   confirmLabel: "Sí, pausar",      confirmColor: "#92400e",  confirmBg: "#fef3c7", isDanger: false },
+  activate: { title: "Activar avisos",     Icon: Play,    confirmLabel: "Sí, activar",     confirmColor: "#14532d",  confirmBg: "#dcfce7", isDanger: false },
+  bump:     { title: "Actualizar avisos",  Icon: ArrowUp, confirmLabel: "Sí, actualizar",  confirmColor: "#1e3a8a",  confirmBg: "#dbeafe", isDanger: false },
 };
 
 const BUMP_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
@@ -190,7 +191,9 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
               width: "360px", boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
               animation: "fadeUp 0.15s ease",
             }} onClick={e => e.stopPropagation()}>
-              <div style={{ fontSize: "36px", marginBottom: "10px", lineHeight: 1 }}>{cfg.icon}</div>
+              <div style={{ marginBottom: "10px", display: "flex", justifyContent: "center", color: cfg.isDanger ? "#ef4444" : "#475569" }}>
+                <cfg.Icon size={32} strokeWidth={1.75} aria-hidden="true" />
+              </div>
               <h3 style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 800, color: "#0f172a" }}>
                 {cfg.title}
               </h3>
@@ -232,7 +235,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
             gridTemplateColumns: "36px 88px 1fr 130px 170px 110px 1px 220px",
             padding: "10px 20px",
             background: "#f8fafc", borderBottom: "1px solid #e2e8f0",
-            fontSize: "11px", fontWeight: 700, color: "#94a3b8",
+            fontSize: "12px", fontWeight: 700, color: "#94a3b8",
             textTransform: "uppercase", letterSpacing: "0.05em", alignItems: "center",
           }}>
             <div>
@@ -251,7 +254,9 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
 
         {listings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "56px 32px", color: "#94a3b8" }}>
-            <div style={{ fontSize: "52px", marginBottom: "14px" }}>🔍</div>
+            <div style={{ marginBottom: "14px", display: "flex", justifyContent: "center", color: "#cbd5e1" }}>
+              <SearchX size={48} strokeWidth={1.5} aria-hidden="true" />
+            </div>
             <p style={{ fontSize: "15px", fontWeight: 600, color: "#64748b", margin: "0 0 6px" }}>No se encontraron resultados</p>
             <p style={{ fontSize: "13px", margin: 0 }}>Probá con otro término o filtro</p>
           </div>
@@ -294,7 +299,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
               }}>
                 {cover
                   ? <img src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>📦</div>
+                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}><ImageOff size={22} aria-hidden="true" /></div>
                 }
               </div>
 
@@ -308,20 +313,20 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
                 </Link>
                 <div style={{ display: "flex", alignItems: "center", gap: "5px", flexWrap: "wrap" }}>
                   {listing.categories?.slug && (
-                    <span style={{ fontSize: "10px", fontWeight: 600, color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 5px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 5px" }}>
                       {CAT_NAMES[listing.categories.slug] ?? listing.categories.name}
                     </span>
                   )}
                   {listing.featured_level && (
                     <span style={{
-                      fontSize: "10px", fontWeight: 700, padding: "1px 5px", borderRadius: "4px",
+                      fontSize: "12px", fontWeight: 700, padding: "1px 5px", borderRadius: "4px",
                       background: listing.featured_level === "gold" ? "#fef3c7" : listing.featured_level === "silver" ? "#ede9fe" : "#fff7ed",
                       color: listing.featured_level === "gold" ? "#92400e" : listing.featured_level === "silver" ? "#5b21b6" : "#9a3412",
                     }}>
                       {listing.featured_level === "gold" ? "👑 Premium" : listing.featured_level === "silver" ? "🚀 Dest." : "⭐ Esencial"}
                     </span>
                   )}
-                  <span style={{ fontSize: "10px", color: "#cbd5e1" }}>
+                  <span style={{ fontSize: "12px", color: "#cbd5e1" }}>
                     {new Date(listing.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })}
                   </span>
                 </div>
@@ -330,7 +335,9 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
                     <div style={{ width: "80px", height: "3px", background: "#f1f5f9", borderRadius: "2px" }}>
                       <div style={{ width: "40%", height: "100%", background: "#f97316", borderRadius: "2px" }} />
                     </div>
-                    <span style={{ fontSize: "10px", color: "#f97316", fontWeight: 600 }}>⚠ {tip}</span>
+                    <span style={{ fontSize: "12px", color: "#f97316", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      <AlertTriangle size={12} aria-hidden="true" />{tip}
+                    </span>
                   </div>
                 )}
               </div>

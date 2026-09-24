@@ -13,6 +13,14 @@ import { ARGENTINA_PROVINCES, LOCALITIES_BY_PROVINCE, splitListingLocation } fro
 import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
 import { CONDITION_OPTIONS, FUEL_OPTIONS, TRANSMISSION_OPTIONS, normalizeSpecValue } from "@/lib/labels";
 import { canonicalModel } from "@/lib/model-normalize";
+import { AlertTriangle, Car, FileText, Images, MapPin } from "lucide-react";
+
+// Encabezado de cada sección del formulario (ícono de línea + título)
+const sectionHeader: React.CSSProperties = {
+  padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc",
+  fontSize: "13px", fontWeight: 700, color: "#334155",
+  display: "flex", alignItems: "center", gap: "8px",
+};
 
 const CONDITIONS = CONDITION_OPTIONS;
 
@@ -84,7 +92,7 @@ const inp: React.CSSProperties = {
 };
 
 const lbl: React.CSSProperties = {
-  fontSize: "11px", fontWeight: 700, color: "#64748b",
+  fontSize: "12px", fontWeight: 700, color: "#64748b",
   textTransform: "uppercase", letterSpacing: "0.5px",
   display: "block", marginBottom: "6px",
 };
@@ -252,14 +260,16 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
 
       {error && (
         <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 16px", fontSize: "13px", color: "#dc2626" }}>
-          ⚠️ {error}
+          <AlertTriangle size={15} aria-hidden="true" style={{ verticalAlign: "-3px", marginRight: "6px" }} />
+          {error}
         </div>
       )}
 
       {/* ── Photos ── */}
       <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", fontSize: "13px", fontWeight: 700, color: "#334155" }}>
-          🖼️ Fotos ({images.length})
+        <div style={{ ...sectionHeader }}>
+          <Images size={16} aria-hidden="true" />
+          Fotos ({images.length})
         </div>
         <div style={{ padding: "16px 20px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
           {images.map(img => (
@@ -284,7 +294,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
             alignItems: "center", justifyContent: "center", gap: "4px",
             cursor: uploading ? "not-allowed" : "pointer",
             background: uploading ? "#f8fafc" : "#fafbfc",
-            color: "#94a3b8", fontSize: "11px", fontWeight: 600,
+            color: "#94a3b8", fontSize: "12px", fontWeight: 600,
           }}>
             {uploading ? (
               <span style={{ width: "20px", height: "20px", border: "2px solid #cbd5e1", borderTopColor: "#3483fa", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
@@ -298,8 +308,9 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
 
       {/* ── Core fields ── */}
       <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", fontSize: "13px", fontWeight: 700, color: "#334155" }}>
-          📝 Información principal
+        <div style={{ ...sectionHeader }}>
+          <FileText size={16} aria-hidden="true" />
+          Información principal
         </div>
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
@@ -360,8 +371,9 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
       {/* ── VEHICLE FIELDS ── */}
       {isVehicle && (
         <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-          <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", fontSize: "13px", fontWeight: 700, color: "#334155" }}>
-            🚗 Detalles del vehículo
+          <div style={{ ...sectionHeader }}>
+            <Car size={16} aria-hidden="true" />
+            Detalles del vehículo
           </div>
           <div style={{ padding: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
 
@@ -533,7 +545,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 <label style={lbl}>Cilindrada</label>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={attrs.cilindrada ?? ""} onChange={e => setAttr("cilindrada", e.target.value)} placeholder="125" style={{ ...inp, paddingRight: "36px" }} min={0} />
-                  <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: "#94a3b8", fontWeight: 700 }}>cc</span>
+                  <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>cc</span>
                 </div>
               </div>
             )}
@@ -544,7 +556,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 <label style={lbl}>Kilómetros <span style={{ color: "#dc2626" }}>*</span></label>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={attrs.km ?? ""} onChange={e => setAttr("km", e.target.value)} placeholder="0" style={{ ...inp, paddingRight: "36px" }} />
-                  <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "10px", color: "#94a3b8", fontWeight: 700 }}>km</span>
+                  <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>km</span>
                 </div>
               </div>
             )}
@@ -669,7 +681,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                   <div style={{ gridColumn: "span 2" }}>
                     <label style={lbl}>Tipo de vendedor</label>
                     <div style={{ display: "flex", gap: "8px" }}>
-                      {[["particular","👤 Particular"],["concesionaria","🏢 Concesionaria"]].map(([v,l]) => (
+                      {[["particular","Particular"],["concesionaria","Concesionaria"]].map(([v,l]) => (
                         <button key={v} type="button" onClick={() => setAttr("seller_type", v)} style={{
                           flex: 1, padding: "10px", borderRadius: "9px",
                           border: `1.5px solid ${attrs.seller_type === v ? "#2563eb" : "#e2e8f0"}`,
@@ -709,8 +721,9 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
       {/* ── Real estate location ── */}
       {isRealEstate && (
         <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-          <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc", fontSize: "13px", fontWeight: 700, color: "#334155" }}>
-            📍 Ubicación
+          <div style={{ ...sectionHeader }}>
+            <MapPin size={16} aria-hidden="true" />
+            Ubicación
           </div>
           <div style={{ padding: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
             <div>

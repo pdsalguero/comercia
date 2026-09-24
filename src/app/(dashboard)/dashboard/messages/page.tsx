@@ -151,7 +151,7 @@ export default async function MessagesPage() {
                   }
                 </div>
                 {conv.unread > 0 && (
-                  <span style={{ position: "absolute", top: "-2px", right: "-2px", background: "#ef4444", color: "#fff", fontSize: "9px", fontWeight: 800, borderRadius: "50%", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ position: "absolute", top: "-2px", right: "-2px", background: "#ef4444", color: "#fff", fontSize: "12px", fontWeight: 800, borderRadius: "50%", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {conv.unread}
                   </span>
                 )}
@@ -163,12 +163,12 @@ export default async function MessagesPage() {
                   <span style={{ fontSize: "14px", fontWeight: conv.unread > 0 ? 800 : 600, color: "#1e293b" }}>
                     {conv.otherName}
                   </span>
-                  <span style={{ fontSize: "11px", color: "#94a3b8", flexShrink: 0, marginLeft: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#94a3b8", flexShrink: 0, marginLeft: "8px" }}>
                     {formatDate(conv.lastDate)}
                   </span>
                 </div>
                 {conv.listingTitle && (
-                  <div style={{ fontSize: "11px", color: "#1d6fb8", fontWeight: 600, marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: "12px", color: "#1d6fb8", fontWeight: 600, marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     Re: {conv.listingTitle}
                   </div>
                 )}

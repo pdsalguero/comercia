@@ -104,7 +104,7 @@ export function VerifyIdentityModal({ isVerified }: Props) {
             padding: "12px 14px", marginBottom: "20px",
             border: "1px solid #e2e8f0",
           }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
               Cómo verificar
             </div>
             {[
@@ -117,7 +117,7 @@ export function VerifyIdentityModal({ isVerified }: Props) {
                   width: "20px", height: "20px", borderRadius: "50%",
                   background: "#2563eb", color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "10px", fontWeight: 800, flexShrink: 0,
+                  fontSize: "12px", fontWeight: 800, flexShrink: 0,
                 }}>
                   {i + 1}
                 </div>

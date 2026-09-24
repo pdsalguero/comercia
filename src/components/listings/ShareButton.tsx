@@ -90,7 +90,7 @@ export function ShareButton({ listingId, title, price, currency }: Props) {
           {/* Arrow */}
           <div style={{ position: "absolute", bottom: "-6px", right: "22px", width: "12px", height: "12px", background: "#fff", border: "1px solid #e2e8f0", transform: "rotate(45deg)", borderTop: "none", borderLeft: "none" }} />
 
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px" }}>Compartir aviso</div>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px" }}>Compartir aviso</div>
 
           {/* Icon row */}
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -169,7 +169,7 @@ function IconBtn({ children, label, bg, onClick, href }: {
     display: "flex", alignItems: "center", justifyContent: "center",
     transition: "opacity 0.15s",
   };
-  const lbl: React.CSSProperties = { fontSize: "10px", fontWeight: 600, color: "#64748b", whiteSpace: "nowrap" };
+  const lbl: React.CSSProperties = { fontSize: "12px", fontWeight: 600, color: "#64748b", whiteSpace: "nowrap" };
 
   const inner = (
     <>

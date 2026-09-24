@@ -90,8 +90,9 @@ export function SmartSearchButton() {
 
   return (
     <>
-      <button type="button" className="hero-smart-search-btn" onClick={() => setOpen(true)}>
-        <Sparkles size={14} strokeWidth={2.2} />
+      {/* En celular el texto se oculta por espacio: el aria-label mantiene el nombre del botón */}
+      <button type="button" className="hero-smart-search-btn" onClick={() => setOpen(true)} aria-label="Contame qué buscás (búsqueda inteligente)" aria-haspopup="dialog">
+        <Sparkles size={14} strokeWidth={2.2} aria-hidden="true" />
         <span className="hero-smart-search-btn-label">Contame qué buscás</span>
       </button>
 

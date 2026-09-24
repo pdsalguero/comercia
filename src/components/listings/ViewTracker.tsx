@@ -14,7 +14,7 @@ export function ViewTracker({ listingId }: { listingId: string }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ listing_id: listingId }),
-    });
+    }).catch(() => {}); // sin conexión o bloqueado: la vista no se cuenta, pero no es un error de la página
   }, [listingId]);
 
   return null;
