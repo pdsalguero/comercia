@@ -29,7 +29,7 @@ export function QuickPriceEdit({ listingId, price, currency, onSave }: Props) {
   }
 
   const sym = currency === 'USD' ? 'U$S' : '$'
-  const display = price > 0 ? `${sym} ${price.toLocaleString('es-AR')}` : 'Sin precio'
+  const display = price > 0 ? `${sym} ${price.toLocaleString('es-AR')}` : 'A consultar'
 
   if (!editing) return (
     <div

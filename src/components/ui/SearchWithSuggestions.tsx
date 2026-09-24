@@ -16,10 +16,13 @@ interface Props {
   action: string; // URL to navigate to on submit (with ?q=...)
   extraParams?: Record<string, string>; // other query params to preserve
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function SearchWithSuggestions({ placeholder = "Buscar...", initialValue = "", action, extraParams = {}, style }: Props) {
+export function SearchWithSuggestions({ placeholder = "Buscar...", initialValue = "", action, extraParams = {}, style, className }: Props) {
   const [query, setQuery] = useState(initialValue);
+  // Si la búsqueda cambia sin recargar la página (navegación del cliente), el campo refleja el nuevo `q`
+  useEffect(() => { setQuery(initialValue); }, [initialValue]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,7 +64,7 @@ export function SearchWithSuggestions({ placeholder = "Buscar...", initialValue 
   };
 
   return (
-    <div ref={wrapRef} style={{ position: "relative", ...style }}>
+    <div ref={wrapRef} className={className} style={{ position: "relative", ...style }}>
       <div style={{
         display: "flex", alignItems: "center",
         border: "1.5px solid #e2e8f0", borderRadius: "8px",

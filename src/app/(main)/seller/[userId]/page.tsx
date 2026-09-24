@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { buildKeywordFilters } from "@/lib/search-query";
+import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -90,7 +92,8 @@ export default async function SellerPage({
   searchParams: Promise<SP>;
 }) {
   const { userId } = await params;
-  const sp = await searchParams;
+  // Precio validado (sin negativos ni "1e3"; mín/máx invertidos si vienen al revés)
+  const sp = sanitizeRangeParams(await searchParams);
   const base = `/seller/${userId}`;
 
   const supabase = await createClient();
@@ -167,14 +170,7 @@ export default async function SellerPage({
     .eq("user_id", userId) as any;
 
   // Search
-  if (sp.q) {
-    const rawTokens = sp.q.trim().split(/\s+/).filter(Boolean);
-    const buildFuzzyPattern = (token: string) =>
-      "%" + token.replace(/([a-zA-Z])(\d)/g, "$1%$2").replace(/(\d)([a-zA-Z])/g, "$1%$2") + "%";
-    for (const token of rawTokens) {
-      query = query.ilike("title", buildFuzzyPattern(token));
-    }
-  }
+  for (const f of buildKeywordFilters(sp.q)) query = query.or(f);
 
   // Category filter
   if (sp.cat) query = query.eq("category_id", Number(sp.cat));
@@ -187,16 +183,16 @@ export default async function SellerPage({
   if (sp.price_max) query = query.lte("price", Number(sp.price_max));
 
   // Sort
-  if (sp.order === "price_asc") query = query.order("price", { ascending: true });
-  else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
+  if (sp.order === "price_asc") query = query.order("price", { ascending: true, nullsFirst: false });
+  else if (sp.order === "price_desc") query = query.order("price", { ascending: false, nullsFirst: false });
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
   const { data: rawListings } = await query.limit(48);
 
   const listings = ((rawListings as any[]) ?? []).slice().sort((a: any, b: any) => {
-    if (sp.order === "price_asc") return (a.price ?? 0) - (b.price ?? 0);
-    if (sp.order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
+    if (sp.order === "price_asc") return comparePrice(a, b, false);
+    if (sp.order === "price_desc") return comparePrice(a, b, true);
     const fa = FEAT_ORDER[a.featured_level ?? ""] ?? 3;
     const fb = FEAT_ORDER[b.featured_level ?? ""] ?? 3;
     return fa - fb;
@@ -507,9 +503,9 @@ export default async function SellerPage({
             Precio
           </div>
           <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
+            <input name="price_min" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_min} placeholder="Mínimo"
               style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-            <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
+            <input name="price_max" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_max} placeholder="Máximo"
               style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
             <button type="submit" style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
               Aplicar

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { emptyResultsCopy } from "@/lib/empty-results";
 
 interface EmptyVehicleResultsProps {
   /** Lo que buscó la persona ("Toyota Corolla", "Motos"…); vacío si filtró solo por precio, año, etc. */
@@ -6,22 +7,24 @@ interface EmptyVehicleResultsProps {
   /** Provincia filtrada, si hay. */
   province?: string;
   hasFilters: boolean;
+  /** Avisos de `wanted` sin los demás filtros (0 si no hay ninguno). */
+  wantedCount?: number;
+  /** Misma búsqueda conservando solo tipo/marca/modelo. */
+  relaxHref?: string;
   /** Misma búsqueda sin el filtro de provincia. */
   nationwideHref?: string;
   clearHref: string;
 }
 
-// Búsqueda vacía: en un sitio con poca oferta es lo más habitual, así que se aprovecha para
-// invitar a publicar en lugar de mostrar un "no se encontraron avisos" sin salida.
-export function EmptyVehicleResults({ wanted, province, hasFilters, nationwideHref, clearHref }: EmptyVehicleResultsProps) {
-  const title = !hasFilters
-    ? "Todavía no hay vehículos publicados"
-    : wanted
-      ? `Todavía no hay avisos de ${wanted}${province ? ` en ${province}` : ""}`
-      : "No encontramos avisos con esos filtros";
-  const body = !hasFilters
-    ? "Sé el primero en publicar el tuyo."
-    : "¿Tenés uno para vender? Publicalo gratis y aparecés primero para quienes lo buscan.";
+const secondaryBtn: React.CSSProperties = {
+  background: "#fff", color: "#1e293b", border: "1.5px solid #cbd5e1", borderRadius: "10px",
+  padding: "10px 20px", fontSize: "14px", fontWeight: 600, textDecoration: "none",
+};
+
+// Búsqueda vacía. Si no hay avisos de lo que se busca, se invita a publicar (en un sitio con poca oferta
+// es lo más habitual); si hay pero otros filtros los dejan afuera, lo principal es ofrecer quitarlos.
+export function EmptyVehicleResults({ wanted, province, hasFilters, wantedCount = 0, relaxHref, nationwideHref, clearHref }: EmptyVehicleResultsProps) {
+  const { title, body, canRelax } = emptyResultsCopy({ wanted, province, hasFilters, wantedCount });
 
   return (
     <div style={{
@@ -33,34 +36,34 @@ export function EmptyVehicleResults({ wanted, province, hasFilters, nationwideHr
       <p style={{ fontSize: "14px", color: "#64748b", margin: "0 auto 22px", maxWidth: "420px" }}>{body}</p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
-        <Link
-          href="/listings/new"
-          style={{
-            background: "#2563eb", color: "#fff", borderRadius: "10px", padding: "11px 20px",
-            fontSize: "14px", fontWeight: 700, textDecoration: "none",
-          }}
-        >
-          Publicá el tuyo gratis
-        </Link>
-        {nationwideHref && (
+        {canRelax && relaxHref ? (
           <Link
-            href={nationwideHref}
+            href={relaxHref}
             style={{
-              background: "#fff", color: "#1e293b", border: "1.5px solid #cbd5e1", borderRadius: "10px",
-              padding: "10px 20px", fontSize: "14px", fontWeight: 600, textDecoration: "none",
+              background: "#2563eb", color: "#fff", borderRadius: "10px", padding: "11px 20px",
+              fontSize: "14px", fontWeight: 700, textDecoration: "none",
             }}
           >
-            Buscar en todo el país
+            Quitar filtros ({wantedCount})
+          </Link>
+        ) : (
+          <Link
+            href="/listings/new"
+            style={{
+              background: "#2563eb", color: "#fff", borderRadius: "10px", padding: "11px 20px",
+              fontSize: "14px", fontWeight: 700, textDecoration: "none",
+            }}
+          >
+            Publicá el tuyo gratis
+          </Link>
+        )}
+        {nationwideHref && (
+          <Link href={nationwideHref} style={secondaryBtn}>
+            Ver en todas las provincias
           </Link>
         )}
         {hasFilters && (
-          <Link
-            href={clearHref}
-            style={{
-              background: "#fff", color: "#1e293b", border: "1.5px solid #cbd5e1", borderRadius: "10px",
-              padding: "10px 20px", fontSize: "14px", fontWeight: 600, textDecoration: "none",
-            }}
-          >
+          <Link href={clearHref} style={secondaryBtn}>
             Ver todos los vehículos
           </Link>
         )}

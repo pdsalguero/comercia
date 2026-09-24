@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/ui/Logo";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { isCategorySlugEnabled } from "@/lib/site-config";
@@ -48,6 +48,18 @@ interface NavbarProps {
    * navegador en lugar de recibirla por `user`. Solo se usa para mostrar el menú de la cuenta.
    */
   loadUserOnClient?: boolean;
+}
+
+// En los resultados (/category/*) el buscador del header muestra el `q` actual. Va en un componente
+// aparte dentro de <Suspense> porque useSearchParams lo exige en páginas estáticas (el home).
+function SyncSearchQuery({ onQuery }: { onQuery: (q: string) => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const q = pathname?.startsWith("/category/") ? searchParams.get("q") ?? "" : null;
+  useEffect(() => {
+    if (q !== null) onQuery(q);
+  }, [q, onQuery]);
+  return null;
 }
 
 export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, loadUserOnClient = false }: NavbarProps) {
@@ -104,11 +116,13 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
     if (!user) return;
     const supabase = createClient();
     const fetchUnread = async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("messages")
         .select("id", { count: "exact", head: true })
         .eq("receiver_id", user.id)
         .eq("is_read", false);
+      // Si falla (el QA vio un 503 que no pudimos reproducir) no se pisa el contador con un 0 falso
+      if (error) { console.warn("[navbar] conteo de no leídos falló", error.code, error.message); return; }
       setUnreadCount(count ?? 0);
     };
     // Fuera del panel el Navbar arranca sin contador: se consulta una vez al entrar
@@ -165,10 +179,18 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
   }, []);
 
   const handleSearch = () => {
-    if (query.trim()) {
-      setShowSuggestions(false);
-      router.push(`/listings?q=${encodeURIComponent(query.trim())}`);
+    setShowSuggestions(false);
+    const q = query.trim();
+    // Dentro de una categoría se busca ahí mismo conservando los filtros activos (tipo, marca, precio…)
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/category/")) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete("page");
+      if (q) params.set("q", q); else params.delete("q");
+      const qs = params.toString();
+      router.push(`${window.location.pathname}${qs ? `?${qs}` : ""}`);
+      return;
     }
+    if (q) router.push(`/listings?q=${encodeURIComponent(q)}`);
   };
 
   const handleSignOut = async () => {
@@ -297,6 +319,10 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
               Concesionarias
             </Link>
           </div>
+
+          <Suspense fallback={null}>
+            <SyncSearchQuery onQuery={setQuery} />
+          </Suspense>
 
           {/* Search bar — center */}
           <div

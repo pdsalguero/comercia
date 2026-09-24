@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { bestValueDays, pricePerDay } from "@/lib/plan-pricing";
 
 const TIERS = [
   {
@@ -222,10 +223,11 @@ export function PlanCards({ listingId, freeCredits = 0 }: Props) {
             <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
               {DAYS.map((d) => {
                 const p = tier.prices[d];
-                const ppd = Math.round(p / d);
+                const ppd = pricePerDay(p, d);
                 const key = `${tier.key}_${d}`;
                 const isSelected = selected === key;
-                const isBest = d === 30;
+                // Calculado: la duración con menor precio por día de este plan (antes fijo en 30 días)
+                const isBest = d === bestValueDays(tier.prices);
                 return (
                   <div
                     key={d}

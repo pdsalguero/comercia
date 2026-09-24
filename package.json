@@ -7,7 +7,8 @@
     "dev:clean": "node -e \"require('fs').rmSync('.next', {recursive:true, force:true})\" && next dev",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "NODE_OPTIONS=--max-old-space-size=384 next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -40,6 +41,7 @@
     "postgres": "^3.4.8",
     "supabase": "^2.76.16",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

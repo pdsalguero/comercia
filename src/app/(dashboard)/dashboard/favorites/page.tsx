@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
+import { formatListingPrice, favoriteStatus } from "@/lib/listing-display";
+import { listingUrl } from "@/lib/listing-url";
 
-function formatPrice(price: number, currency = "ARS") {
-  if (currency === "USD") return `U$S ${price.toLocaleString("es-AR")}`;
-  return `$ ${price.toLocaleString("es-AR")}`;
+function CardLink({ href, children }: { href: string | null; children: React.ReactNode }) {
+  if (!href) return <div style={{ display: "block" }}>{children}</div>;
+  return <Link href={href} style={{ textDecoration: "none", display: "block" }}>{children}</Link>;
 }
 
 function cover(listing: any): string | null {
@@ -30,7 +32,7 @@ export default async function FavoritesPage() {
     .select(`
       created_at,
       listings (
-        id, title, price, currency, condition, neighborhood, status,
+        id, title, price, currency, condition, neighborhood, status, category_id,
         listing_images (url, position)
       )
     `)
@@ -103,28 +105,32 @@ export default async function FavoritesPage() {
         }}>
           {favorites.map((listing: any) => {
             const img = cover(listing);
-            const isPaused = listing.status === "paused";
+            const status = favoriteStatus(listing);
+            const isPaused = status === "paused";
+            const isUnavailable = status === "unavailable";
             return (
               <div key={listing.id} style={{
                 background: "#fff", borderRadius: "12px",
                 border: "1px solid #e2e8f0", overflow: "hidden",
-                opacity: isPaused ? 0.65 : 1,
+                opacity: isPaused || isUnavailable ? 0.65 : 1,
                 position: "relative",
               }}>
                 {/* Image */}
-                <Link href={`/listings/${listing.id}`} style={{ textDecoration: "none", display: "block" }}>
+                {/* Un aviso no disponible (vendido, vencido o de otra categoría) no lleva a ningún lado:
+                    solo queda la opción de quitarlo de favoritos. */}
+                <CardLink href={isUnavailable ? null : listingUrl(listing.id, listing.title)}>
                   <div style={{ height: "170px", background: "#f1f5f9", position: "relative", overflow: "hidden" }}>
                     {img
                       ? <img src={img} alt={listing.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
                     }
-                    {isPaused && (
+                    {(isPaused || isUnavailable) && (
                       <div style={{
                         position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}>
                         <span style={{ background: "#1e293b", color: "#fff", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700 }}>
-                          Aviso pausado
+                          {isUnavailable ? "No disponible" : "Aviso pausado"}
                         </span>
                       </div>
                     )}
@@ -140,8 +146,8 @@ export default async function FavoritesPage() {
                     }}>
                       {listing.title}
                     </div>
-                    <div style={{ fontSize: "17px", fontWeight: 800, color: "#f97316", marginBottom: "2px" }}>
-                      {formatPrice(listing.price, listing.currency)}
+                    <div style={{ fontSize: "17px", fontWeight: 800, color: isUnavailable ? "#94a3b8" : "#f97316", marginBottom: "2px" }}>
+                      {isUnavailable ? "No disponible" : formatListingPrice(listing.price, listing.currency)}
                     </div>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                       {listing.condition && (
@@ -154,7 +160,7 @@ export default async function FavoritesPage() {
                       )}
                     </div>
                   </div>
-                </Link>
+                </CardLink>
 
                 {/* Favorite toggle (removes from list) */}
                 <div style={{ padding: "0 14px 12px" }}>

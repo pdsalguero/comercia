@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { RE_LOCATIONS } from "@/lib/re-locations";
 import { MOTO_SUBTIPOS } from "@/data/modelos-motos";
+import { sanitizeRangeParams } from "@/lib/listing-filters";
 
 export interface FilterValues {
   condition?: string;
@@ -110,7 +111,9 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     filters.security, filters.private_complex, filters.credit_eligible,
   ].filter(Boolean).length;
 
-  function applyFilters(f: FilterValues) {
+  function applyFilters(raw: FilterValues) {
+    // Mismo saneo que el servidor: sin negativos ni "1e3", y mínimo/máximo invertidos si vienen al revés
+    const f = sanitizeRangeParams(raw);
     const sp = new URLSearchParams();
     const keys: (keyof FilterValues)[] = [
       "q", "category", "condition", "price_min", "price_max", "order", "location",
@@ -283,13 +286,13 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
               <div style={subLabel}>Año</div>
               <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                 <input
-                  type="number" placeholder="Desde" value={filters.year_from ?? ""}
+                  type="number" min={1900} max={2100} step={1} inputMode="numeric" placeholder="Desde" value={filters.year_from ?? ""}
                   onChange={e => setFilters(f => ({ ...f, year_from: e.target.value || undefined }))}
                   style={{ ...inputStyle, flex: 1 }}
                 />
                 <span style={{ color: "#94a3b8", fontSize: "12px" }}>—</span>
                 <input
-                  type="number" placeholder="Hasta" value={filters.year_to ?? ""}
+                  type="number" min={1900} max={2100} step={1} inputMode="numeric" placeholder="Hasta" value={filters.year_to ?? ""}
                   onChange={e => setFilters(f => ({ ...f, year_to: e.target.value || undefined }))}
                   style={{ ...inputStyle, flex: 1 }}
                 />
@@ -434,12 +437,12 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
           <div style={sectionLabel}>Precio</div>
           <div style={{ display: "flex", gap: "6px" }}>
             <input
-              type="number" placeholder="Mínimo" value={filters.price_min ?? ""}
+              type="number" min={0} step={1} inputMode="numeric" placeholder="Mínimo" value={filters.price_min ?? ""}
               onChange={e => setFilters(f => ({ ...f, price_min: e.target.value || undefined }))}
               style={{ ...inputStyle, flex: 1 }}
             />
             <input
-              type="number" placeholder="Máximo" value={filters.price_max ?? ""}
+              type="number" min={0} step={1} inputMode="numeric" placeholder="Máximo" value={filters.price_max ?? ""}
               onChange={e => setFilters(f => ({ ...f, price_max: e.target.value || undefined }))}
               style={{ ...inputStyle, flex: 1 }}
             />

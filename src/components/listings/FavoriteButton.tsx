@@ -13,6 +13,7 @@ interface Props {
 export function FavoriteButton({ listingId, variant = "card" }: Props) {
   const [favorited, setFavorited] = useState(false);
   const [userId, setUserId]       = useState<string | null>(null);
+  const [isOwn, setIsOwn]         = useState(false);
   const [mounted, setMounted]     = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -28,15 +29,18 @@ export function FavoriteButton({ listingId, variant = "card" }: Props) {
       if (!user) { setMounted(true); return; }
       setUserId(user.id);
 
+      // Una sola consulta: dueño del aviso + si este usuario ya lo tiene en favoritos.
+      // (Antes se consultaba solo el favorito y se podía guardar un aviso propio.)
       const { data } = await supabase
-        .from("listing_favorites")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .eq("listing_id", listingId)
+        .from("listings")
+        .select("user_id, listing_favorites(user_id)")
+        .eq("id", listingId)
+        .eq("listing_favorites.user_id", user.id)
         .maybeSingle();
 
       if (!cancelled) {
-        setFavorited(!!data);
+        setIsOwn(data?.user_id === user.id);
+        setFavorited(((data?.listing_favorites as unknown[] | null) ?? []).length > 0);
         setMounted(true);
       }
     })();
@@ -52,6 +56,7 @@ export function FavoriteButton({ listingId, variant = "card" }: Props) {
       router.push("/login");
       return;
     }
+    if (isOwn) return;
 
     startTransition(async () => {
       const supabase = createClient();
@@ -70,6 +75,9 @@ export function FavoriteButton({ listingId, variant = "card" }: Props) {
       }
     });
   }
+
+  // No se puede guardar un aviso propio: el botón no se muestra.
+  if (isOwn) return null;
 
   if (variant === "detail") {
     return (

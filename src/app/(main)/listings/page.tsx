@@ -16,7 +16,7 @@ export default async function ListingsRedirectPage({
     price_min?: string; price_max?: string; order?: string; location?: string;
     brand?: string; fuel?: string; transmission?: string;
     year_from?: string; year_to?: string; km_max?: string;
-    sub_category?: string;
+    sub_category?: string; type?: string; model?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -35,7 +35,8 @@ export default async function ListingsRedirectPage({
   if (sp.km_max) params.set("km_max", sp.km_max);
   // /category/vehicles usa "type" (no "sub_category") para resaltar el tab activo del sidebar
   // y mostrarlo en el breadcrumb — "sub_category" ahí solo es un fallback de lectura de query.
-  if (sp.sub_category) params.set("type", sp.sub_category);
+  if (sp.type || sp.sub_category) params.set("type", (sp.type || sp.sub_category)!);
+  if (sp.model) params.set("model", sp.model);
 
   // "location" acá era el nombre de la provincia (ej. "Buenos Aires"); /category/vehicles usa
   // la clave de RE_LOCATIONS (ej. "buenos-aires") en v_province.

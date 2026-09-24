@@ -48,7 +48,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   const [
     { count: activeListings },
     { data: allListings },
-    { count: unreadMessages },
+    { count: unreadMessages, error: unreadError },
   ] = await Promise.all([
     supabase
       .from('listings')
@@ -65,6 +65,8 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       .eq('receiver_id', userId)
       .eq('is_read', false),
   ])
+
+  if (unreadError) console.error('[dashboard] conteo de mensajes no leídos falló', unreadError.code, unreadError.message)
 
   const listingIds = (allListings ?? []).map(l => l.id)
   const totalViews = (allListings ?? []).reduce((sum, l) => sum + (l.view_count ?? 0), 0)

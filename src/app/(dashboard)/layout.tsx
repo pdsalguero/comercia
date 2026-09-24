@@ -25,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { count: unreadCount }, { count: listingsCount }, { count: favoritesCount }] = await Promise.all([
+  const [{ data: profile }, { count: unreadCount, error: unreadError }, { count: listingsCount }, { count: favoritesCount }] = await Promise.all([
     supabase
       .from('profiles')
       .select('username, full_name, avatar_url, is_pro, identity_verified, is_admin')
@@ -46,6 +46,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .select('user_id', { count: 'exact', head: true })
       .eq('user_id', user.id),
   ])
+  // El QA reportó un 503 en este conteo que no se pudo reproducir: si vuelve a pasar, queda en el log con su código
+  if (unreadError) console.error('[dashboard] conteo de mensajes no leídos falló', unreadError.code, unreadError.message)
 
   return (
     <div style={{ minHeight: '100vh', background: '#ebebeb' }}>

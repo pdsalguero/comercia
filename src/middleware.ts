@@ -70,6 +70,19 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // /category: el tipo de vehículo es `type` (lo leen chip, breadcrumb y menú lateral). Los links viejos
+  // con `sub_category` se redirigen acá y no en la página: con loading.tsx la página ya respondió 200
+  // cuando llega a ejecutar redirect().
+  if (pathname.startsWith('/category/')) {
+    const sub = request.nextUrl.searchParams.get('sub_category')
+    if (sub && !request.nextUrl.searchParams.get('type')) {
+      const url = request.nextUrl.clone()
+      url.searchParams.set('type', sub)
+      url.searchParams.delete('sub_category')
+      return NextResponse.redirect(url)
+    }
+  }
+
   // La home es pública y se sirve desde caché: no consulta a Supabase Auth en cada visita.
   // La sesión se resuelve en el navegador (Navbar `loadUserOnClient`), que también renueva el token.
   if (pathname === '/') return NextResponse.next()

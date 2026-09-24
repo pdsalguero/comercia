@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
+import { Dialog } from "@/components/ui/Dialog";
 
 const STORAGE_KEY = "comerxia_verify_modal_seen";
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function VerifyIdentityModal({ isVerified }: Props) {
+  const titleId = useId();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -27,25 +29,13 @@ export function VerifyIdentityModal({ isVerified }: Props) {
     setOpen(false);
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        background: "rgba(15,23,42,0.55)",
-        backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "16px",
-      }}
-      onClick={dismiss}
-    >
+    <Dialog open={open} onClose={dismiss} labelledBy={titleId}>
       <div
-        onClick={(e) => e.stopPropagation()}
         style={{
           background: "#fff", borderRadius: "20px",
           boxShadow: "0 24px 60px rgba(0,0,0,0.2)",
-          maxWidth: "440px", width: "100%",
+          width: "100%",
           overflow: "hidden",
         }}
       >
@@ -56,6 +46,8 @@ export function VerifyIdentityModal({ isVerified }: Props) {
           position: "relative",
         }}>
           <button
+            type="button"
+            aria-label="Cerrar"
             onClick={dismiss}
             style={{
               position: "absolute", top: "14px", right: "14px",
@@ -78,7 +70,7 @@ export function VerifyIdentityModal({ isVerified }: Props) {
               <polyline points="9 12 11 14 15 10"/>
             </svg>
           </div>
-          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
+          <h2 id={titleId} style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
             ¡Verificá tu identidad!
           </h2>
           <p style={{ margin: "6px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.8)", lineHeight: 1.4 }}>
@@ -138,6 +130,7 @@ export function VerifyIdentityModal({ isVerified }: Props) {
           <div style={{ display: "flex", gap: "10px" }}>
             <Link
               href="/dashboard/settings?tab=identity"
+              data-autofocus
               onClick={dismiss}
               style={{
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
@@ -152,6 +145,7 @@ export function VerifyIdentityModal({ isVerified }: Props) {
               Verificar ahora
             </Link>
             <button
+              type="button"
               onClick={dismiss}
               style={{
                 padding: "11px 16px",
@@ -166,6 +160,6 @@ export function VerifyIdentityModal({ isVerified }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

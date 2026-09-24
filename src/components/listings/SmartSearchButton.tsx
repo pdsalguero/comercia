@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, X, Search } from "lucide-react";
+import { Dialog } from "@/components/ui/Dialog";
 
 // Ejemplos que muestra el modal — cubren los tipos de filtro más comunes (km, equipamiento,
 // precio) para que la persona vea de entrada qué tipo de frase entiende la búsqueda.
@@ -29,6 +30,7 @@ interface SmartSearchFilters {
 }
 
 export function SmartSearchButton() {
+  const titleId = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,28 +94,21 @@ export function SmartSearchButton() {
         <span className="hero-smart-search-btn-label">Contame qué buscás</span>
       </button>
 
-      {open && (
-        <div
-          onClick={() => !loading && setOpen(false)}
-          style={{
-            position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)", zIndex: 200,
-            display: "flex", alignItems: "center", justifyContent: "center", padding: "16px",
-          }}
-        >
+      <Dialog open={open} onClose={() => { if (!loading) setOpen(false); }} labelledBy={titleId} maxWidth="520px">
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#fff", borderRadius: "16px", width: "100%", maxWidth: "520px",
+              background: "#fff", borderRadius: "16px", width: "100%",
               maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid #f1f5f9" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", fontWeight: 800, color: "#0f172a" }}>
-                <Sparkles size={18} color="#1d6fb8" />
+              <h2 id={titleId} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                <Sparkles size={18} color="#1d6fb8" aria-hidden="true" />
                 Contame qué buscás
-              </div>
+              </h2>
               <button
                 type="button"
+                aria-label="Cerrar"
                 onClick={() => setOpen(false)}
                 style={{ background: "#f1f5f9", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", flexShrink: 0 }}
               >
@@ -132,7 +127,7 @@ export function SmartSearchButton() {
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runSearch(query); } }}
                 placeholder="Ej: pickup automática, poco uso y con GNC"
                 rows={2}
-                autoFocus
+                data-autofocus
                 disabled={loading}
                 style={{
                   width: "100%", border: "1.5px solid #cbd5e1", borderRadius: "10px",
@@ -192,8 +187,7 @@ export function SmartSearchButton() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Dialog>
     </>
   );
 }

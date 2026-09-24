@@ -16,6 +16,8 @@ import { ReportButton } from "@/components/listings/ReportButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
+import { brandLabel } from "@/lib/hero-facets";
+import { greetingName } from "@/lib/listing-display";
 import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
@@ -360,7 +362,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     listingTitle: listing.title,
   });
 
-  const sellerName = profile?.full_name || (profile?.username ? `@${profile.username}` : "Usuario");
+  // trim: hay perfiles guardados con espacio final ("Diego Morales ") que dejaban "Morales , estoy…"
+  const sellerName = profile?.full_name?.trim() || (profile?.username ? `@${profile.username.trim()}` : "Usuario");
   const sellerInitial = (profile?.full_name?.[0] ?? profile?.username?.[0] ?? "?").toUpperCase();
 
   // Feature badges for bottom of right card
@@ -439,7 +442,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               sellerName={sellerName}
               triggerStyle="link"
               triggerLabel="Consultar precio"
-              defaultMessage={`Hola ${sellerName}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
+              defaultMessage={`Hola ${greetingName(sellerName)}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
             />
           )}
         </div>
@@ -449,7 +452,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ViewTracker listingId={listing.id} />
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 8px", boxSizing: "border-box", width: "100%" }}>
+      {/* 1200px de contenido (+8px de margen por lado), igual que la barra superior: así el logo y el
+          breadcrumb quedan alineados y la galería no se estira de más en pantallas anchas. */}
+      <div style={{ maxWidth: "1216px", margin: "0 auto", padding: "0 8px", boxSizing: "border-box", width: "100%" }}>
 
         {/* Breadcrumb */}
         {(() => {
@@ -554,11 +559,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   23: "baby_brand", 24: "beauty_brand", 25: "toy_brand",
                 };
                 const brandParam = BRAND_PARAM[listing.category_id] ?? "brand";
-                const label = catConfig.fields.find(f => f.key === "brand")?.options?.find(o => o.value === attrs.brand)?.label ?? String(attrs.brand);
+                // Nombre de la marca del catálogo ("Mercedes-Benz"), no el slug ("mercedes_benz")
+                const label = catConfig.fields.find(f => f.key === "brand")?.options?.find(o => o.value === attrs.brand)?.label ?? brandLabel(String(attrs.brand));
                 return (
                   <>
                     {sep}
-                    <Link href={`/category/${catSlug}?${brandParam}=${encodeURIComponent(attrs.brand)}`} style={{ ...linkStyle, textTransform: "capitalize" }}>
+                    <Link href={`/category/${catSlug}?${brandParam}=${encodeURIComponent(attrs.brand)}`} style={linkStyle}>
                       {label}
                     </Link>
                   </>
@@ -698,7 +704,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     sellerName={sellerName}
                     triggerStyle="link"
                     triggerLabel="Consultar precio"
-                    defaultMessage={`Hola ${sellerName}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
+                    defaultMessage={`Hola ${greetingName(sellerName)}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
                   />
                 )}
                 <PriceHistory changes={(listing as any).priceHistory ?? []} />
@@ -724,6 +730,37 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 <div style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "14px", display: "flex", alignItems: "center", gap: "5px" }}>
                   <PinIcon size={12} /> {listing.neighborhood ?? "San Juan"}
                 </div>
+
+                {/* CTAs pegados al precio: antes estaban en la tarjeta del vendedor y en notebooks quedaban
+                    debajo del pliegue (había que scrollear para encontrar cómo contactar). */}
+                <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                  {/* Sin WhatsApp visible no se muestra el botón (antes quedaba uno gris que no hacía nada);
+                      "Contactar" ocupa todo el ancho */}
+                  {whatsappUrl && (
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                        padding: "11px 10px",
+                        background: "#25d366", color: "#fff",
+                        borderRadius: "8px", fontSize: "13px", fontWeight: 700,
+                        textDecoration: "none", boxSizing: "border-box",
+                        boxShadow: "0 2px 8px rgba(37,211,102,.3)",
+                      }}
+                    >
+                      <WhatsAppIcon /> WhatsApp
+                    </a>
+                  )}
+                  <ContactButton
+                    listingId={listing.id}
+                    listingTitle={listing.title}
+                    sellerId={userId}
+                    sellerName={sellerName}
+                  />
+                </div>
+
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                   <FavoriteButton listingId={listing.id} variant="detail" />
                   <ShareButton listingId={listing.id} title={listing.title} price={listing.price} currency={listing.currency} />
@@ -799,41 +836,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   >
                     Ver {profile?.is_store ? "tienda" : "perfil"} →
                   </Link>
-                </div>
-
-                {/* CTAs — lado a lado */}
-                <div style={{ display: "flex", gap: "8px" }}>
-                  {whatsappUrl ? (
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                        padding: "11px 10px",
-                        background: "#25d366", color: "#fff",
-                        borderRadius: "8px", fontSize: "13px", fontWeight: 700,
-                        textDecoration: "none", boxSizing: "border-box",
-                        boxShadow: "0 2px 8px rgba(37,211,102,.3)",
-                      }}
-                    >
-                      <WhatsAppIcon /> WhatsApp
-                    </a>
-                  ) : (
-                    <div style={{
-                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                      padding: "11px 10px", background: "#f1f5f9", color: "#94a3b8",
-                      borderRadius: "8px", fontSize: "13px", fontWeight: 700, boxSizing: "border-box",
-                    }}>
-                      <WhatsAppIcon /> WhatsApp
-                    </div>
-                  )}
-                  <ContactButton
-                    listingId={listing.id}
-                    listingTitle={listing.title}
-                    sellerId={userId}
-                    sellerName={sellerName}
-                  />
                 </div>
 
                 {/* Ver más productos del vendedor */}

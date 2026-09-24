@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import { storageImg } from "@/lib/storage-image";
 import Image from "next/image";
 
+// Alto de la foto principal: 420px en pantallas altas, más bajo en notebooks (~58% del alto visible,
+// mínimo 300px) para que la ficha no quede toda ocupada por la galería. En celular lo pisa globals.css.
+const GALLERY_HEIGHT = "min(420px, max(300px, 58vh))";
+
 export function GallerySection({ images, title }: { images: { url: string }[]; title: string }) {
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
@@ -178,7 +182,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
 
   if (images.length === 0) {
     return (
-      <div className="gallery-main" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "420px", background: "#f5f5f5", borderRadius: "8px" }}>
+      <div className="gallery-main" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: GALLERY_HEIGHT, background: "#f5f5f5", borderRadius: "8px" }}>
         <span style={{ fontSize: "72px" }}>📦</span>
       </div>
     );
@@ -189,11 +193,12 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
       {/* MercadoLibre-style: vertical thumbs on left + main image on right */}
       <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
 
-        {/* Vertical thumbnail strip — siempre visible */}
+        {/* Vertical thumbnail strip — solo con más de una foto (con una sola repetía la misma imagen) */}
+        {images.length > 1 && (
         <div className="gallery-thumbs" style={{
             display: "flex", flexDirection: "column", gap: "6px",
             width: "84px", flexShrink: 0,
-            maxHeight: "420px", overflowY: "auto", overflowX: "hidden",
+            maxHeight: GALLERY_HEIGHT, overflowY: "auto", overflowX: "hidden",
           }}>
             {images.map((img, i) => (
               <button
@@ -214,12 +219,13 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
               </button>
             ))}
           </div>
+        )}
 
         {/* Main image */}
         <div
           className="gallery-main"
           style={{
-            width: "100%", minWidth: 0, height: "420px",
+            width: "100%", minWidth: 0, height: GALLERY_HEIGHT,
             borderRadius: "8px", position: "relative",
             cursor: "zoom-in", overflow: "hidden",
           }}

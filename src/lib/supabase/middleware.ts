@@ -36,6 +36,16 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Con sesión iniciada, /login y /register no tienen sentido: al panel (o al `redirect` pedido, si es interno)
+  const path = request.nextUrl.pathname
+  if (user && (path === '/login' || path === '/register')) {
+    const wanted = request.nextUrl.searchParams.get('redirect')
+    const url = request.nextUrl.clone()
+    url.search = ''
+    url.pathname = wanted && wanted.startsWith('/') && !wanted.startsWith('//') ? wanted : '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
   // /admin requires authentication (is_admin check handled in layout)
   if (request.nextUrl.pathname.startsWith('/admin') && !user) {
     const url = request.nextUrl.clone()

@@ -577,6 +577,15 @@ select.hero-control {
   box-sizing: border-box;
 }
 
+/* Modales (components/ui/Dialog.tsx, <dialog> nativo) */
+.app-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.app-dialog:focus-visible { outline: none; }
+/* Motivos de "Denunciar": el radio está oculto a la vista, el foco de teclado se marca en la fila */
+.report-reason:has(input:focus-visible) { outline: 2px solid #ef4444; outline-offset: 2px; }
+
+/* Buscador dentro de /category: en escritorio se usa el del header (ver @media 768px más abajo) */
+.category-inline-search { display: none; }
+
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 360px;
@@ -1098,6 +1107,9 @@ details.sf > summary::marker { display: none; }
     flex-wrap: wrap !important;
     gap: 8px !important;
   }
+
+  /* En celular el buscador del header se oculta: se muestra el de la página */
+  .category-inline-search { display: block !important; }
 
   /* Search input fills its own full row */
   .category-search-bar > *:first-child {

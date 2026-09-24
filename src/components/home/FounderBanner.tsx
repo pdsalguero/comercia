@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Crown } from "lucide-react";
+import { FounderBannerCta } from "./FounderBannerCta";
 import { FOUNDER_PROGRAM } from "@/lib/site-config";
 
 // Programa de fundadores: da un motivo concreto para registrarse ahora. Se apoya en el trigger de
@@ -22,9 +22,7 @@ export function FounderBanner({ registered }: { registered: number }) {
       <span className="founder-banner-left">
         Quedan <strong>{left}</strong> {left === 1 ? "lugar" : "lugares"}
       </span>
-      <Link href="/register" className="founder-banner-cta">
-        Crear cuenta gratis
-      </Link>
+      <FounderBannerCta />
     </section>
   );
 }

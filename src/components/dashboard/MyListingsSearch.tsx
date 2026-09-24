@@ -7,6 +7,8 @@ const STATUSES = [
   { value: '',       label: 'Todos' },
   { value: 'active', label: 'Activos' },
   { value: 'paused', label: 'Pausados' },
+  // Hoy ningún proceso vence avisos (ver backlog): la pestaña queda lista para cuando se defina
+  { value: 'expired', label: 'Vencidos' },
 ]
 
 export function MyListingsSearch({ q, statusFilter, statusCounts = {}, total = 0 }: {
@@ -85,7 +87,8 @@ export function MyListingsSearch({ q, statusFilter, statusCounts = {}, total = 0
               }}
             >
               {s.label}
-              {count > 0 && (
+              {/* El número se muestra siempre, también en 0 (antes "Pausados" sin avisos no decía nada) */}
+              {(
                 <span style={{
                   background: isActive ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
                   color: isActive ? '#fff' : '#475569',

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo, useEffect } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,8 @@ import { ARGENTINA_PROVINCES, LOCALITIES_BY_PROVINCE } from "@/lib/ar-locations"
 import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
 import { PropertyLocation } from "@/components/listings/PropertyLocation";
 import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
+import { Dialog } from "@/components/ui/Dialog";
+import { parsePriceInput } from "@/lib/price-input";
 
 // ─── Types ──────────────────────────────────────────────────────
 type Step = "upload" | "analyzing" | "form" | "publishing" | "promo" | "done";
@@ -203,13 +205,21 @@ function Field({
   half?: boolean;
   children: React.ReactNode;
 }) {
+  const invalid = useContext(InvalidFieldsContext).has(label);
   return (
-    <div style={full ? { gridColumn: "span 2" } : half ? {} : {}}>
-      <label style={T.lbl}>
+    <div data-field={label} style={full ? { gridColumn: "span 2" } : half ? {} : {}}>
+      <label style={{ ...T.lbl, ...(invalid ? { color: C.red } : {}) }}>
         {label}
         {required && <span style={{ color: C.red, marginLeft: "2px" }}>*</span>}
       </label>
-      {children}
+      <div style={invalid ? { borderRadius: "9px", boxShadow: `0 0 0 2px ${C.red}` } : undefined}>
+        {children}
+      </div>
+      {invalid && (
+        <div role="alert" style={{ fontSize: "11.5px", color: C.red, fontWeight: 600, marginTop: "4px" }}>
+          Completá este campo
+        </div>
+      )}
     </div>
   );
 }
@@ -353,6 +363,13 @@ function FocusSel({
 }
 
 const ENABLED_CAT_IDS = new Set(ENABLED_CATEGORY_IDS); // Ver src/lib/site-config.ts
+// Con una sola categoría habilitada (hoy: Vehículos) viene ya seleccionada
+const DEFAULT_CAT_ID = ENABLED_CATEGORY_IDS.length === 1 ? ENABLED_CATEGORY_IDS[0] : 0;
+
+// Campos obligatorios que faltan al tocar "Publicar": Field los marca en rojo (ver handlePublish)
+const InvalidFieldsContext = createContext<Set<string>>(new Set());
+// Nombre en la lista de faltantes → etiqueta del Field correspondiente (cuando difieren)
+const MISSING_TO_FIELD: Record<string, string> = { "Tipo de vehículo": "Tipo", "Categoría náutica": "Categoría", "Título": "Título del aviso" };
 const CAT_ORDER = [2, 3, 21, 1, 22, 4, 5, 6, 7, 23, 8, 24, 25, 9, 26, 10];
 const SORTED_CATS = [...CATEGORY_CONFIGS]
   .filter(c => ENABLED_CAT_IDS.has(c.id))
@@ -750,13 +767,46 @@ export default function NewListingPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [priceNote, setPriceNote] = useState<string | null>(null);
   const [currency, setCurrency] = useState<"ARS" | "USD">("ARS");
-  const [categoryId, setCategoryId] = useState(0);
+  const [categoryId, setCategoryId] = useState(DEFAULT_CAT_ID);
   const [condition, setCondition] = useState("");
   const [zone, setZone] = useState("");
   const [locality, setLocality] = useState("");
   const [techGroup, setTechGroup] = useState("");
   const [attrs, setAttrs] = useState<Record<string, any>>({});
+  // Después del primer intento de publicar con faltantes, los campos vacíos obligatorios se marcan en rojo
+  const [showInvalid, setShowInvalid] = useState(false);
+
+  // Aviso antes de salir con cambios sin publicar: cerrar/recargar la pestaña (beforeunload) y
+  // links internos del sitio (barra, pie), que navegan sin disparar beforeunload.
+  const isDirty = photos.length > 0 || !!title.trim() || !!description.trim() || !!price || !!zone || Object.keys(attrs).length > 0;
+  const leaveGuardRef = useRef(false);
+  useEffect(() => {
+    leaveGuardRef.current = isDirty;
+  }, [isDirty]);
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!leaveGuardRef.current) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    const onClick = (e: MouseEvent) => {
+      if (!leaveGuardRef.current || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target === "_blank" || a.origin !== window.location.origin || a.pathname === window.location.pathname) return;
+      if (!window.confirm("Tenés un aviso sin publicar. Si salís, se pierden los datos cargados. ¿Salir igual?")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, []);
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [loadingPx, setLoadingPx] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -905,7 +955,7 @@ export default function NewListingPage() {
       setTitle("");
       setDescription("");
       setPrice("");
-      setCategoryId(0);
+      setCategoryId(DEFAULT_CAT_ID);
       setCondition("");
       setAttrs({});
       setPriceData(null);
@@ -1084,13 +1134,9 @@ export default function NewListingPage() {
   };
 
   // ── Publish ─────────────────────────────────────────────────
-  const handlePublish = async () => {
-    if (!canPublish) {
-      setError("Completá título y categoría.");
-      return;
-    }
-    // Todos los campos faltantes se juntan en una sola lista — así el
-    // vendedor los ve todos de una vez, no uno por uno en sucesivas idas y vueltas.
+  // Todos los campos faltantes en una sola lista — así el vendedor los ve todos de una vez,
+  // no uno por uno en sucesivas idas y vueltas. La usan handlePublish y el marcado en rojo.
+  const computeMissing = (): string[] => {
     const missing: string[] = [];
     if (photos.length === 0) missing.push("Foto");
     // Vehicle-specific required fields
@@ -1124,10 +1170,27 @@ export default function NewListingPage() {
         if (field.required && !attrs[field.key]) missing.push(field.label);
       }
     }
+    return missing;
+  };
+
+  const handlePublish = async () => {
+    if (!title.trim()) {
+      setShowInvalid(true);
+      setValidationErrors(["Título", ...computeMissing()]);
+      return;
+    }
+    if (!canPublish) {
+      setError("Completá título y categoría.");
+      return;
+    }
+    const missing = computeMissing();
     if (missing.length > 0) {
+      // Resumen en el modal + campos en rojo; al cerrarlo se lleva al primero (focusFirstInvalid)
+      setShowInvalid(true);
       setValidationErrors(missing);
       return;
     }
+    leaveGuardRef.current = false; // se publica: ya no hay que avisar al salir
     setStep("publishing");
     setError(null);
     try {
@@ -1178,7 +1241,7 @@ export default function NewListingPage() {
     setTitle("");
     setDescription("");
     setPrice("");
-    setCategoryId(0);
+    setCategoryId(DEFAULT_CAT_ID);
     setCondition("");
     setAttrs({});
     setAiData(null);
@@ -1288,6 +1351,27 @@ export default function NewListingPage() {
     </div>
   );
 
+  // Campos obligatorios vacíos, marcados en rojo desde el primer intento de publicar.
+  // Se recalcula en cada render: al completar un campo deja de estar en rojo.
+  const invalidFields = showInvalid
+    ? new Set([...(title.trim() ? [] : ["Título"]), ...computeMissing()].map((m) => MISSING_TO_FIELD[m] ?? m))
+    : new Set<string>();
+
+  // Lleva al primer campo que falta (en el orden del formulario) y lo enfoca
+  const focusFirstInvalid = () => {
+    const first = Array.from(document.querySelectorAll<HTMLElement>("[data-field]"))
+      .find((el) => invalidFields.has(el.dataset.field ?? ""));
+    if (!first) return;
+    first.scrollIntoView({ behavior: "smooth", block: "center" });
+    first.querySelector<HTMLElement>("input:not([type=hidden]):not([disabled]), select, textarea, button")?.focus({ preventScroll: true });
+  };
+
+  const closeValidation = () => {
+    setValidationErrors(null);
+    // Después de que el modal devuelve el foco al botón "Publicar"
+    setTimeout(focusFirstInvalid, 60);
+  };
+
   // ═══════════════════════════════════════════════════════════
   // RENDER
   // (sidebarJSX is defined above as a plain JSX variable — NOT a component —
@@ -1295,45 +1379,41 @@ export default function NewListingPage() {
   //  which would unmount/remount inputs and lose focus)
   // ═══════════════════════════════════════════════════════════
   return (
+    <InvalidFieldsContext.Provider value={invalidFields}>
     <div style={{ fontFamily: "'Geist', 'DM Sans', -apple-system, sans-serif", marginTop: "-1rem", overflowX: "hidden" }}>
 
-      {/* ════ VALIDATION MODAL ════ */}
-      {validationErrors && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 1000,
-          background: "rgba(15,23,42,0.55)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }} onClick={() => setValidationErrors(null)}>
+      {/* ════ VALIDATION MODAL (resumen de faltantes) ════ */}
+      <Dialog open={!!validationErrors} onClose={closeValidation} labelledBy="publish-missing-title" maxWidth="380px">
           <div
             style={{
               background: "#fff", borderRadius: "16px",
-              padding: "28px 32px", maxWidth: "380px", width: "90%",
+              padding: "28px 32px", width: "100%",
               boxShadow: "0 20px 60px rgba(15,23,42,.25)",
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontSize: "32px", textAlign: "center", marginBottom: "12px" }}>⚠️</div>
-            <div style={{ fontSize: "16px", fontWeight: 800, color: "#1e293b", textAlign: "center", marginBottom: "6px" }}>
+            <div style={{ fontSize: "32px", textAlign: "center", marginBottom: "12px" }} aria-hidden="true">⚠️</div>
+            <h2 id="publish-missing-title" style={{ fontSize: "16px", fontWeight: 800, color: "#1e293b", textAlign: "center", margin: "0 0 6px" }}>
               Faltan datos obligatorios
-            </div>
+            </h2>
             <div style={{ fontSize: "13px", color: "#64748b", textAlign: "center", marginBottom: "20px" }}>
               Completá los siguientes campos antes de publicar:
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "24px" }}>
-              {validationErrors.map((err) => (
-                <div key={err} style={{
+            <ul style={{ display: "flex", flexDirection: "column", gap: "8px", margin: "0 0 24px", padding: 0, listStyle: "none" }}>
+              {(validationErrors ?? []).map((err) => (
+                <li key={err} style={{
                   display: "flex", alignItems: "center", gap: "10px",
                   background: "#fef2f2", borderRadius: "8px", padding: "10px 14px",
                   border: "1px solid #fecaca",
                 }}>
-                  <span style={{ color: "#dc2626", fontSize: "14px", flexShrink: 0 }}>✕</span>
+                  <span style={{ color: "#dc2626", fontSize: "14px", flexShrink: 0 }} aria-hidden="true">✕</span>
                   <span style={{ fontSize: "13px", fontWeight: 600, color: "#dc2626" }}>{err}</span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
             <button
               type="button"
-              onClick={() => setValidationErrors(null)}
+              data-autofocus
+              onClick={closeValidation}
               style={{
                 width: "100%", padding: "12px",
                 background: "#2563eb", color: "#fff",
@@ -1342,11 +1422,10 @@ export default function NewListingPage() {
                 fontFamily: "inherit",
               }}
             >
-              Entendido, voy a completarlos
+              Ir al primer campo
             </button>
           </div>
-        </div>
-      )}
+      </Dialog>
 
 
 
@@ -1593,11 +1672,14 @@ export default function NewListingPage() {
                 {/* ── Drop zone (no photos) ── */}
                 {!unsupportedCategoryName && !analyzing && photos.length === 0 && (
                   <div
+                    data-field="Foto"
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={onDrop}
                     onClick={() => fileRef.current?.click()}
                     style={{
+                      // Falta la foto obligatoria: borde rojo tras intentar publicar
+                      ...(invalidFields.has("Foto") ? { boxShadow: `0 0 0 3px ${C.red}` } : {}),
                       background: dragOver
                         ? "linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%)"
                         : "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #312e81 100%)",
@@ -1672,7 +1754,8 @@ export default function NewListingPage() {
 
                     {/* Feature pills */}
                     <div style={{ display: "flex", gap: "6px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" as const }}>
-                      {["Gratis", "30 segundos", "Sin registro"].map(tag => (
+                      {/* Sin "Sin registro": publicar requiere cuenta */}
+                      {["Gratis", "30 segundos"].map(tag => (
                         <span key={tag} style={{ fontSize: "10px", fontWeight: 600, color: "rgba(148,163,184,.7)", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: "20px", padding: "3px 10px" }}>{tag}</span>
                       ))}
                     </div>
@@ -2232,8 +2315,12 @@ export default function NewListingPage() {
                         <div style={{ position: "relative" }}>
                           <FocusInp
                             type="number"
+                            min={0}
+                            step={1}
+                            inputMode="numeric"
                             value={attrs.km ?? ""}
-                            onChange={(e) => handleAttr("km", e.target.value)}
+                            // Sin negativos ni decimales: solo dígitos (0 es válido, auto 0 km)
+                            onChange={(e) => handleAttr("km", e.target.value.replace(/\D/g, ""))}
                             placeholder="0"
                             style={{ paddingRight: attrs.sub_category === "nautica" ? "44px" : "36px" }}
                           />
@@ -2245,6 +2332,23 @@ export default function NewListingPage() {
                       )}
 
                       </>)}
+                      {/* Combustible y transmisión en los campos principales (antes en "Datos adicionales"):
+                          son filtros del listado y se muestran en las tarjetas. No aplican a motos. */}
+                      {!!attrs.sub_category && !["moto", "cuatriciclo", "utv", "nautica", "otro"].includes(attrs.sub_category) && (<>
+                        <Field label="Combustible">
+                          <FocusSel value={attrs.fuel ?? ""} onChange={(e) => handleAttr("fuel", e.target.value)}>
+                            <option value="">Seleccionar...</option>
+                            {FUELS.map((f) => <option key={f} value={f.toLowerCase()}>{f}</option>)}
+                          </FocusSel>
+                        </Field>
+                        <Field label="Transmisión">
+                          <FocusSel value={attrs.transmission ?? ""} onChange={(e) => handleAttr("transmission", e.target.value)}>
+                            <option value="">Seleccionar...</option>
+                            {TRANSMISIONS.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                          </FocusSel>
+                        </Field>
+                      </>)}
+
                       {/* Provincia + Localidad + Estado — 3 cols en 1 fila */}
                       <div style={{ gridColumn: "span 2" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
@@ -2306,9 +2410,9 @@ export default function NewListingPage() {
                         >
                           <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                             <span>Datos adicionales</span>
-                            {(attrs.version || attrs.fuel || attrs.transmission || attrs.color || attrs.engine || attrs.traction || attrs.doors || attrs.patente) && (
+                            {(attrs.version || attrs.color || attrs.engine || attrs.traction || attrs.doors || attrs.patente) && (
                               <span style={{ fontSize: "10px", background: C.blue, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontWeight: 700 }}>
-                                {[attrs.version, attrs.fuel, attrs.transmission, attrs.color, attrs.engine, attrs.traction, attrs.doors, attrs.patente].filter(Boolean).length} completados
+                                {[attrs.version, attrs.color, attrs.engine, attrs.traction, attrs.doors, attrs.patente].filter(Boolean).length} completados
                               </span>
                             )}
                           </span>
@@ -2326,26 +2430,6 @@ export default function NewListingPage() {
                             {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
                               <Field label="Versión">
                                 <FocusInp value={attrs.version ?? ""} onChange={(e) => handleAttr("version", e.target.value)} placeholder="Move, SR 4x4, Sport..." />
-                              </Field>
-                            )}
-
-                            {/* Combustible — no aplica para motos */}
-                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
-                              <Field label="Combustible">
-                                <FocusSel value={attrs.fuel ?? ""} onChange={(e) => handleAttr("fuel", e.target.value)}>
-                                  <option value="">Seleccionar...</option>
-                                  {FUELS.map((f) => <option key={f} value={f.toLowerCase()}>{f}</option>)}
-                                </FocusSel>
-                              </Field>
-                            )}
-
-                            {/* Transmisión — no aplica para motos */}
-                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
-                              <Field label="Transmisión">
-                                <FocusSel value={attrs.transmission ?? ""} onChange={(e) => handleAttr("transmission", e.target.value)}>
-                                  <option value="">Seleccionar...</option>
-                                  {TRANSMISIONS.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
-                                </FocusSel>
                               </Field>
                             )}
 
@@ -2893,10 +2977,16 @@ export default function NewListingPage() {
                   </span>
                   <input
                     type="text" inputMode="numeric"
+                    aria-label="Precio"
+                    aria-describedby={priceNote ? "price-note" : undefined}
                     value={price ? Number(price).toLocaleString("es-AR") : ""}
                     onChange={(e) => {
-                      const raw = e.target.value.replace(/\./g, "").replace(/[^0-9]/g, "");
-                      setPrice(raw);
+                      // "." miles, "," decimales: los centavos se descartan avisando (antes quedaban pegados al número)
+                      const parsed = parsePriceInput(e.target.value);
+                      setPrice(parsed.value);
+                      setPriceNote(parsed.capped
+                        ? "El precio máximo es 9.999.999.999."
+                        : parsed.droppedDecimals ? "El precio va sin centavos: guardamos solo la parte entera." : null);
                     }}
                     placeholder="0"
                     style={{
@@ -2906,6 +2996,11 @@ export default function NewListingPage() {
                     }}
                   />
                 </div>
+                {priceNote && (
+                  <div id="price-note" role="status" style={{ fontSize: "12px", color: C.slate500, marginTop: "6px" }}>
+                    {priceNote}
+                  </div>
+                )}
 
 
 
@@ -3258,5 +3353,6 @@ export default function NewListingPage() {
         </div>
       )}
     </div>
+    </InvalidFieldsContext.Provider>
   );
 }

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { FOUNDER_PROGRAM } from '@/lib/site-config'
+import { normalizeUsernameInput, validateFullName, validateUsername, USERNAME_MAX } from '@/lib/registration'
 
 const INPUT = {
   width: '100%',
@@ -37,12 +38,31 @@ export default function RegisterPage() {
   const [confirm, setConfirm]   = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+  // Disponibilidad del usuario, chequeada en vivo contra profiles (lectura pública).
+  // Se guarda el último resultado y el estado se deriva: si el usuario cambió, está "verificando".
+  const [checked, setChecked] = useState<{ name: string; taken: boolean } | null>(null)
+  const usernameValid = !validateUsername(username)
+  const usernameStatus: 'idle' | 'checking' | 'free' | 'taken' =
+    !usernameValid ? 'idle' : checked?.name !== username ? 'checking' : checked.taken ? 'taken' : 'free'
+
+  useEffect(() => {
+    if (!usernameValid) return
+    let cancelled = false
+    const t = setTimeout(async () => {
+      const { data } = await createClient().from('profiles').select('id').eq('username', username).maybeSingle()
+      if (!cancelled) setChecked({ name: username, taken: !!data })
+    }, 400)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [username, usernameValid])
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
 
     if (step === 1) {
-      if (!fullName.trim() || !username.trim()) { setError('Completá todos los campos.'); return }
+      const problem = validateFullName(fullName) ?? validateUsername(username)
+      if (problem) { setError(problem); return }
+      if (usernameStatus === 'taken') { setError('Ese nombre de usuario ya está en uso. Probá con otro.'); return }
+      if (usernameStatus === 'checking') { setError('Estamos verificando el usuario, esperá un segundo.'); return }
       setError('')
       setStep(2)
       return
@@ -58,7 +78,8 @@ export default function RegisterPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, username } },
+      // trim: hubo perfiles guardados con espacio final ("Diego Morales ")
+      options: { data: { full_name: fullName.trim().replace(/\s+/g, ' '), username } },
     })
 
     if (signUpError) {
@@ -141,36 +162,54 @@ export default function RegisterPage() {
         {step === 1 && (
           <>
             <div>
-              <label style={LABEL}>Nombre completo</label>
+              <label htmlFor="reg-fullname" style={LABEL}>Nombre completo</label>
               <input
+                id="reg-fullname"
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 placeholder="Juan Pérez"
                 required
+                minLength={2}
+                maxLength={60}
+                autoComplete="name"
                 style={INPUT}
               />
             </div>
 
             <div>
-              <label style={LABEL}>Nombre de usuario</label>
+              <label htmlFor="reg-username" style={LABEL}>Nombre de usuario</label>
               <div style={{ position: 'relative' }}>
                 <span style={{
                   position: 'absolute', left: '14px', top: '50%',
                   transform: 'translateY(-50%)', fontSize: '14px', color: '#94a3b8',
                 }}>@</span>
                 <input
+                  id="reg-username"
                   type="text"
                   value={username}
-                  onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                  onChange={e => setUsername(normalizeUsernameInput(e.target.value))}
                   placeholder="juanperez"
                   required
-                  style={{ ...INPUT, paddingLeft: '30px' }}
+                  minLength={3}
+                  maxLength={USERNAME_MAX}
+                  autoComplete="username"
+                  aria-describedby="reg-username-help"
+                  aria-invalid={usernameStatus === 'taken'}
+                  style={{ ...INPUT, paddingLeft: '30px', borderColor: usernameStatus === 'taken' ? '#ef4444' : usernameStatus === 'free' ? '#22c55e' : '#e2e8f0' }}
                 />
               </div>
-              <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '5px' }}>
-                Solo letras, números y guión bajo.{' '}
-                <span style={{ color: '#ef4444' }}>No se puede cambiar después.</span>
+              <p id="reg-username-help" aria-live="polite" style={{ fontSize: '12px', color: '#94a3b8', marginTop: '5px' }}>
+                {usernameStatus === 'taken' ? (
+                  <span style={{ color: '#ef4444', fontWeight: 600 }}>@{username} ya está en uso. Probá con otro.</span>
+                ) : usernameStatus === 'free' ? (
+                  <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ @{username} está disponible</span>
+                ) : usernameStatus === 'checking' ? (
+                  'Verificando disponibilidad…'
+                ) : (
+                  <>De 3 a 20 caracteres: letras, números y guion bajo.{' '}
+                  <span style={{ color: '#ef4444' }}>No se puede cambiar después.</span></>
+                )}
               </p>
             </div>
 

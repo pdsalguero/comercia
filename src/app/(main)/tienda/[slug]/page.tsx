@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { buildKeywordFilters } from "@/lib/search-query";
+import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
 import { storageImg } from "@/lib/storage-image";
 import { notFound } from "next/navigation";
@@ -146,7 +148,8 @@ export default async function TiendaPage({
   searchParams: Promise<SP>;
 }) {
   const { slug } = await params;
-  const sp = await searchParams;
+  // Precio validado (sin negativos ni "1e3"; mín/máx invertidos si vienen al revés)
+  const sp = sanitizeRangeParams(await searchParams);
   const base = `/tienda/${slug}`;
 
   const supabase = await createClient();
@@ -200,26 +203,21 @@ export default async function TiendaPage({
     .eq("status", "active")
     .eq("user_id", userId) as any;
 
-  if (sp.q) {
-    const tokens = sp.q.trim().split(/\s+/).filter(Boolean);
-    for (const t of tokens) {
-      query = query.ilike("title", `%${t}%`);
-    }
-  }
+  for (const f of buildKeywordFilters(sp.q)) query = query.or(f);
   if (sp.cat) query = query.eq("category_id", Number(sp.cat));
   if (sp.tipo) query = query.filter("attributes->>sub_category", "eq", sp.tipo);
   if (sp.condition) query = query.eq("condition", sp.condition);
   if (sp.price_min) query = query.gte("price", Number(sp.price_min));
   if (sp.price_max) query = query.lte("price", Number(sp.price_max));
-  if (sp.order === "price_asc") query = query.order("price", { ascending: true });
-  else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
+  if (sp.order === "price_asc") query = query.order("price", { ascending: true, nullsFirst: false });
+  else if (sp.order === "price_desc") query = query.order("price", { ascending: false, nullsFirst: false });
   else query = query.order("created_at", { ascending: false });
 
   const FEAT_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
   const { data: rawListings } = await query.limit(48);
   const listings = ((rawListings as any[]) ?? []).slice().sort((a: any, b: any) => {
-    if (sp.order === "price_asc") return (a.price ?? 0) - (b.price ?? 0);
-    if (sp.order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
+    if (sp.order === "price_asc") return comparePrice(a, b, false);
+    if (sp.order === "price_desc") return comparePrice(a, b, true);
     return (FEAT_ORDER[a.featured_level ?? ""] ?? 3) - (FEAT_ORDER[b.featured_level ?? ""] ?? 3);
   });
 
@@ -485,9 +483,9 @@ export default async function TiendaPage({
               Precio
             </div>
             <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
+              <input name="price_min" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_min} placeholder="Mínimo"
                 style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-              <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
+              <input name="price_max" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_max} placeholder="Máximo"
                 style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
               <button type="submit" style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
                 Aplicar
@@ -580,9 +578,9 @@ export default async function TiendaPage({
                 {Object.entries(sp).map(([k, v]) => v && k !== "price_min" && k !== "price_max" ? <input key={k} type="hidden" name={k} value={v} /> : null)}
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Precio</div>
                 <div style={{ display: "flex", gap: "6px", alignItems: "center", width: "100%", minWidth: 0 }}>
-                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mín" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
+                  <input name="price_min" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_min} placeholder="Mín" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
                   <span style={{ color: "#94a3b8", flexShrink: 0 }}>–</span>
-                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máx" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
+                  <input name="price_max" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_max} placeholder="Máx" style={{ flex: 1, minWidth: 0, width: 0, border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "16px", outline: "none", boxSizing: "border-box" as const }} />
                   <button type="submit" style={{ flexShrink: 0, background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 12px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>OK</button>
                 </div>
               </form>

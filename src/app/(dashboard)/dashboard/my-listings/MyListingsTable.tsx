@@ -49,7 +49,7 @@ interface Props {
 function completeness(listing: Listing): string | null {
   const images = listing.listing_images ?? [];
   if (images.length === 0) return "Faltan fotos";
-  if (!listing.price || listing.price === 0) return "Sin precio";
+  // Sin precio no es un faltante: el vendedor eligió "A consultar"
   return null;
 }
 
@@ -328,7 +328,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
                 {tip && (
                   <div style={{ marginTop: "5px", display: "flex", alignItems: "center", gap: "5px" }}>
                     <div style={{ width: "80px", height: "3px", background: "#f1f5f9", borderRadius: "2px" }}>
-                      <div style={{ width: tip === "Sin precio" ? "65%" : "40%", height: "100%", background: "#f97316", borderRadius: "2px" }} />
+                      <div style={{ width: "40%", height: "100%", background: "#f97316", borderRadius: "2px" }} />
                     </div>
                     <span style={{ fontSize: "10px", color: "#f97316", fontWeight: 600 }}>⚠ {tip}</span>
                   </div>

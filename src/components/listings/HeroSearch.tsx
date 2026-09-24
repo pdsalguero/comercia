@@ -10,6 +10,7 @@ import type { VehicleFacets, BrandOption } from "@/lib/hero-facets";
 import { VEHICLE_TYPE_OPTIONS } from "@/lib/vehicle-types";
 import { SmartSearchButton } from "./SmartSearchButton";
 import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
+import { sanitizeRangeParams } from "@/lib/listing-filters";
 
 const PROVINCES = [
   "Buenos Aires","CABA","Catamarca","Chaco","Chubut","Córdoba",
@@ -151,15 +152,17 @@ export function HeroSearch({ facets, totalCount }: HeroSearchProps) {
   const handleSearch = () => {
     setShowSuggestions(false);
     const params = new URLSearchParams();
-    if (type) params.set("sub_category", type);
+    if (type) params.set("type", type); // `type` es el parámetro canónico del tipo en /category
     if (brand) params.set("brand", brand);
     if (model) params.set("model", model);
     if (query.trim()) params.set("q", query.trim());
     if (condition) params.set("condition", condition);
-    if (priceMin) params.set("price_min", priceMin);
-    if (priceMax) params.set("price_max", priceMax);
-    if (yearFrom) params.set("year_from", yearFrom);
-    if (yearTo) params.set("year_to", yearTo);
+    // Sin negativos ni "1e3"; si el mínimo supera al máximo se invierten (igual que en el servidor)
+    const range = sanitizeRangeParams({ price_min: priceMin, price_max: priceMax, year_from: yearFrom, year_to: yearTo });
+    if (range.price_min) params.set("price_min", range.price_min);
+    if (range.price_max) params.set("price_max", range.price_max);
+    if (range.year_from) params.set("year_from", range.year_from);
+    if (range.year_to) params.set("year_to", range.year_to);
     if (province) params.set("v_province", slugify(province));
     const qs = params.toString();
     router.push(`/category/vehicles${qs ? `?${qs}` : ""}`);

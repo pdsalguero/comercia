@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { FooterAccountLinks } from "@/components/layout/FooterAccountLinks";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -53,16 +54,7 @@ export function Footer() {
 
             <div>
               <div style={{ fontSize: "10px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Mi cuenta</div>
-              {[
-                { label: "Ingresar", href: "/login" },
-                { label: "Registrarse", href: "/register" },
-                { label: "Mis avisos", href: "/dashboard/my-listings" },
-                { label: "Favoritos", href: "/dashboard/favorites" },
-              ].map(l => (
-                <Link key={l.href} href={l.href} style={{ display: "block", fontSize: "12px", color: "#94a3b8", textDecoration: "none", marginBottom: "4px" }}>
-                  {l.label}
-                </Link>
-              ))}
+              <FooterAccountLinks />
             </div>
 
             <div>

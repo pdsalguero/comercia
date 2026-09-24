@@ -21,6 +21,9 @@ import { VEHICLE_TYPE_OPTIONS } from "@/lib/vehicle-types";
 import { brandLabel } from "@/lib/hero-facets";
 import { OrderSelect, type OrderOption } from "@/components/ui/OrderSelect";
 import { SearchWithSuggestions } from "@/components/ui/SearchWithSuggestions";
+import { buildKeywordFilters } from "@/lib/search-query";
+import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
+import { CATEGORY_META } from "@/lib/category-meta";
 import type { Metadata } from "next";
 
 const VEHICLE_BRANDS = [
@@ -83,25 +86,6 @@ const TRANSMISSIONS = [
   { value: "automatica", label: "Automática" },
   { value: "cvt", label: "CVT" },
 ];
-
-const CATEGORY_META: Record<string, { name: string; icon: string }> = {
-  vehicles:        { name: "Vehículos",         icon: "🚗" },
-  "real-estate":   { name: "Inmuebles",         icon: "🏠" },
-  phones:          { name: "Celulares",          icon: "📱" },
-  electronics:     { name: "Tecnología",         icon: "💻" },
-  appliances:      { name: "Electrodomésticos",  icon: "🧊" },
-  clothing:        { name: "Ropa y Calzado",     icon: "👗" },
-  "home-garden":   { name: "Hogar y Muebles", icon: "🛋️" },
-  sports:          { name: "Deportes",           icon: "⚽" },
-  tools:           { name: "Herramientas",       icon: "🔧" },
-  babies:          { name: "Bebés y Niños",      icon: "👶" },
-  books:           { name: "Música, Libros y Revistas", icon: "📚" },
-  "beauty-health": { name: "Belleza y Salud",    icon: "💄" },
-  toys:            { name: "Juegos y Juguetes",  icon: "🧸" },
-  pets:            { name: "Mascotas",           icon: "🐾" },
-  services:        { name: "Servicios",          icon: "🛠️" },
-  other:           { name: "Otros",              icon: "📦" },
-};
 
 const PHONE_BRANDS = [
   { value: "apple", label: "Apple" },
@@ -440,12 +424,9 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
     .eq("status", "active")
     .eq("category_id", catId) as any;
 
-  if (sp.q) {
-    const rawTokens = sp.q.trim().split(/\s+/).filter(Boolean);
-    const buildFuzzyPattern = (token: string) =>
-      "%" + token.replace(/([a-zA-Z])(\d)/g, "$1%$2").replace(/(\d)([a-zA-Z])/g, "$1%$2") + "%";
-    for (const token of rawTokens) query = query.ilike("title", buildFuzzyPattern(token));
-  }
+  // Palabra clave: título, descripción, marca, modelo y versión, sin acentos (ver src/lib/search-query.ts)
+  for (const f of buildKeywordFilters(sp.q)) query = query.or(f);
+  // price_min/max ya vienen validados (sanitizeRangeParams en CategoryPage)
   if (sp.price_min) query = query.gte("price", Number(sp.price_min));
   if (sp.price_max) query = query.lte("price", Number(sp.price_max));
   // "used" = todo lo que no es nuevo (incluye avisos sin condición cargada)
@@ -556,8 +537,8 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
     if (sp.re_seller) query = query.eq("attributes->>seller_type" as any, sp.re_seller);
   }
 
-  if (sp.order === "price_asc") query = query.order("price", { ascending: true });
-  else if (sp.order === "price_desc") query = query.order("price", { ascending: false });
+  if (sp.order === "price_asc") query = query.order("price", { ascending: true, nullsFirst: false });
+  else if (sp.order === "price_desc") query = query.order("price", { ascending: false, nullsFirst: false });
   else if (sp.order === "views") query = query.order("view_count", { ascending: false });
   else query = query.order("bumped_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
 
@@ -655,7 +636,9 @@ export default async function CategoryPage({
   searchParams: Promise<SP>;
 }) {
   const { slug } = await params;
-  const sp = await searchParams;
+  // `sub_category` sin `type` ya llega normalizado a `type` desde el middleware (src/middleware.ts).
+  // Precio/año/km validados una sola vez: consulta, chips e inputs usan esta copia
+  const sp = sanitizeRangeParams(await searchParams);
 
   const meta = CATEGORY_META[slug];
   if (!meta) notFound();
@@ -790,8 +773,9 @@ export default async function CategoryPage({
     return desc ? bv - av : av - bv;
   };
   const listings = filtered?.slice().sort((a: any, b: any) => {
-    if (sp.order === "price_asc")  return (a.price ?? 0) - (b.price ?? 0);
-    if (sp.order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
+    // "A consultar" (sin precio o precio 0) siempre al final, en los dos sentidos
+    if (sp.order === "price_asc")  return comparePrice(a, b, false);
+    if (sp.order === "price_desc") return comparePrice(a, b, true);
     if (sp.order === "views")      return (b.view_count ?? 0) - (a.view_count ?? 0);
     if (sp.order === "km_asc")     return compareNullable(kmOf(a), kmOf(b), false);
     if (sp.order === "km_desc")    return compareNullable(kmOf(a), kmOf(b), true);
@@ -869,6 +853,7 @@ export default async function CategoryPage({
   let motoSubtipoCounts: Record<string, number> = {};
   let bodyTypeCounts: Record<string, number> = {};
   let noSubCatVehicleCount = 0;
+  let wantedCount = 0;
   if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices || isOther) {
     const all = await getCategoryFilterDataCached(cat.id);
     for (const row of all) {
@@ -887,6 +872,13 @@ export default async function CategoryPage({
         if (t === "auto" || t === "camioneta") {
           const bt = (row.attributes as any)?.body_type as string | undefined;
           if (bt) bodyTypeCounts[`${t}:${bt}`] = (bodyTypeCounts[`${t}:${bt}`] ?? 0) + 1;
+        }
+        // Avisos de lo que se busca (tipo/marca/modelo) sin los demás filtros: si hay y la búsqueda da
+        // vacía, el mensaje es "no hay con estos filtros", no "todavía no hay avisos de X".
+        const rowModel = String((row.attributes as Record<string, unknown> | null)?.model ?? "");
+        if ((!sp.type || t === sp.type) && (!sp.brand || b === sp.brand) &&
+            (!sp.model || rowModel.trim().toLowerCase() === sp.model.trim().toLowerCase())) {
+          wantedCount++;
         }
         // Filter brands by selected type and moto subtype
         const activeVType = sp.sub_category || sp.type;
@@ -1397,9 +1389,9 @@ export default async function CategoryPage({
                     : null
                 )}
                 <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
+                  <input name="price_min" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_min} placeholder="Mínimo"
                     style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
+                  <input name="price_max" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_max} placeholder="Máximo"
                     style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 10px", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
                   <button type="submit" style={{
                     background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px",
@@ -1423,9 +1415,9 @@ export default async function CategoryPage({
                     : null
                 )}
                 <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
-                  <input name="year_from" type="number" defaultValue={sp.year_from} placeholder="Desde"
+                  <input name="year_from" type="number" min={1900} max={2100} step={1} inputMode="numeric" defaultValue={sp.year_from} placeholder="Desde"
                     style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
-                  <input name="year_to" type="number" defaultValue={sp.year_to} placeholder="Hasta"
+                  <input name="year_to" type="number" min={1900} max={2100} step={1} inputMode="numeric" defaultValue={sp.year_to} placeholder="Hasta"
                     style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
                 </div>
                 <div style={{ padding: "0 16px 12px" }}>
@@ -2801,9 +2793,9 @@ export default async function CategoryPage({
                   v && k !== "price_min" && k !== "price_max" ? <input key={k} type="hidden" name={k} value={v} /> : null
                 )}
                 <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
-                  <input name="price_min" type="number" defaultValue={sp.price_min} placeholder="Mínimo"
+                  <input name="price_min" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_min} placeholder="Mínimo"
                     style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
-                  <input name="price_max" type="number" defaultValue={sp.price_max} placeholder="Máximo"
+                  <input name="price_max" type="number" min={0} step={1} inputMode="numeric" defaultValue={sp.price_max} placeholder="Máximo"
                     style={{ border: "1.5px solid #e2e8f0", borderRadius: "6px", padding: "7px 8px", fontSize: "13px", outline: "none", width: "50%", boxSizing: "border-box" as const }} />
                 </div>
                 <button type="submit" style={{ width: "100%", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", padding: "8px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
@@ -3191,7 +3183,7 @@ export default async function CategoryPage({
               <span style={{ color: "#cbd5e1" }}>›</span>
               <Link href={`/category/${slug}`} style={{ color: "#64748b", textDecoration: "none" }} className="hover:text-indigo-600">{meta.name}</Link>
               {sp.type && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{VEHICLE_TYPES.find(t => t.value === sp.type)?.label ?? sp.type}</span></>)}
-              {sp.brand && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{VEHICLE_BRANDS.find(b => b.value === sp.brand)?.label ?? sp.brand}</span></>)}
+              {sp.brand && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{brandLabel(sp.brand)}</span></>)}
               {sp.re_type && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{RE_PROPERTY_TYPES.find(t => t.value === sp.re_type)?.label ?? sp.re_type}</span></>)}
               {sp.tech_type && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600 }}>{sp.tech_type}</span></>)}
               {sp.tech_brand && (<><span style={{ color: "#cbd5e1" }}>›</span><span style={{ color: "#1e293b", fontWeight: 600, textTransform: "capitalize" }}>{sp.tech_brand}</span></>)}
@@ -3201,7 +3193,10 @@ export default async function CategoryPage({
 
             {/* Controls */}
             <div className="category-search-bar" style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
+              {/* Solo en celular: en escritorio se usa el buscador del header (que muestra el mismo `q`),
+                  así no hay dos buscadores con textos distintos en la misma pantalla */}
               <SearchWithSuggestions
+                className="category-inline-search"
                 placeholder="Buscar en esta categoría..."
                 initialValue={sp.q}
                 action={`/category/${slug}`}
@@ -3348,7 +3343,7 @@ export default async function CategoryPage({
               {isVehicles && sp.type && <Chip label={`Tipo: ${VEHICLE_TYPES.find(t => t.value === sp.type)?.label ?? sp.type}`} href={buildUrl({ type: undefined })} />}
               {isVehicles && sp.moto_subtipo && <Chip label={`Subtipo: ${MOTO_SUBTIPOS.find(s => s.value === sp.moto_subtipo)?.label ?? sp.moto_subtipo}`} href={buildUrl({ moto_subtipo: undefined })} />}
               {isVehicles && sp.body_type && <Chip label={`Carrocería: ${bodyTypeLabel(sp.type, sp.body_type) ?? sp.body_type}`} href={buildUrl({ body_type: undefined })} />}
-              {isVehicles && sp.brand && <Chip label={`Marca: ${VEHICLE_BRANDS.find(b => b.value === sp.brand)?.label ?? sp.brand}`} href={buildUrl({ brand: undefined })} />}
+              {isVehicles && sp.brand && <Chip label={`Marca: ${brandLabel(sp.brand)}`} href={buildUrl({ brand: undefined })} />}
               {isElectronics && sp.tech_group && <Chip label={TECH_GROUPS[sp.tech_group]?.label ?? sp.tech_group} href={buildUrl({ tech_group: undefined, tech_type: undefined })} />}
               {isElectronics && sp.tech_type && <Chip label={`Tipo: ${sp.tech_type}`} href={buildUrl({ tech_type: undefined })} />}
               {isElectronics && sp.tech_brand && <Chip label={`Marca: ${sp.tech_brand.charAt(0).toUpperCase() + sp.tech_brand.slice(1)}`} href={buildUrl({ tech_brand: undefined })} />}
@@ -3446,6 +3441,16 @@ export default async function CategoryPage({
               wanted={emptyWanted}
               province={emptyProvince}
               hasFilters={hasFilters}
+              wantedCount={wantedCount}
+              relaxHref={`/category/${slug}${(() => {
+                // Quitar filtros conservando solo lo que se buscaba (tipo, marca, modelo)
+                const p = new URLSearchParams();
+                if (sp.type) p.set("type", sp.type);
+                if (sp.brand) p.set("brand", sp.brand);
+                if (sp.model) p.set("model", sp.model);
+                const s = p.toString();
+                return s ? `?${s}` : "";
+              })()}`}
               nationwideHref={emptyProvince ? buildUrl({ v_province: undefined, v_zone: undefined }) : undefined}
               clearHref={`/category/${slug}`}
             />
