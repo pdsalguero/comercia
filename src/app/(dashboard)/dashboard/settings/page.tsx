@@ -169,9 +169,9 @@ export default function SettingsPage() {
             style={{
               flex: 1, padding: '14px 12px',
               fontSize: '13px', fontWeight: tab === t.id ? 700 : 500,
-              color: tab === t.id ? '#6366f1' : '#64748b',
+              color: tab === t.id ? '#1d6fb8' : '#64748b',
               background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: tab === t.id ? '2.5px solid #6366f1' : '2.5px solid transparent',
+              borderBottom: tab === t.id ? '2.5px solid #1d6fb8' : '2.5px solid transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               transition: 'color 0.15s',
             }}
@@ -280,7 +280,7 @@ export default function SettingsPage() {
 
           <div>
             <button type="submit" disabled={loading} style={{
-              background: loading ? '#93c5fd' : 'linear-gradient(135deg,#3b82f6,#6366f1)',
+              background: loading ? '#93c5fd' : 'linear-gradient(135deg,#3b82f6,#1d6fb8)',
               color: '#fff', border: 'none', borderRadius: '8px',
               padding: '11px 28px', fontWeight: 700, fontSize: '14px',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -340,7 +340,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <button onClick={handleSendOtp} disabled={verifyLoading}
-                  style={{ background: verifyLoading ? '#93c5fd' : 'linear-gradient(135deg,#2563eb,#6366f1)', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '14px', cursor: verifyLoading ? 'not-allowed' : 'pointer' }}>
+                  style={{ background: verifyLoading ? '#93c5fd' : 'linear-gradient(135deg,#2563eb,#1d6fb8)', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '14px', cursor: verifyLoading ? 'not-allowed' : 'pointer' }}>
                   {verifyLoading ? 'Enviando...' : 'Verificar mi identidad →'}
                 </button>
                 {verifyError && <ErrorMsg>{verifyError}</ErrorMsg>}
@@ -440,7 +440,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = { fontSize: '13px', fontWeight: 600, color: '#475569' }
 
 const linkBtnStyle: React.CSSProperties = {
-  background: 'none', border: 'none', color: '#6366f1', fontSize: '12px',
+  background: 'none', border: 'none', color: '#1d6fb8', fontSize: '12px',
   fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline',
 }
 

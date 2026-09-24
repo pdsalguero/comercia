@@ -5,7 +5,7 @@ import {
   CAR_BRANDS,
   MOTO_BRANDS,
 } from "@/lib/vehicle-data";
-import { CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, getModelosMotoByTipo } from "@/data/modelos-motos";
+import { CUATRI_BRANDS_LIST, UTV_BRANDS_LIST } from "@/data/modelos-motos";
 import { getModelosPorMarca } from "@/data/modelos-vehiculos";
 
 // ─── Shared styles (mirror page.tsx) ─────────────────────────
@@ -99,8 +99,8 @@ function Checkbox({
           height: "18px",
           flexShrink: 0,
           borderRadius: "4px",
-          border: `2px solid ${value ? "#6366f1" : "#d1d5db"}`,
-          background: value ? "#6366f1" : "#fff",
+          border: `2px solid ${value ? "#1d6fb8" : "#d1d5db"}`,
+          background: value ? "#1d6fb8" : "#fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -142,11 +142,11 @@ function RadioGroup({
               cursor: "pointer",
               padding: "7px 12px",
               borderRadius: "7px",
-              border: `1.5px solid ${value === o.value ? "#6366f1" : "#e2e8f0"}`,
+              border: `1.5px solid ${value === o.value ? "#1d6fb8" : "#e2e8f0"}`,
               background: value === o.value ? "#f0f4ff" : "#fff",
               fontSize: "13px",
               fontWeight: value === o.value ? 700 : 400,
-              color: value === o.value ? "#6366f1" : "#374151",
+              color: value === o.value ? "#1d6fb8" : "#374151",
             }}
           >
             <div
@@ -154,8 +154,8 @@ function RadioGroup({
                 width: "12px",
                 height: "12px",
                 borderRadius: "50%",
-                border: `2px solid ${value === o.value ? "#6366f1" : "#d1d5db"}`,
-                background: value === o.value ? "#6366f1" : "#fff",
+                border: `2px solid ${value === o.value ? "#1d6fb8" : "#d1d5db"}`,
+                background: value === o.value ? "#1d6fb8" : "#fff",
                 flexShrink: 0,
               }}
             />
@@ -226,7 +226,7 @@ export function VehicleFields({ subCategory, attributes, onChange }: VehicleFiel
   const models = useMemo(() => {
     const brand = attributes.brand as string | undefined;
     if (!brand) return [];
-    if (isMotoType) return getModelosMotoByTipo(brand, subCategory as "moto" | "cuatriciclo" | "utv");
+    if (isMotoType) return getModelosPorMarca(brand, subCategory as "moto" | "cuatriciclo" | "utv");
     const tipo = subCategory === "camioneta" ? "camioneta" : "auto";
     return getModelosPorMarca(brand, tipo);
   }, [attributes.brand, isMotoType, subCategory]);

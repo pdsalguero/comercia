@@ -2,19 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
+import { Store } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Tiendas — Comprá a vendedores verificados en Argentina",
-  description: "Encontrá tiendas verificadas en ComerxIA. Vendedores confiables de toda Argentina con catálogos completos de productos nuevos y usados.",
-  keywords: ["tiendas online argentina", "vendedores verificados", "tiendas clasificados", "comprar tienda argentina"],
-  alternates: { canonical: "https://comerxia.com.ar/tiendas" },
+  title: "Concesionarias — Comprá autos y motos a vendedores verificados",
+  description: "Encontrá concesionarias y vendedores verificados en CuyoRodados. Autos, pickups y motos nuevos y usados de Mendoza, San Juan y San Luis.",
+  keywords: ["concesionarias argentina", "vendedores verificados", "autos usados concesionarias", "motos concesionarias", "comprar auto argentina"],
+  alternates: { canonical: "https://cuyorodados.com.ar/tiendas" },
   openGraph: {
-    title: "Tiendas — ComerxIA",
-    description: "Vendedores verificados de toda Argentina.",
-    url: "https://comerxia.com.ar/tiendas",
+    title: "Concesionarias — CuyoRodados",
+    description: "Concesionarias y vendedores verificados de toda Argentina.",
+    url: "https://cuyorodados.com.ar/tiendas",
     type: "website",
   },
-  twitter: { card: "summary", title: "Tiendas — ComerxIA", description: "Vendedores verificados de Argentina." },
+  twitter: { card: "summary", title: "Concesionarias — CuyoRodados", description: "Concesionarias y vendedores verificados de Mendoza, San Juan y San Luis." },
 };
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ const CAT_COLOR: Record<string, string> = {
   "real-estate":   "#3b82f6",
   "vehicles":      "#f97316",
   "phones":        "#8b5cf6",
-  "electronics":   "#6366f1",
+  "electronics":   "#1d6fb8",
   "appliances":    "#0ea5e9",
   "clothing":      "#ec4899",
   "sports":        "#22c55e",
@@ -135,15 +136,15 @@ export default async function TiendasPage() {
   if (!stores?.length) {
       return (
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 16px", textAlign: "center" }}>
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏪</div>
+        <Store size={48} strokeWidth={1.5} color="#1d6fb8" style={{ margin: "0 auto 16px" }} />
         <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", marginBottom: "8px" }}>
-          Todavía no hay tiendas virtuales
+          Todavía no hay concesionarias registradas
         </h1>
-        <p style={{ color: "#64748b", marginBottom: "24px" }}>Sé el primero en crear la tuya.</p>
+        <p style={{ color: "#64748b", marginBottom: "24px" }}>Sé la primera en crear su tienda y cargar su stock.</p>
         <Link href="/dashboard/store">
           <div style={{
             display: "inline-block",
-            background: "linear-gradient(135deg, #3b82f6, #6366f1)", color: "#fff",
+            background: "linear-gradient(135deg, #3b82f6, #1d6fb8)", color: "#fff",
             borderRadius: "8px", padding: "10px 24px",
             fontWeight: 700, fontSize: "14px", cursor: "pointer",
           }}>
@@ -218,13 +219,13 @@ export default async function TiendasPage() {
       {/* Header */}
       <div style={{ marginBottom: "28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-          <span style={{ fontSize: "28px" }}>🏪</span>
+          <Store size={28} strokeWidth={1.75} color="#1d6fb8" />
           <h1 style={{ fontSize: "24px", fontWeight: 900, color: "#0f172a", margin: 0 }}>
-            Tiendas Virtuales
+            Concesionarias
           </h1>
         </div>
         <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
-          {stores.length} tiendas registradas en Comercia
+          {stores.length} {stores.length === 1 ? "tienda registrada" : "tiendas registradas"} en CuyoRodados
         </p>
       </div>
 
@@ -232,7 +233,7 @@ export default async function TiendasPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
         {sortedGroups.map(([catSlug, catStores]) => {
           const catLabel = catSlug === NO_CAT ? "Sin categoría" : (CAT_LABEL[catSlug] ?? catSlug);
-          const color = catSlug !== NO_CAT ? (CAT_COLOR[catSlug] ?? "#6366f1") : "#6366f1";
+          const color = catSlug !== NO_CAT ? (CAT_COLOR[catSlug] ?? "#1d6fb8") : "#1d6fb8";
 
           return (
             <section key={catSlug}>
@@ -273,7 +274,7 @@ export default async function TiendasPage() {
                 {catStores.map((store) => {
                   const forcedSlug = store.store_type ? STORE_TYPE_CAT[store.store_type] : undefined;
                   const effectiveSlug = forcedSlug ?? store.main_cat?.slug;
-                  const btnColor = effectiveSlug ? (CAT_COLOR[effectiveSlug] ?? "#6366f1") : "#6366f1";
+                  const btnColor = effectiveSlug ? (CAT_COLOR[effectiveSlug] ?? "#1d6fb8") : "#1d6fb8";
                   const btnLabel = effectiveSlug ? (CAT_VERB[effectiveSlug] ?? "Ver artículos") : "Ver tienda";
                   const unit = effectiveSlug ? (CAT_UNIT[effectiveSlug] ?? "artículos") : "artículos";
                   const typeLabel = STORE_TYPE_LABELS[store.store_type ?? ""] ?? "Tienda virtual";
@@ -446,7 +447,7 @@ export default async function TiendasPage() {
         </div>
         <Link href="/dashboard/store">
           <div style={{
-            background: "linear-gradient(135deg, #3b82f6, #6366f1)", color: "#fff",
+            background: "linear-gradient(135deg, #3b82f6, #1d6fb8)", color: "#fff",
             borderRadius: "8px", padding: "10px 20px",
             fontWeight: 800, fontSize: "13px", cursor: "pointer", whiteSpace: "nowrap",
           }}>

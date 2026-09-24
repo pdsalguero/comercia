@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Camera, Fuel, Cog, ChevronLeft, ChevronRight } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
+import { PriceDropBadge } from "./PriceDropBadge";
 import PinIcon from "@/components/ui/PinIcon";
 import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
 import { listingUrl } from "@/lib/listing-url";
-import { storageImg } from "@/lib/storage-image";
+import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
+import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/vehicle-specs";
 
 interface ListingCardProps {
   id: string;
@@ -26,6 +29,13 @@ interface ListingCardProps {
   is_store?: boolean | null;
   store_name?: string | null;
   priority?: boolean;
+  /** Total de fotos del aviso — muestra un contador sobre la miniatura cuando hay más de una */
+  photo_count?: number | null;
+  /** Todas las fotos del aviso, en orden — si hay más de una se pueden navegar con flechas
+      sobre la miniatura sin salir de la tarjeta. Si no se pasa, se usa solo cover_image. */
+  photos?: string[] | null;
+  /** Porcentaje de la última baja de precio, si fue reciente (ver lib/price-drops.ts). */
+  priceDropPct?: number | null;
 }
 
 function timeAgo(dateStr: string) {
@@ -66,9 +76,19 @@ export function ListingCard({
   is_store,
   store_name,
   priority = false,
+  photo_count,
+  photos,
+  priceDropPct,
 }: ListingCardProps) {
   // Resolve date labels client-side only to avoid SSR/hydration mismatch with Date.now()
   const [dateLabel, setDateLabel] = useState<"today" | string | null>(null);
+  const gallery = photos && photos.length > 0 ? photos : cover_image ? [cover_image] : [];
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const activePhoto = gallery[photoIndex] ?? null;
+  // preventDefault + stopPropagation: la tarjeta entera es un <Link>, sin esto el click en la
+  // flecha navegaría al aviso además de cambiar de foto (mismo patrón que FavoriteButton).
+  const prevPhoto = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPhotoIndex((i) => (i - 1 + gallery.length) % gallery.length); };
+  const nextPhoto = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPhotoIndex((i) => (i + 1) % gallery.length); };
   useEffect(() => {
     if (!created_at) return;
     setDateLabel(isToday(created_at) ? "today" : timeAgo(created_at));
@@ -77,6 +97,8 @@ export function ListingCard({
   const km = attributes?.mileage ?? attributes?.km;
   const hasVehicleMeta = year || km;
   const isVehicle = !!attributes?.sub_category;
+  const fuelLabel = isVehicle ? FUEL_LABELS[String(attributes?.fuel ?? "")] : undefined;
+  const transmissionLabel = isVehicle ? TRANSMISSION_LABELS[String(attributes?.transmission ?? "")] : undefined;
 
   // Generic meta: brand · model | storage / capacity / volume
   // For vehicles, brand/model is already in the title — don't duplicate
@@ -94,7 +116,7 @@ export function ListingCard({
   const locationLabel = rawLocation.includes(",") ? rawLocation.split(",").pop()!.trim() : rawLocation;
 
   return (
-    <Link href={listingUrl(id, title)} style={{ textDecoration: "none", display: "block", height: "100%" }}>
+    <Link href={listingUrl(id, title)} prefetch={false} style={{ textDecoration: "none", display: "block", height: "100%" }}>
       <div
         style={{
           background: "#fff",
@@ -103,14 +125,14 @@ export function ListingCard({
           border: featured_level === "gold"
             ? "2px solid #fbbf24"
             : featured_level === "silver"
-            ? "2px solid #6366f1"
+            ? "2px solid #1d6fb8"
             : featured_level === "bronze"
             ? "2px solid #f97316"
             : "1px solid #e8e8e8",
           boxShadow: featured_level === "gold"
             ? "0 2px 12px rgba(251,191,36,0.25)"
             : featured_level === "silver"
-            ? "0 2px 12px rgba(99,102,241,0.2)"
+            ? "0 2px 12px rgba(29,111,184,0.2)"
             : featured_level === "bronze"
             ? "0 2px 8px rgba(249,115,22,0.15)"
             : "0 1px 4px rgba(0,0,0,0.06)",
@@ -123,16 +145,32 @@ export function ListingCard({
         className="hover:-translate-y-1 hover:shadow-md"
       >
         {/* Image */}
-        <div className="lc-img" style={{ height: "155px", background: "#f5f5f5", position: "relative", overflow: "hidden" }}>
-          {cover_image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={storageImg(cover_image, 400)}
-              alt={title}
-              loading={priority ? "eager" : "lazy"}
-              decoding="async"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-            />
+        <div className="lc-img" style={{ aspectRatio: "4 / 3", background: "#f1f5f9", position: "relative", overflow: "hidden" }}>
+          {activePhoto ? (
+            <>
+              {/* Fondo: la misma foto agrandada y desenfocada, así las fotos verticales no quedan con barras */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={storageImg(activePhoto, 480, 75, 360)}
+                alt=""
+                aria-hidden="true"
+                loading={priority ? "eager" : "lazy"}
+                decoding="async"
+                style={{
+                  position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+                  filter: "blur(18px) saturate(1.15)", transform: "scale(1.25)", opacity: 0.75,
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={storageImg(activePhoto, 480, 75, 360)}
+                onError={fallbackToOriginal(activePhoto)}
+                alt={title}
+                loading={priority ? "eager" : "lazy"}
+                decoding="async"
+                style={{ position: "relative", width: "100%", height: "100%", objectFit: "contain" }}
+              />
+            </>
           ) : (
             <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>
               📦
@@ -153,10 +191,10 @@ export function ListingCard({
           {featured_level === "silver" && (
             <div style={{
               position: "absolute", top: "10px", left: "10px",
-              background: "linear-gradient(135deg,#6366f1,#818cf8)",
+              background: "linear-gradient(135deg,#1d6fb8,#4d94d1)",
               color: "#fff", borderRadius: "20px", padding: "3px 10px",
               fontSize: "10px", fontWeight: 800,
-              boxShadow: "0 2px 8px rgba(99,102,241,0.45)",
+              boxShadow: "0 2px 8px rgba(29,111,184,0.45)",
             }}>
               🚀 DESTACADO
             </div>
@@ -186,7 +224,7 @@ export function ListingCard({
             }}>
               <span style={{
                 width: "18px", height: "18px", borderRadius: "50%",
-                background: "linear-gradient(135deg,#3b82f6,#6366f1)",
+                background: "linear-gradient(135deg,#3b82f6,#1d6fb8)",
                 display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
@@ -199,6 +237,51 @@ export function ListingCard({
           )}
 
           <FavoriteButton listingId={id} variant="card" />
+
+          {gallery.length > 1 && (
+            <>
+              <button
+                type="button"
+                aria-label="Foto anterior"
+                onClick={prevPhoto}
+                style={{
+                  position: "absolute", top: "50%", left: "6px", transform: "translateY(-50%)",
+                  background: "rgba(15,23,42,0.55)", border: "none", borderRadius: "50%",
+                  width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", color: "#fff", padding: 0,
+                }}
+              >
+                <ChevronLeft size={16} strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                aria-label="Foto siguiente"
+                onClick={nextPhoto}
+                style={{
+                  position: "absolute", top: "50%", right: "6px", transform: "translateY(-50%)",
+                  background: "rgba(15,23,42,0.55)", border: "none", borderRadius: "50%",
+                  width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", color: "#fff", padding: 0,
+                }}
+              >
+                <ChevronRight size={16} strokeWidth={2.5} />
+              </button>
+            </>
+          )}
+
+          {gallery.length > 1 && (
+            <div style={{
+              position: "absolute", bottom: "8px", right: "8px",
+              background: "rgba(15,23,42,0.72)",
+              backdropFilter: "blur(6px)",
+              color: "#fff", borderRadius: "20px", padding: "3px 8px",
+              fontSize: "11px", fontWeight: 700,
+              display: "flex", alignItems: "center", gap: "4px",
+            }}>
+              <Camera size={11} strokeWidth={2.2} />
+              {photoIndex + 1}/{photo_count ?? gallery.length}
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -212,14 +295,32 @@ export function ListingCard({
             {title}
           </h3>
 
-          <div className="lc-price" style={{ fontSize: "16px", fontWeight: 700, color: price === 0 ? "#6366f1" : "#0f172a", marginBottom: "4px", letterSpacing: "-0.2px" }}>
+          <div className="lc-price" style={{ fontSize: "16px", fontWeight: 700, color: price === 0 ? "#1d6fb8" : "#0f172a", marginBottom: "4px", letterSpacing: "-0.2px", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
             {price === 0 ? "Consultar" : formatPrice(price, currency)}
+            {price > 0 && priceDropPct ? <PriceDropBadge pct={priceDropPct} /> : null}
           </div>
 
           {hasVehicleMeta && (
             <div className="lc-meta" style={{ fontSize: "13px", color: "#555", marginBottom: "4px" }}>
               {[year, km ? `${Number(km).toLocaleString("es-AR")} Km` : null]
                 .filter(Boolean).join(" | ")}
+            </div>
+          )}
+
+          {(transmissionLabel || fuelLabel) && (
+            <div className="lc-meta" style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>
+              {transmissionLabel && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                  <Cog size={12} strokeWidth={2} />
+                  {transmissionLabel}
+                </span>
+              )}
+              {fuelLabel && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                  <Fuel size={12} strokeWidth={2} />
+                  {fuelLabel}
+                </span>
+              )}
             </div>
           )}
 
@@ -249,7 +350,9 @@ export function ListingCard({
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                       <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    <span>{view_count.toLocaleString("es-AR")} vistas</span>
+                    <span style={{ whiteSpace: "nowrap" }}>
+                      {view_count.toLocaleString("es-AR")}<span className="lc-views-label"> vistas</span>
+                    </span>
                   </div>
                 )}
               </div>
@@ -270,7 +373,7 @@ export function ListingCard({
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                       </svg>
-                      <span style={{ fontSize: "11px" }}>{dateLabel}</span>
+                      <span style={{ fontSize: "11px", whiteSpace: "nowrap" }}>{dateLabel}</span>
                     </div>
                   )
                 )}

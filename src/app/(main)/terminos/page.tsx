@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Términos y Condiciones | ComerxIA",
-  description: "Términos y Condiciones de uso de ComerxIA, el marketplace de clasificados.",
+  title: "Términos y Condiciones",
+  description: "Términos y Condiciones de uso de CuyoRodados, el marketplace de clasificados.",
 };
 
 const S = {
@@ -114,7 +114,7 @@ export default function TerminosPage() {
         <div style={S.header}>
           <h1 style={S.h1}>Términos y Condiciones</h1>
           <p style={{ ...S.meta, margin: 0 }}>
-            ComerxIA · Última actualización: 28 de Marzo de 2026
+            CuyoRodados · Última actualización: 23 de Septiembre de 2026
           </p>
         </div>
 
@@ -123,12 +123,12 @@ export default function TerminosPage() {
           {/* 1 */}
           <h2 style={S.h2}>1. Información del Prestador de Servicios</h2>
           <p style={S.p}>
-            <strong>ComerxIA</strong> es un marketplace digital que facilita la publicación y búsqueda de clasificados en Argentina (<strong>"Plataforma"</strong> o <strong>"Sitio"</strong>).
+            <strong>CuyoRodados</strong> es un marketplace digital que facilita la publicación y búsqueda de clasificados en Argentina (<strong>"Plataforma"</strong> o <strong>"Sitio"</strong>).
           </p>
           <table style={S.table}>
             <tbody>
-              <tr><td style={{ ...S.td, fontWeight: 700, width: "160px" }}>Sitio Web</td><td style={S.td}>https://comerxia.com.ar</td></tr>
-              <tr><td style={{ ...S.td, fontWeight: 700 }}>Email de Contacto</td><td style={S.td}>contacto@comerxia.com.ar</td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700, width: "160px" }}>Sitio Web</td><td style={S.td}>https://cuyorodados.com.ar</td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700 }}>Email de Contacto</td><td style={S.td}>contacto@cuyorodados.com.ar</td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Jurisdicción</td><td style={S.td}>Argentina (Provincia de San Juan)</td></tr>
             </tbody>
           </table>
@@ -136,10 +136,10 @@ export default function TerminosPage() {
           {/* 2 */}
           <h2 style={S.h2}>2. Objeto y Ámbito de Aplicación</h2>
           <p style={S.p}>
-            Estos Términos y Condiciones (<strong>"T&C"</strong>) regulan el acceso y uso de la Plataforma ComerxIA, así como la publicación de anuncios clasificados, servicios de destacados, y todas las operaciones realizadas a través del sitio.
+            Estos Términos y Condiciones (<strong>"T&C"</strong>) regulan el acceso y uso de la Plataforma CuyoRodados, así como la publicación de anuncios clasificados, servicios de destacados, y todas las operaciones realizadas a través del sitio.
           </p>
           <div style={S.highlight}>
-            Al acceder y utilizar ComerxIA, aceptás sin reservas estos T&C en su totalidad.
+            Al acceder y utilizar CuyoRodados, aceptás sin reservas estos T&C en su totalidad.
           </div>
           <h3 style={S.h3}>2.1 Servicios Ofrecidos</h3>
           <ul style={S.ul}>
@@ -153,7 +153,7 @@ export default function TerminosPage() {
           {/* 3 */}
           <h2 style={S.h2}>3. Elegibilidad y Registro de Usuarios</h2>
           <h3 style={S.h3}>3.1 Requisitos</h3>
-          <p style={S.p}>Para usar ComerxIA, debés:</p>
+          <p style={S.p}>Para usar CuyoRodados, debés:</p>
           <ul style={S.ul}>
             <li>Ser mayor de 18 años</li>
             <li>Tener capacidad legal para contratar</li>
@@ -165,11 +165,11 @@ export default function TerminosPage() {
             <li>Sos responsable de mantener la confidencialidad de tu contraseña</li>
             <li>Sos responsable de todas las actividades bajo tu cuenta</li>
             <li><strong>No podés</strong> transferir, vender ni ceder tu cuenta a terceros</li>
-            <li>Si detectás acceso no autorizado, notificá inmediatamente a <a href="mailto:contacto@comerxia.com.ar" style={{ color: "#f97316" }}>contacto@comerxia.com.ar</a></li>
+            <li>Si detectás acceso no autorizado, notificá inmediatamente a <a href="mailto:contacto@cuyorodados.com.ar" style={{ color: "#f97316" }}>contacto@cuyorodados.com.ar</a></li>
           </ul>
           <h3 style={S.h3}>3.3 Suspensión de Cuenta</h3>
           <p style={S.p}>
-            ComerxIA se reserva el derecho de suspender o eliminar cuentas que incumplan estos T&C, publiquen contenido prohibido, realicen actividades fraudulentas o generen reportes reiterados de otros usuarios.
+            CuyoRodados se reserva el derecho de suspender o eliminar cuentas que incumplan estos T&C, publiquen contenido prohibido, realicen actividades fraudulentas o generen reportes reiterados de otros usuarios.
           </p>
 
           {/* 4 */}
@@ -196,13 +196,13 @@ export default function TerminosPage() {
           </ul>
           <h3 style={S.h3}>4.3 Responsabilidad por Contenido</h3>
           <p style={S.p}>
-            <strong>Vos sos el único responsable</strong> del contenido que publicás. ComerxIA no verifica la veracidad de los anuncios y no es responsable por fraude, estafas, productos dañados o incumplimiento de acuerdos entre usuarios.
+            <strong>Vos sos el único responsable</strong> del contenido que publicás. CuyoRodados no verifica la veracidad de los anuncios y no es responsable por fraude, estafas, productos dañados o incumplimiento de acuerdos entre usuarios.
           </p>
           <h3 style={S.h3}>4.4 Duración de Anuncios</h3>
           <ul style={S.ul}>
             <li>Anuncios gratuitos: <strong>30 días</strong> (renovables)</li>
             <li>Anuncios destacados: según el plan contratado (7, 15 o 30 días)</li>
-            <li>ComerxIA puede eliminar anuncios inactivos de más de 90 días sin previo aviso</li>
+            <li>CuyoRodados puede eliminar anuncios inactivos de más de 90 días sin previo aviso</li>
           </ul>
 
           {/* 5 */}
@@ -242,7 +242,7 @@ export default function TerminosPage() {
           <h3 style={S.h3}>5.2 Procesamiento de Pagos</h3>
           <ul style={S.ul}>
             <li>Los pagos se procesan a través de <strong>MercadoPago</strong></li>
-            <li>ComerxIA <strong>no almacena datos bancarios</strong></li>
+            <li>CuyoRodados <strong>no almacena datos bancarios</strong></li>
             <li>Al pagar, aceptás los T&C de MercadoPago</li>
             <li>El pago es <strong>NO REEMBOLSABLE</strong> una vez confirmado</li>
           </ul>
@@ -264,27 +264,27 @@ export default function TerminosPage() {
           </ul>
           <h3 style={S.h3}>6.3 Privacidad de Mensajes</h3>
           <p style={S.p}>
-            ComerxIA puede monitorear y archivar mensajes ante una denuncia formal. No vende ni comparte datos de conversaciones.
+            CuyoRodados puede monitorear y archivar mensajes ante una denuncia formal. No vende ni comparte datos de conversaciones.
           </p>
 
           {/* 7 */}
           <h2 style={S.h2}>7. Tiendas Virtuales</h2>
           <p style={S.p}>
-            Crear una tienda virtual es <strong>GRATIS</strong>. Podés personalizar tu tienda con logo, descripción y publicar artículos. ComerxIA puede suspender tiendas que violen estos T&C o tengan múltiples reportes de fraude.
+            Crear una tienda virtual es <strong>GRATIS</strong>. Podés personalizar tu tienda con logo, descripción y publicar artículos. CuyoRodados puede suspender tiendas que violen estos T&C o tengan múltiples reportes de fraude.
           </p>
 
           {/* 8 */}
           <h2 style={S.h2}>8. Reportes y Denuncias</h2>
           <p style={S.p}>
-            Si encontrás contenido inapropiado, usá el botón <strong>"Reportar"</strong> en el anuncio. ComerxIA revisará el reporte en <strong>48 horas</strong>. Los reportes falsos o abusivos pueden resultar en suspensión de cuenta.
+            Si encontrás contenido inapropiado, usá el botón <strong>"Reportar"</strong> en el anuncio. CuyoRodados revisará el reporte en <strong>48 horas</strong>. Los reportes falsos o abusivos pueden resultar en suspensión de cuenta.
           </p>
 
           {/* 9 */}
           <h2 style={S.h2}>9. Limitaciones de Responsabilidad</h2>
           <p style={S.p}>
-            La Plataforma ComerxIA se proporciona <strong>"tal como está"</strong>, sin garantías de disponibilidad 24/7 o ausencia de errores.
+            La Plataforma CuyoRodados se proporciona <strong>"tal como está"</strong>, sin garantías de disponibilidad 24/7 o ausencia de errores.
           </p>
-          <p style={S.p}><strong>ComerxIA NO es responsable por:</strong></p>
+          <p style={S.p}><strong>CuyoRodados NO es responsable por:</strong></p>
           <ul style={S.ul}>
             <li>Pérdida de datos o información</li>
             <li>Daños causados por malware o ataques cibernéticos</li>
@@ -296,25 +296,25 @@ export default function TerminosPage() {
           </ul>
           <h3 style={S.h3}>9.1 Indemnización</h3>
           <p style={S.p}>
-            Al usar ComerxIA, aceptás indemnizar a ComerxIA y sus operadores por demandas de terceros originadas en tu contenido, incumplimiento de estos T&C, o violación de derechos de terceros.
+            Al usar CuyoRodados, aceptás indemnizar a CuyoRodados y sus operadores por demandas de terceros originadas en tu contenido, incumplimiento de estos T&C, o violación de derechos de terceros.
           </p>
 
           {/* 10 */}
           <h2 style={S.h2}>10. Modificación de Términos</h2>
           <p style={S.p}>
-            ComerxIA puede modificar estos T&C en cualquier momento. Te notificaremos por email de cambios importantes. La continuación del uso del sitio implica la aceptación tácita de los nuevos términos. La versión actual siempre estará disponible en esta página.
+            CuyoRodados puede modificar estos T&C en cualquier momento. Te notificaremos por email de cambios importantes. La continuación del uso del sitio implica la aceptación tácita de los nuevos términos. La versión actual siempre estará disponible en esta página.
           </p>
 
           {/* 11 */}
           <h2 style={S.h2}>11. Terminación de Servicio</h2>
           <p style={S.p}>
-            ComerxIA puede dar de baja el servicio por violación de estos T&C, inactividad mayor a 1 año, o razones técnicas/legales, con <strong>30 días de aviso</strong> (excepto en casos de fraude grave). Los saldos pendientes no se reembolsan.
+            CuyoRodados puede dar de baja el servicio por violación de estos T&C, inactividad mayor a 1 año, o razones técnicas/legales, con <strong>30 días de aviso</strong> (excepto en casos de fraude grave). Los saldos pendientes no se reembolsan.
           </p>
 
           {/* 12 */}
           <h2 style={S.h2}>12. Privacidad de Menores</h2>
           <div style={S.highlight}>
-            ComerxIA es SOLO para mayores de 18 años. Si detectamos una cuenta de un menor, la eliminaremos inmediatamente.
+            CuyoRodados es SOLO para mayores de 18 años. Si detectamos una cuenta de un menor, la eliminaremos inmediatamente.
           </div>
 
           {/* 13 */}
@@ -327,7 +327,7 @@ export default function TerminosPage() {
           <h2 style={S.h2}>14. Contacto y Soporte</h2>
           <table style={S.table}>
             <tbody>
-              <tr><td style={{ ...S.td, fontWeight: 700, width: "140px" }}>Email</td><td style={S.td}><a href="mailto:contacto@comerxia.com.ar" style={{ color: "#f97316" }}>contacto@comerxia.com.ar</a></td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700, width: "140px" }}>Email</td><td style={S.td}><a href="mailto:contacto@cuyorodados.com.ar" style={{ color: "#f97316" }}>contacto@cuyorodados.com.ar</a></td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Horario</td><td style={S.td}>Lunes a viernes, 9 AM – 6 PM (Hora Argentina)</td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Respuesta</td><td style={S.td}>Máximo 48 horas hábiles</td></tr>
             </tbody>
@@ -336,13 +336,13 @@ export default function TerminosPage() {
           {/* 15 */}
           <h2 style={S.h2}>15. Disposiciones Finales</h2>
           <p style={S.p}>
-            Si alguna parte de estos T&C es inválida, el resto permanece vigente. Estos T&C constituyen el acuerdo completo entre vos y ComerxIA y prevalecen sobre cualquier comunicación anterior. El uso del sitio no genera relación de empleo, sociedad ni agencia entre el usuario y ComerxIA.
+            Si alguna parte de estos T&C es inválida, el resto permanece vigente. Estos T&C constituyen el acuerdo completo entre vos y CuyoRodados y prevalecen sobre cualquier comunicación anterior. El uso del sitio no genera relación de empleo, sociedad ni agencia entre el usuario y CuyoRodados.
           </p>
 
           {/* Footer */}
           <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: "1px solid #f1f5f9", fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>
             <p style={{ margin: "0 0 8px" }}>Vigente desde el 28 de Marzo de 2026 · <Link href="/privacidad" style={{ color: "#f97316" }}>Política de Privacidad</Link></p>
-            <p style={{ margin: 0 }}>Al registrarte y usar ComerxIA confirmás haber leído, entendido y aceptado estos Términos y Condiciones.</p>
+            <p style={{ margin: 0 }}>Al registrarte y usar CuyoRodados confirmás haber leído, entendido y aceptado estos Términos y Condiciones.</p>
           </div>
 
         </div>

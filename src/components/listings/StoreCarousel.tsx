@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { storageImg } from "@/lib/storage-image";
+import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
+import { Store } from "lucide-react";
 import Link from "next/link";
 
 interface Store {
@@ -19,7 +20,7 @@ interface Store {
 const CAT_COLORS: Record<string, string> = {
   vehicles: "linear-gradient(135deg,#1e3a5f,#3b82f6)",
   "real-estate": "linear-gradient(135deg,#14532d,#22c55e)",
-  phones: "linear-gradient(135deg,#1e1b4b,#6366f1)",
+  phones: "linear-gradient(135deg,#1e1b4b,#1d6fb8)",
   electronics: "linear-gradient(135deg,#0f172a,#334155)",
   appliances: "linear-gradient(135deg,#1c1917,#78716c)",
   clothing: "linear-gradient(135deg,#4a044e,#ec4899)",
@@ -64,7 +65,9 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>🏪 Tiendas Virtuales</span>
+          <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", display: "flex", alignItems: "center", gap: "6px" }}>
+            <Store size={17} strokeWidth={1.9} color="#1d6fb8" /> Concesionarias
+          </span>
           <span style={{ background: "#dbeafe", color: "#1d4ed8", borderRadius: "5px", padding: "1px 7px", fontSize: "9px", fontWeight: 800 }}>NUEVO</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -93,7 +96,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
               </button>
             </div>
           </div>
-          <Link href="/tiendas" style={{ fontSize: "12px", color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
+          <Link href="/tiendas" style={{ fontSize: "12px", color: "#1d6fb8", textDecoration: "none", fontWeight: 600 }}>
             Ver todas →
           </Link>
         </div>
@@ -107,7 +110,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
             : CAT_COLORS[store.main_cat_label?.toLowerCase().replace(/ /g, "-") ?? ""] ?? "linear-gradient(135deg,#1e293b,#334155)";
 
           return (
-            <Link key={`${store.id}-${idx}`} href={`/tienda/${store.store_slug}`} style={{ textDecoration: "none", display: "block" }}>
+            <Link key={`${store.id}-${idx}`} href={`/tienda/${store.store_slug}`} prefetch={false} style={{ textDecoration: "none", display: "block" }}>
               <div style={{
                 background: "#fff", borderRadius: "12px", overflow: "hidden",
                 border: "1px solid #e8e8e8", boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
@@ -120,7 +123,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                 }}>
                   {store.store_banner_url && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={storageImg(store.store_banner_url, 600)} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={storageImg(store.store_banner_url, 600, 75, 185)} onError={fallbackToOriginal(store.store_banner_url)} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                   )}
                   {/* Logo circle */}
                   <div style={{
@@ -132,7 +135,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
                   }}>
                     {store.store_logo_url
                       // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={storageImg(store.store_logo_url, 80)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <img src={storageImg(store.store_logo_url, 80, 75, 80)} onError={fallbackToOriginal(store.store_logo_url)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : <span style={{ fontSize: "16px" }}>🏪</span>
                     }
                   </div>
@@ -184,7 +187,7 @@ export function StoreCarousel({ stores }: { stores: Store[] }) {
           </div>
         </div>
         <Link href="/dashboard/store">
-          <div style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "7px", padding: "6px 14px", fontWeight: 800, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap" }}>
+          <div style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "7px", padding: "6px 14px", fontWeight: 800, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap" }}>
             Crear tienda →
           </div>
         </Link>

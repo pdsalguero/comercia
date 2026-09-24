@@ -43,7 +43,7 @@ export default async function UpgradePage({
           📣 Destacá tu publicación
         </h1>
         {listingTitle ? (
-          <p style={{ fontSize: "13px", color: "#6366f1", fontWeight: 600, maxWidth: "480px", margin: "0 auto" }}>
+          <p style={{ fontSize: "13px", color: "#1d6fb8", fontWeight: 600, maxWidth: "480px", margin: "0 auto" }}>
             Aplicar plan a: &ldquo;{listingTitle}&rdquo;
           </p>
         ) : (

@@ -159,9 +159,9 @@ export default function StorePage() {
             target="_blank"
             style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
-              background: "#f0f4ff", border: "1.5px solid #c7d2fe",
+              background: "#f0f4ff", border: "1.5px solid #b9d4ee",
               borderRadius: "8px", padding: "7px 14px",
-              fontSize: "13px", fontWeight: 700, color: "#6366f1",
+              fontSize: "13px", fontWeight: 700, color: "#1d6fb8",
               textDecoration: "none", whiteSpace: "nowrap",
             }}
           >
@@ -186,7 +186,7 @@ export default function StorePage() {
           onClick={() => setIsStore(v => !v)}
           style={{
             width: "48px", height: "26px", borderRadius: "20px", border: "none", cursor: "pointer",
-            background: isStore ? "#6366f1" : "#cbd5e1",
+            background: isStore ? "#1d6fb8" : "#cbd5e1",
             position: "relative", flexShrink: 0, transition: "background 0.2s",
           }}
         >
@@ -334,7 +334,7 @@ export default function StorePage() {
                 className="hover:border-indigo-400"
               >
                 {logoUploading ? (
-                  <div style={{ fontSize: "12px", color: "#6366f1", fontWeight: 600 }}>Subiendo...</div>
+                  <div style={{ fontSize: "12px", color: "#1d6fb8", fontWeight: 600 }}>Subiendo...</div>
                 ) : storeLogo ? (
                   <>
                     <img src={storeLogo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -384,7 +384,7 @@ export default function StorePage() {
                 className="hover:border-indigo-400"
               >
                 {bannerUploading ? (
-                  <div style={{ fontSize: "12px", color: "#6366f1", fontWeight: 600 }}>Subiendo...</div>
+                  <div style={{ fontSize: "12px", color: "#1d6fb8", fontWeight: 600 }}>Subiendo...</div>
                 ) : storeBanner ? (
                   <>
                     <img src={storeBanner} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -422,7 +422,7 @@ export default function StorePage() {
             type="submit"
             disabled={saving}
             style={{
-              background: saving ? "#a5b4fc" : "#6366f1",
+              background: saving ? "#a5b4fc" : "#1d6fb8",
               color: "#fff", border: "none", borderRadius: "8px",
               padding: "11px 28px", fontWeight: 700, fontSize: "14px",
               cursor: saving ? "not-allowed" : "pointer",
@@ -435,7 +435,7 @@ export default function StorePage() {
             <Link
               href={`/tienda/${storeSlug}`}
               target="_blank"
-              style={{ fontSize: "13px", color: "#6366f1", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}
+              style={{ fontSize: "13px", color: "#1d6fb8", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>

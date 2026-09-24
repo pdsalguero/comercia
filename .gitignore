@@ -44,4 +44,7 @@ next-env.d.ts
 .sfdx/
 .env.local
 .env.*.local
-settings.local.json 
+settings.local.json
+
+# catálogo de vehículos: PDF de DNRPA e intermedios (se regeneran con tools/catalogo-vehiculos)
+tools/catalogo-vehiculos/datos/

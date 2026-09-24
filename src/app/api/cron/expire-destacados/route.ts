@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail } from "@/lib/email";
+import { revalidateHome } from "@/lib/revalidate-home";
 import { destacadoPorVencerTemplate } from "@/lib/emailTemplates";
 
 /**
@@ -74,6 +75,9 @@ export async function GET(req: NextRequest) {
   if (expireError) {
     console.error("[cron/expire-destacados] Error expirando:", expireError);
   }
+
+  // Los destacados vencidos dejan de mostrarse en el carrusel del home
+  if (expired?.length) revalidateHome();
 
   return NextResponse.json({
     ok: true,

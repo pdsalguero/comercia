@@ -79,7 +79,6 @@ export async function POST(req: NextRequest) {
     const response = {
       // Core fields
       title: aiResult.title ?? "",
-      description: aiResult.description ?? "",
       category_id: aiResult.category_id ?? 0,
       condition: aiResult.condition ?? "",
       price_suggested: priceData?.suggested ?? aiResult.price_suggested ?? 0,

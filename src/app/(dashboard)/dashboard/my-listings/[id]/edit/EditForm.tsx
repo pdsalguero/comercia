@@ -7,7 +7,10 @@ import { CAR_BRANDS, getModels } from "@/lib/vehicle-data";
 import { RE_LOCATIONS } from "@/lib/re-locations";
 import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CATEGORIAS } from "@/data/vehiculos";
 import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
-import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
+import { bodyTypeOptions } from "@/lib/vehicle-body-types";
+import { CAMION_BRANDS_LIST } from "@/data/vehiculos";
+import { ARGENTINA_PROVINCES, LOCALITIES_BY_PROVINCE, splitListingLocation } from "@/lib/ar-locations";
+import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
 
 const CONDITIONS = [
   { value: "new",       label: "Nuevo / A estrenar" },
@@ -38,6 +41,37 @@ const TRANSMISIONS = [
   { value: "automatica", label: "Automática" },
   { value: "cvt",        label: "CVT" },
 ];
+const TRACCIONES = [
+  { value: "4x2", label: "4x2" },
+  { value: "4x4", label: "4x4" },
+  { value: "awd", label: "AWD" },
+];
+const DOORS = ["2", "3", "4", "5"];
+// Mismas características que el formulario de publicar (listings/new); las de CAR_ONLY no aplican a motos.
+const FEATURES: [string, string][] = [
+  ["negotiable_price", "Precio negociable"],
+  ["first_owner", "Único dueño"],
+  ["financing", "Financiamiento"],
+  ["accepts_trade", "Acepta permuta"],
+  ["has_gnc", "Con GNC"],
+  ["has_alarm", "Con alarma"],
+  ["has_service", "Con service"],
+  ["has_ac", "Aire acondicionado"],
+  ["power_steering", "Dirección asistida"],
+  ["has_airbags", "Airbags"],
+  ["rear_camera", "Cámara de retroceso"],
+  ["power_windows", "Vidrios eléctricos"],
+  ["central_lock", "Cierre centralizado"],
+];
+const CAR_ONLY_FEATURES = ["has_gnc", "has_ac", "power_steering", "has_airbags", "rear_camera", "power_windows", "central_lock"];
+
+// Si el valor guardado no está entre las opciones (ej. un modelo que cargó la IA o una marca vieja),
+// se agrega igual: si no, el <select> lo muestra vacío y al guardar se perdería.
+function withCurrent<T extends { value: string; label: string }>(options: T[], current: unknown): { value: string; label: string }[] {
+  const v = current == null ? "" : String(current);
+  if (!v || options.some((o) => o.value === v)) return options;
+  return [{ value: v, label: v }, ...options];
+}
 
 interface Image { id: string; url: string; position: number }
 
@@ -49,6 +83,7 @@ interface Props {
     price: number | null;
     currency: string | null;
     condition: string | null;
+    city: string | null;
     neighborhood: string | null;
     category_id: number;
     attributes: Record<string, any> | null;
@@ -72,7 +107,18 @@ const lbl: React.CSSProperties = {
   display: "block", marginBottom: "6px",
 };
 
-const sel: React.CSSProperties = { ...inp, appearance: "none" as const };
+// appearance:none saca la flecha nativa, así que se dibuja una con SVG para que se vea como desplegable.
+const sel: React.CSSProperties = {
+  ...inp,
+  background: undefined, // el shorthand pisaría el backgroundImage
+  backgroundColor: "#f8fafc",
+  appearance: "none" as const,
+  cursor: "pointer",
+  paddingRight: "34px",
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "right 12px center",
+};
 
 export function EditForm({ listing, images: initialImages, onSave, onDeleteImage, onAddImage }: Props) {
   const router = useRouter();
@@ -88,7 +134,8 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
   const [attrs, setAttrs] = useState<Record<string, any>>(listing.attributes ?? {});
   const isVehicle = categoryId === 2;
   const isRealEstate = categoryId === 3;
-  const [showExtraVehicle, setShowExtraVehicle] = useState(false);
+  // Abierto: al editar hay que ver lo que ya está cargado (cerrado parecía que se habían perdido los datos).
+  const [showExtraVehicle, setShowExtraVehicle] = useState(true);
   const [modelosML, setModelosML] = useState<string[]>([]);
   const [loadingModelos, setLoadingModelos] = useState(false);
 
@@ -99,6 +146,24 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
     return Object.entries(RE_LOCATIONS).find(([, p]) => p.zones.some(z => z.value === zone))?.[0] ?? "";
   });
   const localityOptions = province ? (RE_LOCATIONS[province]?.zones ?? []) : [];
+
+  // Ubicación de vehículos: igual que al publicar, provincia en `city` y localidad en `neighborhood`.
+  const initialLocation = useMemo(() => {
+    const zone = listing.attributes?.zone as string | undefined;
+    const zoneEntry = zone ? Object.values(RE_LOCATIONS).find((p) => p.zones.some((z) => z.value === zone)) : undefined;
+    const zoneLabel = zoneEntry ? { province: zoneEntry.label, locality: zoneEntry.zones.find((z) => z.value === zone)!.label } : null;
+    return splitListingLocation(listing.city, listing.neighborhood, zoneLabel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [vProvince, setVProvince] = useState(initialLocation.province);
+  const [vLocality, setVLocality] = useState(initialLocation.locality);
+  const vLocalityOptions = withCurrent(
+    (LOCALITIES_BY_PROVINCE[vProvince] ?? [])
+      .slice()
+      .sort((a, b) => (a === "Otro" ? 1 : b === "Otro" ? -1 : a.localeCompare(b, "es")))
+      .map((l) => ({ value: l, label: l })),
+    vLocality,
+  );
 
   function setAttr(key: string, value: any) {
     setAttrs(prev => ({ ...prev, [key]: value }));
@@ -135,6 +200,10 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
     const fd = new FormData(e.currentTarget);
     fd.set("attributes", JSON.stringify(attrs));
     fd.set("category_id", String(categoryId));
+    if (isVehicle) {
+      fd.set("city", vProvince);
+      fd.set("neighborhood", vLocality);
+    }
     startTransition(async () => {
       const result = await onSave(fd);
       if (result?.error) {
@@ -334,7 +403,18 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 <label style={lbl}>Tipo de moto</label>
                 <select value={attrs.moto_subtipo ?? ""} onChange={e => setAttr("moto_subtipo", e.target.value)} style={sel}>
                   <option value="">Seleccionar...</option>
-                  {MOTO_SUBTIPOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {withCurrent(MOTO_SUBTIPOS, attrs.moto_subtipo).map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+            )}
+
+            {/* Carrocería — solo auto/camioneta, ej: Sedán, Hatchback, SUV, Pickup */}
+            {(attrs.sub_category === "auto" || attrs.sub_category === "camioneta") && (
+              <div>
+                <label style={lbl}>Carrocería</label>
+                <select value={attrs.body_type ?? ""} onChange={e => setAttr("body_type", e.target.value)} style={sel}>
+                  <option value="">Seleccionar...</option>
+                  {bodyTypeOptions(attrs.sub_category).map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
                 </select>
               </div>
             )}
@@ -419,8 +499,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 <label style={lbl}>Marca <span style={{ color: "#dc2626" }}>*</span></label>
                 <select value={attrs.brand ?? ""} onChange={e => { setAttr("brand", e.target.value); setAttr("model", ""); setModelosML([]); }} style={sel}>
                   <option value="">Seleccionar...</option>
-                  {marcasFiltradas.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
-                  <option value="otro">Otro</option>
+                  {withCurrent([...marcasFiltradas, { value: "otro", label: "Otro" }], attrs.brand).map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
                 </select>
               </div>
               <div>
@@ -430,14 +509,12 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 ) : modelosML.length > 0 ? (
                   <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
                     <option value="">Seleccionar...</option>
-                    {modelosML.map(m => <option key={m} value={m}>{m}</option>)}
-                    <option value="Otro">Otro</option>
+                    {withCurrent([...modelosML, "Otro"].map(m => ({ value: m, label: m })), attrs.model).map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                   </select>
                 ) : vehicleModels.length > 0 ? (
                   <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
                     <option value="">Seleccionar...</option>
-                    {vehicleModels.map(m => <option key={m} value={m}>{m}</option>)}
-                    <option value="Otro">Otro</option>
+                    {withCurrent([...vehicleModels, "Otro"].map(m => ({ value: m, label: m })), attrs.model).map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                   </select>
                 ) : (
                   <input value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} placeholder="Up!, Hilux, Corolla..." style={inp} />
@@ -480,22 +557,31 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
               </div>
             )}
 
-            {/* Provincia */}
+            {/* Provincia — mismas opciones que al publicar (Cuyo primero) */}
             <div>
               <label style={lbl}>Provincia <span style={{ color: "#dc2626" }}>*</span></label>
-              <select value={province} onChange={e => { setProvince(e.target.value); setAttr("zone", ""); }} style={sel}>
+              <select value={vProvince} onChange={e => { setVProvince(e.target.value); setVLocality(""); }} style={sel}>
                 <option value="">Seleccioná...</option>
-                {Object.entries(RE_LOCATIONS).map(([k, p]) => <option key={k} value={k}>{p.label}</option>)}
+                <optgroup label={FOCUS_REGION_LABEL}>
+                  {FOCUS_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                </optgroup>
+                <optgroup label="Otras provincias">
+                  {ARGENTINA_PROVINCES.filter(p => !isFocusProvince(p)).map(p => <option key={p} value={p}>{p}</option>)}
+                </optgroup>
               </select>
             </div>
 
             {/* Localidad */}
             <div>
-              <label style={lbl}>Localidad <span style={{ color: "#dc2626" }}>*</span></label>
-              <select value={attrs.zone ?? ""} onChange={e => setAttr("zone", e.target.value)} style={sel} disabled={!province}>
-                <option value="">{province ? "Seleccioná..." : "Primero elegí provincia"}</option>
-                {localityOptions.map(z => <option key={z.value} value={z.value}>{z.label}</option>)}
-              </select>
+              <label style={lbl}>Localidad</label>
+              {LOCALITIES_BY_PROVINCE[vProvince] ? (
+                <select value={vLocality} onChange={e => setVLocality(e.target.value)} style={sel}>
+                  <option value="">Seleccioná...</option>
+                  {vLocalityOptions.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                </select>
+              ) : (
+                <input value={vLocality} onChange={e => setVLocality(e.target.value)} placeholder={vProvince ? "Ciudad o localidad" : "Primero elegí provincia"} disabled={!vProvince} style={inp} />
+              )}
             </div>
 
             {/* Estado */}
@@ -534,7 +620,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                       <label style={lbl}>Combustible</label>
                       <select value={attrs.fuel ?? ""} onChange={e => setAttr("fuel", e.target.value)} style={sel}>
                         <option value="">Seleccionar...</option>
-                        {FUELS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                        {withCurrent(FUELS, attrs.fuel).map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
                       </select>
                     </div>
                   )}
@@ -543,7 +629,25 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                       <label style={lbl}>Transmisión</label>
                       <select value={attrs.transmission ?? ""} onChange={e => setAttr("transmission", e.target.value)} style={sel}>
                         <option value="">Seleccionar...</option>
-                        {TRANSMISIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        {withCurrent(TRANSMISIONS, attrs.transmission).map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Tracción</label>
+                      <select value={attrs.traction ?? ""} onChange={e => setAttr("traction", e.target.value)} style={sel}>
+                        <option value="">Seleccionar...</option>
+                        {withCurrent(TRACCIONES, attrs.traction).map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                    <div>
+                      <label style={lbl}>Puertas</label>
+                      <select value={attrs.doors ?? ""} onChange={e => setAttr("doors", e.target.value)} style={sel}>
+                        <option value="">Seleccionar...</option>
+                        {withCurrent(DOORS.map(d => ({ value: d, label: d })), attrs.doors).map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                       </select>
                     </div>
                   )}
@@ -564,7 +668,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                       <label style={lbl}>Patente</label>
                       <input value={attrs.patente ?? ""} onChange={e => setAttr("patente", e.target.value.toUpperCase())} placeholder="PDL187" maxLength={8} style={{ ...inp, letterSpacing: "2px", fontWeight: 700 }} />
                       <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px", fontSize: "12px", color: "#94a3b8", cursor: "pointer" }}>
-                        <input type="checkbox" checked={attrs.show_patente ?? false} onChange={e => setAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1" }} />
+                        <input type="checkbox" checked={attrs.show_patente ?? false} onChange={e => setAttr("show_patente", e.target.checked)} style={{ accentColor: "#1d6fb8" }} />
                         Mostrar patente en la publicación
                       </label>
                     </div>
@@ -589,15 +693,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                   <div style={{ gridColumn: "span 2", paddingTop: "8px", borderTop: "1px solid #f1f5f9" }}>
                     <label style={lbl}>Características</label>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                      {[
-                        ["negotiable_price","Precio negociable"],
-                        ["first_owner","Único dueño"],
-                        ["financing","Financiamiento"],
-                        ["accepts_trade","Acepta permuta"],
-                        ["has_gnc","Con GNC"],
-                        ["has_alarm","Con alarma"],
-                        ["has_service","Con service"],
-                      ].filter(([k]) => k !== "has_gnc" || !["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? ""))
+                      {FEATURES.filter(([k]) => !CAR_ONLY_FEATURES.includes(k) || !["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? ""))
                       .map(([k, l]) => (
                         <button key={k} type="button" onClick={() => setAttr(k, !attrs[k])} style={{
                           padding: "7px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 600,

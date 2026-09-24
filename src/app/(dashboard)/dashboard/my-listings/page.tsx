@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { revalidateHome } from '@/lib/revalidate-home'
 import Link from 'next/link'
 import { ListingsGrid } from '@/components/dashboard/ListingCardActions'
 import { MyListingsSearch } from '@/components/dashboard/MyListingsSearch'
@@ -12,6 +13,7 @@ async function updatePrice(id: string, price: number) {
   const supabase = await createClient()
   await supabase.from('listings').update({ price }).eq('id', id)
   revalidatePath('/dashboard/my-listings')
+  revalidateHome()
 }
 
 
@@ -91,6 +93,7 @@ export default async function MyListingsPage({
     const sb = await createClient()
     await sb.from('listings').update({ status: next }).eq('id', id)
     revalidatePath('/dashboard/my-listings')
+    revalidateHome()
   }
 
   async function handleDelete(formData: FormData) {
@@ -99,6 +102,7 @@ export default async function MyListingsPage({
     const sb = await createClient()
     await sb.from('listings').delete().eq('id', id)
     revalidatePath('/dashboard/my-listings')
+    revalidateHome()
   }
 
   async function handleDeleteById(id: string) {
@@ -106,6 +110,7 @@ export default async function MyListingsPage({
     const sb = await createClient()
     await sb.from('listings').delete().eq('id', id)
     revalidatePath('/dashboard/my-listings')
+    revalidateHome()
   }
 
   async function bulkAction(ids: string[], action: string) {
@@ -123,6 +128,8 @@ export default async function MyListingsPage({
       await sb.from('listings').update({ bumped_at: new Date().toISOString() }).in('id', ids).eq('user_id', u.id).eq('status', 'active')
     }
     revalidatePath('/dashboard/my-listings')
+    // Subir un aviso solo cambia su orden dentro del panel: no hace falta refrescar la home
+    if (action !== 'bump') revalidateHome()
   }
 
   return (
@@ -141,14 +148,14 @@ export default async function MyListingsPage({
           {/* Grid / List toggle — hidden on mobile */}
           <div className="my-listings-view-toggle" style={{ display: 'flex', border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
             <Link href="/dashboard/my-listings" style={{ textDecoration: 'none' }}>
-              <div title="Ver en lista" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: !isGrid ? '#6366f1' : '#fff', color: !isGrid ? '#fff' : '#94a3b8' }}>
+              <div title="Ver en lista" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: !isGrid ? '#1d6fb8' : '#fff', color: !isGrid ? '#fff' : '#94a3b8' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="3" y="5" width="18" height="2" rx="1"/><rect x="3" y="11" width="18" height="2" rx="1"/><rect x="3" y="17" width="18" height="2" rx="1"/>
                 </svg>
               </div>
             </Link>
             <Link href="/dashboard/my-listings?view=grid" style={{ textDecoration: 'none' }}>
-              <div title="Ver en grilla" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: isGrid ? '#6366f1' : '#fff', color: isGrid ? '#fff' : '#94a3b8' }}>
+              <div title="Ver en grilla" style={{ padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', background: isGrid ? '#1d6fb8' : '#fff', color: isGrid ? '#fff' : '#94a3b8' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                   <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>

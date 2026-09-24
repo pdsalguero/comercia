@@ -8,6 +8,29 @@ import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { isCategorySlugEnabled } from "@/lib/site-config";
+import { VehicleNavMenu } from "@/components/layout/VehicleNavMenu";
+import {
+  Camera, Car, CarFront, Motorbike, Search, Menu, X, ChevronDown,
+  LayoutDashboard, LayoutList, MessageSquare, Heart, Store, Settings, LogOut,
+} from "lucide-react";
+
+// Menú de la cuenta (desplegable de escritorio y sección del menú lateral del celular).
+const ACCOUNT_LINKS = [
+  { label: "Mi panel",      href: "/dashboard",             Icon: LayoutDashboard },
+  { label: "Mis avisos",    href: "/dashboard/my-listings", Icon: LayoutList },
+  { label: "Mensajes",      href: "/dashboard/messages",    Icon: MessageSquare, showUnread: true },
+  { label: "Favoritos",     href: "/dashboard/favorites",   Icon: Heart },
+  { label: "Mi tienda",     href: "/dashboard/store",       Icon: Store },
+  { label: "Configuración", href: "/dashboard/settings",    Icon: Settings },
+];
+
+// Accesos directos a los tipos de vehículo (los mismos de los tiles del home). Se usan mientras
+// hay una sola categoría habilitada: con más de una vuelve el desplegable "Categorías".
+const VEHICLE_LINKS = [
+  { label: "Autos",         tipo: "auto",      href: "/category/vehicles?sub_category=auto",      Icon: Car },
+  { label: "Pickups y SUV", tipo: "camioneta", href: "/category/vehicles?sub_category=camioneta", Icon: CarFront },
+  { label: "Motos",         tipo: "moto",      href: "/category/vehicles?sub_category=moto",      Icon: Motorbike },
+];
 
 interface Suggestion {
   id: string;
@@ -16,16 +39,44 @@ interface Suggestion {
   currency: string;
 }
 
-export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: User | null; hideSearch?: boolean; initialUnreadCount?: number }) {
+interface NavbarProps {
+  user?: User | null;
+  hideSearch?: boolean;
+  initialUnreadCount?: number;
+  /**
+   * Para páginas que se sirven desde caché (sin cookies en el servidor): la sesión se lee en el
+   * navegador en lugar de recibirla por `user`. Solo se usa para mostrar el menú de la cuenta.
+   */
+  loadUserOnClient?: boolean;
+}
+
+export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, loadUserOnClient = false }: NavbarProps) {
+  const [clientUser, setClientUser] = useState<User | null>(null);
+  const [authPending, setAuthPending] = useState(loadUserOnClient);
+  const user = loadUserOnClient ? clientUser : serverUser;
+
+  useEffect(() => {
+    if (!loadUserOnClient) return;
+    const supabase = createClient();
+    // INITIAL_SESSION llega enseguida con la sesión guardada en las cookies (renueva el token si venció)
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setClientUser(session?.user ?? null);
+      setAuthPending(false);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [loadUserOnClient]);
+
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const CATEGORIES = [
@@ -46,6 +97,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
     { name: "Servicios",             slug: "services",      active: false },
     { name: "Otros",                 slug: "other",         active: false },
   ].map((c) => ({ ...c, active: isCategorySlugEnabled(c.slug) }));
+  const multiCategory = CATEGORIES.filter((c) => c.active).length > 1;
 
   // Realtime: incrementa el badge cuando llega un mensaje nuevo
   useEffect(() => {
@@ -59,6 +111,8 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
         .eq("is_read", false);
       setUnreadCount(count ?? 0);
     };
+    // Fuera del panel el Navbar arranca sin contador: se consulta una vez al entrar
+    void fetchUnread();
     const channel = supabase
       .channel("navbar-unread")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${user.id}` }, () => {
@@ -95,9 +149,19 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
       if (catRef.current && !catRef.current.contains(e.target as Node)) {
         setCatOpen(false);
       }
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAccountOpen(false);
     };
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const handleSearch = () => {
@@ -126,7 +190,10 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
       <div
         className="navbar-bar"
         style={{
-          background: "#fff",
+          // Blanco casi opaco con desenfoque: al desplazarse, el contenido se insinúa detrás de la barra
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(12px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(12px) saturate(1.4)",
           borderBottom: "1px solid #e2e8f0",
           padding: "0 24px",
           height: "60px",
@@ -146,7 +213,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
           }}
         >
           {/* Logo */}
-          <Link href="/" style={{ flexShrink: 0, textDecoration: "none", display: "flex", alignItems: "center" }}>
+          <Link href="/" className="nav-logo" style={{ flexShrink: 0, textDecoration: "none", display: "flex", alignItems: "center" }}>
             <Logo height={46} />
           </Link>
 
@@ -155,12 +222,24 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
             className="hidden md:flex items-center gap-5"
             style={{ marginLeft: "8px" }}
           >
-            {/* Categorías dropdown */}
+            {/* Categorías: desplegable si hay varias; si no, accesos directos a los tipos de vehículo */}
+            {!multiCategory && (
+              <>
+                <Link href="/category/vehicles" className="lg:hidden hover:text-indigo-600 transition-colors"
+                  style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}>
+                  Vehículos
+                </Link>
+                {VEHICLE_LINKS.map((l) => (
+                  <VehicleNavMenu key={l.href} label={l.label} href={l.href} tipo={l.tipo} className="hidden lg:block" />
+                ))}
+              </>
+            )}
+            {multiCategory && (
             <div ref={catRef} style={{ position: "relative" }}>
               <button
                 onClick={() => setCatOpen((o) => !o)}
                 style={{
-                  fontSize: "14px", color: catOpen ? "#6366f1" : "#64748b",
+                  fontSize: "14px", color: catOpen ? "#1d6fb8" : "#64748b",
                   fontWeight: 500, background: "none", border: "none",
                   cursor: "pointer", display: "flex", alignItems: "center",
                   gap: "4px", padding: 0, whiteSpace: "nowrap",
@@ -205,14 +284,17 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                 </div>
               )}
             </div>
+            )}
 
-            <Link href="/listings" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
-              className="hover:text-indigo-600 transition-colors">
-              Avisos
-            </Link>
+            {multiCategory && (
+              <Link href="/listings" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
+                className="hover:text-indigo-600 transition-colors">
+                Avisos
+              </Link>
+            )}
             <Link href="/tiendas" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
               className="hover:text-indigo-600 transition-colors">
-              Tiendas
+              Concesionarias
             </Link>
           </div>
 
@@ -222,6 +304,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
             className="navbar-search"
             style={{
               flex: 1,
+              minWidth: 0, // deja que el buscador se achique en anchos medios en lugar de empujar los botones
               maxWidth: "480px",
               margin: "0 auto",
               display: hideSearch ? "none" : "block",
@@ -248,7 +331,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   alignItems: "center",
                 }}
               >
-                🔍
+                <Search size={18} strokeWidth={2} />
               </span>
               <input
                 type="text"
@@ -259,9 +342,10 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   if (e.key === "Escape") setShowSuggestions(false);
                 }}
                 onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                placeholder="¿Qué estás buscando?"
+                placeholder="Buscá marca, modelo o versión"
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   border: "none",
                   outline: "none",
                   padding: "10px 12px",
@@ -273,16 +357,18 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
               {query && (
                 <button
                   onClick={() => { setQuery(""); setSuggestions([]); setShowSuggestions(false); }}
+                  aria-label="Borrar búsqueda"
                   style={{
                     paddingRight: "12px",
                     background: "none",
                     border: "none",
                     color: "#94a3b8",
                     cursor: "pointer",
-                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  ✕
+                  <X size={16} />
                 </button>
               )}
             </div>
@@ -324,10 +410,10 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                     className="hover:bg-slate-50"
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ color: "#94a3b8", fontSize: "12px" }}>🔍</span>
+                      <Search size={13} color="#94a3b8" />
                       {s.title}
                     </span>
-                    <span style={{ color: "#6366f1", fontWeight: 700, fontSize: "12px", whiteSpace: "nowrap", marginLeft: "12px" }}>
+                    <span style={{ color: "#1d6fb8", fontWeight: 700, fontSize: "12px", whiteSpace: "nowrap", marginLeft: "12px" }}>
                       {s.currency === "USD" ? "U$D" : "$"} {s.price.toLocaleString("es-AR")}
                     </span>
                   </div>
@@ -337,7 +423,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   style={{
                     padding: "9px 14px",
                     fontSize: "12px",
-                    color: "#6366f1",
+                    color: "#1d6fb8",
                     fontWeight: 600,
                     cursor: "pointer",
                     borderTop: "1px solid #f1f5f9",
@@ -355,21 +441,30 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
           {/* Actions — desktop */}
           <div
             className="hidden md:flex items-center gap-3"
-            style={{ flexShrink: 0, marginLeft: "auto" }}
+            // Mientras se lee la sesión se reserva el lugar para no mostrar "Ingresar" a quien ya entró
+            style={{ flexShrink: 0, marginLeft: "auto", visibility: authPending ? "hidden" : "visible" }}
           >
             {user ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  style={{ fontSize: "14px", color: "#475569", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}
-                  className="hover:text-indigo-600"
+              <div ref={accountRef} style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((o) => !o)}
+                  aria-haspopup="menu"
+                  aria-expanded={accountOpen}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    background: accountOpen ? "#f1f5f9" : "none", border: "none", cursor: "pointer",
+                    fontSize: "14px", color: "#475569", fontWeight: 600,
+                    padding: "4px 8px 4px 4px", borderRadius: "999px",
+                  }}
+                  className="hover:bg-slate-100"
                 >
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     <div style={{
                       width: "28px", height: "28px", borderRadius: "50%",
-                      background: "#eef2ff", border: "1.5px solid #c7d2fe",
+                      background: "#e8f1fa", border: "1.5px solid #b9d4ee",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "12px", fontWeight: 800, color: "#6366f1",
+                      fontSize: "12px", fontWeight: 800, color: "#1d6fb8",
                     }}>
                       {displayName[0].toUpperCase()}
                     </div>
@@ -381,16 +476,83 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                       }} />
                     )}
                   </div>
-                  {displayName}
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  style={{ fontSize: "14px", color: "#94a3b8", fontWeight: 500, background: "none", border: "none", cursor: "pointer" }}
-                  className="hover:text-red-500"
-                >
-                  Salir
+                  <span style={{ maxWidth: "130px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {displayName}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    style={{ transform: accountOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", color: "#94a3b8" }}
+                  />
                 </button>
-              </>
+
+                {accountOpen && (
+                  <div
+                    role="menu"
+                    style={{
+                      position: "absolute", top: "calc(100% + 10px)", right: 0,
+                      minWidth: "240px", background: "#fff", borderRadius: "12px",
+                      border: "1px solid #e2e8f0", boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                      zIndex: 200, overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
+                      <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {displayName}
+                      </div>
+                      {user.email && (
+                        <div style={{ fontSize: "12px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {user.email}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ padding: "6px" }}>
+                      {ACCOUNT_LINKS.map(({ label, href, Icon, showUnread }) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          role="menuitem"
+                          onClick={() => setAccountOpen(false)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: "10px",
+                            padding: "8px 10px", borderRadius: "8px",
+                            fontSize: "13px", color: "#334155", fontWeight: 500, textDecoration: "none",
+                          }}
+                          className="hover:bg-indigo-50 hover:text-indigo-700"
+                        >
+                          <Icon size={17} strokeWidth={1.75} />
+                          <span style={{ flex: 1 }}>{label}</span>
+                          {showUnread && unreadCount > 0 && (
+                            <span style={{
+                              background: "#ef4444", color: "#fff", fontSize: "10px", fontWeight: 700,
+                              padding: "1px 6px", borderRadius: "20px",
+                            }}>
+                              {unreadCount}
+                            </span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div style={{ padding: "6px", borderTop: "1px solid #f1f5f9" }}>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => { setAccountOpen(false); handleSignOut(); }}
+                        style={{
+                          width: "100%", display: "flex", alignItems: "center", gap: "10px",
+                          padding: "8px 10px", borderRadius: "8px", border: "none", background: "none",
+                          fontSize: "13px", color: "#64748b", fontWeight: 500, cursor: "pointer", textAlign: "left",
+                        }}
+                        className="hover:bg-red-50 hover:text-red-600"
+                      >
+                        <LogOut size={17} strokeWidth={1.75} />
+                        Salir
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 <Link
@@ -402,8 +564,11 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                 </Link>
                 <Link
                   href="/register"
-                  style={{ fontSize: "14px", color: "#475569" }}
-                  className="hover:text-indigo-600"
+                  style={{
+                    fontSize: "13px", color: "#334155", fontWeight: 600, whiteSpace: "nowrap",
+                    border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "7px 14px",
+                  }}
+                  className="hidden lg:inline-block hover:border-indigo-400 hover:text-indigo-600 transition-colors"
                 >
                   Crear cuenta
                 </Link>
@@ -427,7 +592,8 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   whiteSpace: "nowrap",
                 }}
               >
-                📸 Publicar
+                <Camera size={16} strokeWidth={2} />
+                Publicar
                 <span style={{
                   background: "rgba(255,255,255,0.25)",
                   borderRadius: "4px",
@@ -440,19 +606,35 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
             </Link>
           </div>
 
+          {/* Mobile: "Publicar" siempre a la vista, no escondido dentro del menú */}
+          <Link href="/listings/new" className="md:hidden ml-auto" style={{ textDecoration: "none", flexShrink: 0 }}>
+            <button
+              style={{
+                background: "linear-gradient(135deg, #f97316, #fb923c)",
+                color: "#fff", border: "none", borderRadius: "8px",
+                padding: "8px 12px", fontWeight: 800, fontSize: "13px",
+                cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                boxShadow: "0 2px 10px rgba(249,115,22,0.35)", whiteSpace: "nowrap",
+              }}
+            >
+              <Camera size={15} strokeWidth={2} />
+              Publicar
+            </button>
+          </Link>
+
           {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 ml-auto"
+            className="flex md:hidden items-center p-2"
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             style={{
               background: "none",
               border: "none",
-              fontSize: "22px",
               cursor: "pointer",
               color: "#475569",
             }}
           >
-            {menuOpen ? "✕" : "☰"}
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
@@ -485,13 +667,14 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
               <Logo height={38} />
               <button
                 onClick={() => setMenuOpen(false)}
+                aria-label="Cerrar menú"
                 style={{
                   background: "#f1f5f9", border: "none", borderRadius: "50%",
-                  width: 32, height: 32, fontSize: "15px", cursor: "pointer",
+                  width: 32, height: 32, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", color: "#475569",
                 }}
               >
-                ✕
+                <X size={16} />
               </button>
             </div>
 
@@ -506,7 +689,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: "50%",
-                      background: "linear-gradient(135deg, #6366f1, #818cf8)",
+                      background: "linear-gradient(135deg, #1d6fb8, #4d94d1)",
                       color: "#fff", display: "flex", alignItems: "center",
                       justifyContent: "center", fontSize: "17px", fontWeight: 800,
                     }}>
@@ -535,7 +718,7 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: "12px", color: "#6366f1", fontWeight: 600 }}>
+                    <div style={{ fontSize: "12px", color: "#1d6fb8", fontWeight: 600 }}>
                       Ver mi perfil →
                     </div>
                   </div>
@@ -558,8 +741,8 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                 <Link href="/register" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none", flex: 1 }}>
                   <button style={{
                     width: "100%", padding: "9px", borderRadius: "8px",
-                    border: "none", background: "#eef2ff",
-                    fontSize: "13px", fontWeight: 600, color: "#6366f1", cursor: "pointer",
+                    border: "none", background: "#e8f1fa",
+                    fontSize: "13px", fontWeight: 600, color: "#1d6fb8", cursor: "pointer",
                   }}>
                     Crear cuenta
                   </button>
@@ -567,11 +750,11 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
               </div>
             )}
 
-            {/* Tabs: Avisos | Tiendas */}
+            {/* Tabs: Avisos | Concesionarias */}
             <div style={{ display: "flex", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
               {[
                 { label: "Avisos", href: "/listings" },
-                { label: "Tiendas", href: "/tiendas" },
+                { label: "Concesionarias", href: "/tiendas" },
               ].map((tab) => (
                 <Link
                   key={tab.href}
@@ -606,13 +789,28 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                   justifyContent: "center", gap: "8px",
                   boxShadow: "0 3px 12px rgba(249,115,22,0.35)",
                 }}>
-                  ⚡ Publicar nuevo aviso
+                  <Camera size={18} strokeWidth={2} />
+                  Publicar nuevo aviso
                 </button>
               </Link>
 
               {/* Quick nav */}
               <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "2px" }}>
-                {CATEGORIES.filter(c => c.active).map((cat) => (
+                {!multiCategory && VEHICLE_LINKS.map(({ label, href, Icon }) => (
+                  <Link key={href} href={href} onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: "10px",
+                      padding: "9px 10px", borderRadius: "8px", fontSize: "13px",
+                      color: "#475569", fontWeight: 500,
+                    }}
+                    className="hover:bg-slate-50 hover:text-indigo-600"
+                    >
+                      <Icon size={18} strokeWidth={1.75} />
+                      {label}
+                    </div>
+                  </Link>
+                ))}
+                {multiCategory && CATEGORIES.filter(c => c.active).map((cat) => (
                   <Link key={cat.slug} href={`/category/${cat.slug}`} onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
                     <div style={{
                       display: "flex", alignItems: "center", gap: "10px",
@@ -628,6 +826,34 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
                 ))}
               </div>
             </div>
+
+            {/* Mi cuenta (el panel ya está en la tarjeta del usuario, arriba) */}
+            {user && (
+              <div style={{ padding: "0 18px 12px", borderTop: "1px solid #f1f5f9", paddingTop: "12px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.5px", textTransform: "uppercase", padding: "0 10px 6px" }}>
+                  Mi cuenta
+                </div>
+                {ACCOUNT_LINKS.slice(1).map(({ label, href, Icon, showUnread }) => (
+                  <Link key={href} href={href} onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: "10px",
+                      padding: "9px 10px", borderRadius: "8px", fontSize: "13px",
+                      color: "#475569", fontWeight: 500,
+                    }}
+                    className="hover:bg-slate-50 hover:text-indigo-600"
+                    >
+                      <Icon size={18} strokeWidth={1.75} />
+                      <span style={{ flex: 1 }}>{label}</span>
+                      {showUnread && unreadCount > 0 && (
+                        <span style={{ background: "#ef4444", color: "#fff", fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "20px" }}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Footer */}
             {user && (
@@ -648,11 +874,11 @@ export function Navbar({ user, hideSearch, initialUnreadCount = 0 }: { user?: Us
             )}
 
             <div style={{
-              padding: "10px 18px", background: "#6366f1", flexShrink: 0,
+              padding: "10px 18px", background: "#1d6fb8", flexShrink: 0,
               textAlign: "center",
             }}>
               <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>Comprá y vendé autos y motos</div>
-              <div style={{ fontSize: "11px", color: "#c7d2fe" }}>Sacá una foto • Publicá • Vendé</div>
+              <div style={{ fontSize: "11px", color: "#b9d4ee" }}>Sacá una foto • Publicá • Vendé</div>
             </div>
           </div>
         </>

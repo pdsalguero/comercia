@@ -6,7 +6,7 @@ export default function MantenimientoPage() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>ComerxIA — En mantenimiento</title>
+        <title>CuyoRodados — En mantenimiento</title>
       </head>
       <body style={{ margin: 0, fontFamily: "'Segoe UI', system-ui, sans-serif", background: "#f8fafc" }}>
         <div style={{
@@ -56,10 +56,10 @@ export default function MantenimientoPage() {
               <p style={{ margin: 0, fontSize: "13px", color: "#475569" }}>
                 Si tenés una consulta urgente podés escribirnos a{" "}
                 <a
-                  href="mailto:contacto@comerxia.com.ar"
+                  href="mailto:contacto@cuyorodados.com.ar"
                   style={{ color: "#3b82f6", textDecoration: "none", fontWeight: 600 }}
                 >
-                  contacto@comerxia.com.ar
+                  contacto@cuyorodados.com.ar
                 </a>
               </p>
             </div>
@@ -67,13 +67,13 @@ export default function MantenimientoPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
               <div style={{
                 width: "28px", height: "28px",
-                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                background: "linear-gradient(135deg, #3b82f6, #1d6fb8)",
                 borderRadius: "6px",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <span style={{ color: "#fff", fontSize: "14px", fontWeight: 800 }}>C</span>
               </div>
-              <span style={{ fontWeight: 700, fontSize: "15px", color: "#0f172a" }}>ComerxIA</span>
+              <span style={{ fontWeight: 700, fontSize: "15px", color: "#0f172a" }}>CuyoRodados</span>
             </div>
           </div>
         </div>

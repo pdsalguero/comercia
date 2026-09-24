@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getDashboardStats, getWeeklyViews, getSmartRecommendations, getListingSummary } from './actions'
 import { WeeklyChart } from '@/components/dashboard/WeeklyChart'
 import { DashboardRefresher } from '@/components/dashboard/DashboardRefresher'
+import { getDolarOficial } from '@/lib/dolar'
 import type { Recommendation, TopListing, ListingSummary } from './actions'
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
@@ -246,20 +247,8 @@ function ListingsSummary({ summary }: { summary: ListingSummary }) {
 
 // ─── Dólar Card ───────────────────────────────────────────────────────────────
 
-async function getDolarNacion(): Promise<{ compra: number; venta: number; fechaActualizacion: string } | null> {
-  try {
-    const res = await fetch('https://dolarapi.com/v1/dolares/oficial', {
-      next: { revalidate: 1800 }, // refresca cada 30 min
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch {
-    return null
-  }
-}
-
 async function DolarCard() {
-  const dolar = await getDolarNacion()
+  const dolar = await getDolarOficial()
   if (!dolar) return null
 
   const fecha = dolar.fechaActualizacion

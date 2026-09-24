@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
 
 export interface ProvinceOption {
   value: string;
@@ -36,6 +37,9 @@ export function ProvinceSelectNav({ options, value, paramName, clearParam, baseP
   }
 
   const activeLabel = options.find(o => o.value === value)?.label;
+  // Solo agrupa cuando son provincias (el mismo componente se usa también para localidades).
+  const focusOptions = options.filter(o => isFocusProvince(o.label));
+  const otherOptions = options.filter(o => !isFocusProvince(o.label));
 
   return (
     <div style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "center" }}>
@@ -73,9 +77,18 @@ export function ProvinceSelectNav({ options, value, paramName, clearParam, baseP
         }}
       >
         <option value="">{placeholder}</option>
-        {options.map(o => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
+        {focusOptions.length === FOCUS_PROVINCES.length ? (
+          <>
+            <optgroup label={FOCUS_REGION_LABEL}>
+              {focusOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </optgroup>
+            <optgroup label="Otras provincias">
+              {otherOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </optgroup>
+          </>
+        ) : (
+          options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)
+        )}
       </select>
 
       {/* Chevron */}

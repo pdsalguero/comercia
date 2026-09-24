@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         : Promise.resolve({ data: null, error: null }),
     ]);
 
-    const fullName = profile?.full_name ?? "Usuario ComerxIA";
+    const fullName = profile?.full_name ?? "Usuario CuyoRodados";
 
     // LOG 1: User data
     console.log("[mp/checkout] USER:", JSON.stringify({
@@ -87,8 +87,8 @@ export async function POST(req: NextRequest) {
       items: [
         {
           id:          planKey,
-          title:       `ComerxIA - ${plan.name}`,
-          description: `Destacado por ${plan.days} dias en ComerxIA`,
+          title:       `CuyoRodados - ${plan.name}`,
+          description: `Destacado por ${plan.days} dias en CuyoRodados`,
           quantity:    1,
           unit_price:  plan.price,
           currency_id: "ARS",
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       auto_return:        "approved",
       external_reference: externalRef,
       notification_url:   `${BASE}/api/mp/webhook`,
-      statement_descriptor: "ComerxIA",
+      statement_descriptor: "CuyoRodados",
     };
 
     // LOG 3: Full preference body + token info

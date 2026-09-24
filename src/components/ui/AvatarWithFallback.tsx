@@ -21,8 +21,8 @@ export function AvatarWithFallback({ src, name, size = 44, rounded = "full" }: P
   return (
     <div style={{
       width: size, height: size, borderRadius: radius, flexShrink: 0,
-      background: "#e0e7ff", display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.34, fontWeight: 700, color: "#4f46e5",
+      background: "#d5e6f6", display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.34, fontWeight: 700, color: "#175a96",
       overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.1)",
     }}>
       {src && !failed ? (

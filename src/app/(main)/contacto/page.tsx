@@ -61,7 +61,7 @@ export default function ContactPage() {
           <p style={{ fontSize: "15px", color: "#64748b", lineHeight: 1.6, margin: "0 0 28px" }}>
             Te responderemos a la brevedad a{" "}
             <strong style={{ color: "#0f172a" }}>{form.email}</strong>{" "}
-            desde <strong style={{ color: "#0f172a" }}>contacto@comerxia.com.ar</strong>.
+            desde <strong style={{ color: "#0f172a" }}>contacto@cuyorodados.com.ar</strong>.
           </p>
           <button
             onClick={() => { setForm({ name: "", email: "", phone: "", subject: SUBJECTS[0], message: "" }); setStatus("idle"); }}
@@ -142,7 +142,7 @@ export default function ContactPage() {
           {status === "error" && (
             <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 16px", fontSize: "13px", color: "#dc2626" }}>
               Hubo un error al enviar el mensaje. Intentá nuevamente o escribinos directamente a{" "}
-              <a href="mailto:contacto@comerxia.com.ar" style={{ color: "#dc2626", fontWeight: 700 }}>contacto@comerxia.com.ar</a>.
+              <a href="mailto:contacto@cuyorodados.com.ar" style={{ color: "#dc2626", fontWeight: 700 }}>contacto@cuyorodados.com.ar</a>.
             </div>
           )}
 
@@ -165,15 +165,15 @@ export default function ContactPage() {
 
       {/* Contact channels */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "20px" }}>
-        <a href="mailto:contacto@comerxia.com.ar" style={{ textDecoration: "none" }}>
+        <a href="mailto:contacto@cuyorodados.com.ar" style={{ textDecoration: "none" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: "12px",
             background: "#fff", borderRadius: "12px", padding: "16px",
-            border: "1.5px solid #e0e7ff",
+            border: "1.5px solid #d5e6f6",
           }}>
             <div style={{
               width: "38px", height: "38px", borderRadius: "9px", flexShrink: 0,
-              background: "linear-gradient(135deg,#6366f1,#818cf8)",
+              background: "linear-gradient(135deg,#1d6fb8,#4d94d1)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -181,8 +181,8 @@ export default function ContactPage() {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>contacto@comerxia.com.ar</div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#1d6fb8", textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</div>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>contacto@cuyorodados.com.ar</div>
             </div>
           </div>
         </a>

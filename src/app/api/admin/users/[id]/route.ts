@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail } from "@/lib/email";
+import { revalidateHome } from "@/lib/revalidate-home";
 import { resetPasswordTemplate } from "@/lib/emailTemplates";
 
 async function assertAdmin() {
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     // Also pause all their active listings
     await service.from("listings").update({ status: "paused" }).eq("user_id", id).eq("status", "active");
+    revalidateHome();
     return NextResponse.json({ ok: true });
   }
 
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const email = authUser?.user?.email;
     if (!email) return NextResponse.json({ error: "Usuario sin email" }, { status: 400 });
 
-    const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "https://comerxia.com.ar").replace(/\/$/, "");
+    const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "https://cuyorodados.com.ar").replace(/\/$/, "");
 
     // generateLink genera un token de recovery. El link redirige a /reset-password
     // con hash params (#access_token=...&type=recovery) que supabase-js lee automáticamente.

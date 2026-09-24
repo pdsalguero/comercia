@@ -122,7 +122,7 @@ export function ReviewForm({ sellerId, existingRating, existingComment, onSubmit
               disabled={saving}
               style={{
                 flex: 1, padding: "10px",
-                background: "linear-gradient(135deg,#6366f1,#3b82f6)",
+                background: "linear-gradient(135deg,#1d6fb8,#3b82f6)",
                 color: "#fff", border: "none", borderRadius: "8px",
                 fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer",
                 opacity: saving ? 0.7 : 1,

@@ -131,7 +131,7 @@ export function SearchWithSuggestions({ placeholder = "Buscar...", initialValue 
                 </span>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</span>
               </span>
-              <span style={{ color: "#6366f1", fontWeight: 700, fontSize: "12px", whiteSpace: "nowrap", marginLeft: "12px", flexShrink: 0 }}>
+              <span style={{ color: "#1d6fb8", fontWeight: 700, fontSize: "12px", whiteSpace: "nowrap", marginLeft: "12px", flexShrink: 0 }}>
                 {s.currency === "USD" ? "U$D" : "$"} {s.price.toLocaleString("es-AR")}
               </span>
             </div>
@@ -140,7 +140,7 @@ export function SearchWithSuggestions({ placeholder = "Buscar...", initialValue 
             onMouseDown={handleSubmit}
             style={{
               padding: "9px 14px", fontSize: "12px",
-              color: "#6366f1", fontWeight: 600, cursor: "pointer",
+              color: "#1d6fb8", fontWeight: 600, cursor: "pointer",
               borderTop: "1px solid #f1f5f9", background: "#f8faff", textAlign: "center",
             }}
             className="hover:bg-indigo-50"

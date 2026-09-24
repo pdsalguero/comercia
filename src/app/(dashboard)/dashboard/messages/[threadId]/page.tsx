@@ -129,7 +129,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
         {/* Avatar */}
         <div style={{
           width: "40px", height: "40px", borderRadius: "50%",
-          overflow: "hidden", background: "#6366f1",
+          overflow: "hidden", background: "#1d6fb8",
           display: "flex", alignItems: "center", justifyContent: "center",
           flexShrink: 0, color: "#fff", fontSize: "15px", fontWeight: 700,
         }}>
@@ -164,7 +164,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                 <div style={{ fontSize: "11px", color: "#0f172a", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {listing.title}
                 </div>
-                <div style={{ fontSize: "11px", color: "#6366f1", fontWeight: 700 }}>
+                <div style={{ fontSize: "11px", color: "#1d6fb8", fontWeight: 700 }}>
                   ${listing.price.toLocaleString("es-AR")}
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                         {!isMine && isLast && (
                           <div style={{
                             width: "28px", height: "28px", borderRadius: "50%",
-                            background: "#6366f1", color: "#fff",
+                            background: "#1d6fb8", color: "#fff",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: "11px", fontWeight: 700,
                           }}>
@@ -235,7 +235,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
                       {/* Bubble */}
                       <div style={{
                         maxWidth: "65%",
-                        background: isMine ? "#6366f1" : "#fff",
+                        background: isMine ? "#1d6fb8" : "#fff",
                         color: isMine ? "#fff" : "#0f172a",
                         borderRadius: isMine
                           ? (isLast ? "18px 18px 4px 18px" : "18px 18px 18px 18px")

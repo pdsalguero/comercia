@@ -4,6 +4,8 @@ import Link from "next/link";
 import { extractListingId, listingUrl } from "@/lib/listing-url";
 import { storageImg } from "@/lib/storage-image";
 import { createClient } from "@/lib/supabase/server";
+import { buildWhatsappUrl } from "@/lib/whatsapp";
+import { bodyTypeLabel } from "@/lib/vehicle-body-types";
 import { GallerySection } from "./GallerySection";
 import { DetailTabs } from "./DetailTabs";
 import { getCategoryConfig, SERVICE_CATEGORIES, SERVICE_SUBCATS } from "@/lib/category-config";
@@ -18,6 +20,10 @@ import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
 import { PropertyMap } from "./PropertyMapWrapper";
+import { TransferCostCard } from "@/components/listings/TransferCostCard";
+import { PriceHistory, type PriceChange } from "@/components/listings/PriceHistory";
+import { getDolarOficial } from "@/lib/dolar";
+import { vehicleKind } from "@/lib/transfer-cost";
 
 const CONDITION_LABELS: Record<string, string> = {
   new: "Nuevo / A estrenar",
@@ -66,6 +72,8 @@ const VEHICLE_TYPE_LABELS: Record<string, string> = {
   cuatriciclo: "Cuatriciclos", utv: "Areneros/UTV",
   camion: "Camiones", nautica: "Náutica", otro: "Otros",
 };
+
+const TRACTION_LABELS: Record<string, string> = { "4x2": "4x2", "4x4": "4x4", awd: "AWD" };
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -127,8 +135,8 @@ const getListing = cache(async function getListing(id: string) {
   if (error) { console.error("getListing error:", error.message); return null; }
   if (!data) return null;
 
-  // Parallelizar profile + reviews — no son dependientes entre sí
-  const [{ data: profile }, { data: reviewStats }] = await Promise.all([
+  // Parallelizar profile + reviews + historial de precios — no son dependientes entre sí
+  const [{ data: profile }, { data: reviewStats }, { data: priceHistory }] = await Promise.all([
     supabase
       .from("profiles")
       .select("full_name, username, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone, identity_verified")
@@ -138,6 +146,13 @@ const getListing = cache(async function getListing(id: string) {
       .from("reviews")
       .select("rating")
       .eq("seller_id", data.user_id),
+    // Si la tabla todavía no existe (migración sin aplicar) vuelve error y data null: se muestra sin historial.
+    supabase
+      .from("listing_price_history")
+      .select("old_price, new_price, old_currency, new_currency, changed_at")
+      .eq("listing_id", id)
+      .order("changed_at", { ascending: false })
+      .limit(10),
   ]);
 
   const reviewCount = reviewStats?.length ?? 0;
@@ -145,7 +160,7 @@ const getListing = cache(async function getListing(id: string) {
     ? Math.round((reviewStats!.reduce((s, r) => s + r.rating, 0) / reviewCount) * 10) / 10
     : 0;
 
-  return { ...data, profile: profile ?? null, reviewCount, avgRating };
+  return { ...data, profile: profile ?? null, reviewCount, avgRating, priceHistory: (priceHistory ?? []) as PriceChange[] };
 });
 
 export const revalidate = 300; // 5 minutos — segunda visita llega desde caché
@@ -175,7 +190,7 @@ export async function generateMetadata(
     openGraph: {
       title: `${listing.title} — ${priceStr}`,
       description: desc,
-      url: `https://comerxia.com.ar${listingUrl(id, listing.title)}`,
+      url: `https://cuyorodados.com.ar${listingUrl(id, listing.title)}`,
       ...(firstImage ? { images: [{ url: firstImage, width: 800, height: 600, alt: listing.title }] } : {}),
       type: "website",
     },
@@ -185,7 +200,7 @@ export async function generateMetadata(
       description: desc,
       ...(firstImage ? { images: [firstImage] } : {}),
     },
-    alternates: { canonical: `https://comerxia.com.ar${listingUrl(id, listing.title)}` },
+    alternates: { canonical: `https://cuyorodados.com.ar${listingUrl(id, listing.title)}` },
   };
 }
 
@@ -206,9 +221,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   if (!listing) notFound();
 
   const attrs0 = (listing.attributes as Record<string, any>) ?? {};
-  const [{ data: { session } }, { items: related, label: relatedLabel }] = await Promise.all([
+  const needsDolar = listing.category_id === 2 && (listing as any).currency === "USD" && !!listing.price;
+  const [{ data: { session } }, { items: related, label: relatedLabel }, dolar] = await Promise.all([
     authPromise,
     getRelated(id, listing.category_id, attrs0.brand, attrs0.model),
+    needsDolar ? getDolarOficial() : Promise.resolve(null),
   ]);
 
   const isOwner = (session?.user?.id ?? null) === (listing as any).user_id;
@@ -229,18 +246,31 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     ["Marca",       attrs.brand],
     ["Modelo",      attrs.model],
     ["Versión",     attrs.version],
+    ["Carrocería",  bodyTypeLabel(attrs.sub_category, attrs.body_type)],
     ["Año",         attrs.year],
+    ["Estado",      (listing as any).condition ? CONDITION_LABELS[(listing as any).condition] ?? (listing as any).condition : null],
     ["Kilometraje", attrs.km ? `${Number(attrs.km).toLocaleString("es-AR")} km` : null],
     ["Combustible", attrs.fuel],
     ["Transmisión", attrs.transmission],
+    ["Tracción",    attrs.traction ? TRACTION_LABELS[attrs.traction] ?? attrs.traction : null],
+    ["Puertas",     attrs.doors],
     ["Color",       attrs.color],
     ["Motor",       attrs.engine],
   ].filter(([, v]) => v) as [string, string][];
 
+  // Equipamiento — mismos 7 campos que carga el form de publicar (CAR_ONLY_FEATURES en
+  // listings/new/page.tsx); antes solo se mostraba "Con GNC", el resto se guardaba pero nunca
+  // se le mostraba al comprador.
   const boolExtras = [
     [attrs.first_owner,      "Único dueño"],
     [attrs.accepts_trade,    "Acepta permuta"],
     [attrs.has_gnc,          "Con GNC"],
+    [attrs.has_ac,           "Aire acondicionado"],
+    [attrs.power_steering,   "Dirección asistida"],
+    [attrs.has_airbags,      "Airbags"],
+    [attrs.rear_camera,      "Cámara de retroceso"],
+    [attrs.power_windows,    "Vidrios eléctricos"],
+    [attrs.central_lock,     "Cierre centralizado"],
     [attrs.financing,        "Financiamiento disponible"],
     [attrs.negotiable_price, "Precio negociable"],
   ].filter(([v]) => v).map(([, label]) => label as string);
@@ -322,15 +352,13 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const boolTags = isVehicle ? boolExtras : isRealEstate ? realEstateBoolExtras : genericBoolTags;
   const tabLabel = isVehicle ? "Detalles del vehículo" : isRealEstate ? "Detalles del inmueble" : "Características";
 
-  const canShowPhone = (profile as any)?.show_phone !== false; // default true until migration runs
-  const rawPhone = (attrs.whatsapp_phone as string | undefined)
-    || (profile as any)?.store_whatsapp
-    || (profile as any)?.phone
-    || null;
-  const whatsappPhone = canShowPhone ? rawPhone : null;
-  const whatsappUrl = whatsappPhone
-    ? `https://wa.me/${whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, vi tu publicación "${listing.title}" en ComerxIA y me interesa`)}`
-    : null;
+  const whatsappUrl = buildWhatsappUrl({
+    showPhone: (profile as any)?.show_phone, // default true until migration runs
+    storeWhatsapp: (profile as any)?.store_whatsapp,
+    phone: (profile as any)?.phone,
+    listingWhatsappOverride: attrs.whatsapp_phone as string | undefined,
+    listingTitle: listing.title,
+  });
 
   const sellerName = profile?.full_name || (profile?.username ? `@${profile.username}` : "Usuario");
   const sellerInitial = (profile?.full_name?.[0] ?? profile?.username?.[0] ?? "?").toUpperCase();
@@ -349,7 +377,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     name: listing.title,
     description: listing.description ?? listing.title,
     image: images.map((i) => i.url),
-    url: `https://comerxia.com.ar/listings/${listing.id}`,
+    url: `https://cuyorodados.com.ar/listings/${listing.id}`,
     ...(listing.price ? {
       offers: {
         "@type": "Offer",
@@ -570,6 +598,17 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               />
             )}
 
+            {/* Costo de transferencia en Cuyo */}
+            {isVehicle && listing.price ? (
+              <TransferCostCard
+                price={Number(listing.price)}
+                currency={currency}
+                kind={vehicleKind(attrs.sub_category)}
+                dolarVenta={dolar?.venta ?? null}
+                location={listing.neighborhood}
+              />
+            ) : null}
+
             {/* Map */}
             {hasMap && (
               <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.07)" }}>
@@ -662,6 +701,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     defaultMessage={`Hola ${sellerName}, vi tu publicación "${listing.title}" y me interesa. ¿Me podés indicar el precio?`}
                   />
                 )}
+                <PriceHistory changes={(listing as any).priceHistory ?? []} />
                 {/* Negotiable / financing pills */}
                 {(attrs.negotiable_price || attrs.financing) && (
                   <div style={{ display: "flex", gap: "6px", marginTop: "10px", flexWrap: "wrap" }}>
@@ -876,7 +916,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       <div style={{ height: "155px", background: "#f0f0f0", overflow: "hidden", position: "relative" }}>
                         {thumb
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={storageImg(thumb, 400)} alt={r.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <img src={storageImg(thumb, 400, 75, 282)} alt={r.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px" }}>📦</div>
                         }
                         <FavoriteButton listingId={r.id} variant="card" />

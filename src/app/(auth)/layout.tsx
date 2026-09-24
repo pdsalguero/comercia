@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div style={{
         position: 'absolute', top: '-80px', right: '-80px',
         width: '320px', height: '320px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(29,111,184,0.25) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
       <div style={{
@@ -28,10 +28,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Logo + tagline */}
       <a href="/" style={{ marginBottom: '28px', textDecoration: 'none', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div style={{ fontSize: '32px', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1 }}>
-          comerxia
+          cuyorodados
         </div>
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '5px', fontWeight: 500, letterSpacing: '0.5px' }}>
-          Comprá y vendé autos y motos en todo el país.
+          Comprá y vendé autos y motos en Mendoza, San Juan y San Luis.
         </div>
       </a>
 

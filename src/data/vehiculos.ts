@@ -1,3 +1,5 @@
+import { MARCAS_CATALOGO } from "@/data/catalogo/marcas.generated";
+
 // Brands from MLA Autos y Camionetas catalog (IDs from Mercado Libre)
 export const MARCAS_AUTOS: { id: string; name: string }[] = [
   { id: "60249",    name: "Toyota" },
@@ -86,30 +88,15 @@ export const TIPOS_VEHICULO = [
 /**
  * CAR_BRANDS slugs to show per vehicle tipo.
  * Used to filter the brand select when tipo = "auto" or "camioneta".
+ * Sale del catálogo generado (src/data/catalogo/, ver tools/catalogo-vehiculos/README.md).
  */
 export const MARCAS_POR_TIPO: Record<"auto" | "camioneta", Set<string>> = {
-  auto: new Set([
-    "toyota", "chevrolet", "ford", "volkswagen", "renault", "honda",
-    "peugeot", "hyundai", "fiat", "nissan", "kia", "mitsubishi", "citroen",
-    "bmw", "mercedes_benz", "audi", "chrysler", "subaru",
-    "chery", "byd", "baic", "geely", "jac", "changan",
-    "porsche", "volvo", "skoda", "seat", "mg", "alfa_romeo", "cupra",
-    "dodge", "mazda",
-    "coradir", "daewoo", "daihatsu", "datsun", "dkw", "gmc",
-    "ika", "lada", "lancia", "lexus", "mini", "opel", "rover", "smart", "suzuki",
-  ]),
-  camioneta: new Set([
-    "toyota", "chevrolet", "ford", "volkswagen", "renault", "honda",
-    "hyundai", "jeep", "fiat", "nissan", "kia", "mitsubishi", "citroen",
-    "bmw", "mercedes_benz", "audi", "subaru", "alfa_romeo",
-    "chery", "byd", "baic", "great_wall", "haval", "changan", "jac",
-    "land_rover", "volvo", "porsche", "dodge", "mazda",
-    "coradir", "daewoo", "daihatsu", "dfsk", "foton",
-    "hummer", "isuzu", "iveco", "jaguar", "jetour", "jmc",
-    "lada", "lifan", "mahindra", "piaggio", "rastrojero",
-    "shineray", "ssangyong", "suzuki", "tata", "zanella",
-  ]),
+  auto: new Set(MARCAS_CATALOGO.auto.map((b) => b.value)),
+  camioneta: new Set(MARCAS_CATALOGO.camioneta.map((b) => b.value)),
 };
+
+/** Marcas de camiones (catálogo generado). */
+export const CAMION_BRANDS_LIST = MARCAS_CATALOGO.camion;
 
 export const NAUTICA_CATEGORIAS: {
   value: string;

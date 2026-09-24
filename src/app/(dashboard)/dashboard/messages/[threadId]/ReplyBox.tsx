@@ -90,7 +90,7 @@ export default function ReplyBox({ listingId, receiverId }: { listingId: string 
         style={{
           width: "44px", height: "44px",
           borderRadius: "50%",
-          background: canSend ? "#6366f1" : "#e2e8f0",
+          background: canSend ? "#1d6fb8" : "#e2e8f0",
           border: "none",
           cursor: canSend ? "pointer" : "default",
           display: "flex", alignItems: "center", justifyContent: "center",

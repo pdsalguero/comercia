@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { Crown } from "lucide-react";
 import { ListingCard } from "./ListingCard";
 
 const VISIBLE = 8;
@@ -22,6 +23,9 @@ interface Item {
   bumped_at?: string | null;
   is_store?: boolean | null;
   store_name?: string | null;
+  photo_count?: number | null;
+  photos?: string[] | null;
+  price_drop_pct?: number | null;
 }
 
 interface Props {
@@ -53,7 +57,10 @@ export function FeaturedCarousel({ title, items, href }: Props) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>{title}</span>
+          <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", display: "flex", alignItems: "center", gap: "7px" }}>
+            <Crown size={17} strokeWidth={1.9} color="#d97706" />
+            {title}
+          </span>
           <span style={{
             background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
             color: "#fff", borderRadius: "5px", padding: "1px 7px",
@@ -89,7 +96,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
               >›</button>
             </div>
           )}
-          <Link href={href} style={{ fontSize: "12px", color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
+          <Link href={href} style={{ fontSize: "12px", color: "#1d6fb8", textDecoration: "none", fontWeight: 600 }}>
             Ver todos →
           </Link>
         </div>
@@ -114,6 +121,9 @@ export function FeaturedCarousel({ title, items, href }: Props) {
             bumped_at={l.bumped_at ?? null}
             is_store={l.is_store ?? null}
             store_name={l.store_name ?? null}
+            photo_count={l.photo_count ?? null}
+            photos={l.photos ?? null}
+            priceDropPct={l.price_drop_pct ?? null}
             priority={index === 0 && i < 4}
           />
         ))}
@@ -141,31 +151,6 @@ export function FeaturedCarousel({ title, items, href }: Props) {
         </div>
       )}
 
-      {/* Upsell bar */}
-      <div style={{
-        marginTop: "10px",
-        background: "linear-gradient(135deg,#fffbeb,#fef3c7)",
-        border: "1px solid #fde68a", borderRadius: "10px",
-        padding: "10px 16px", display: "flex", alignItems: "center",
-        justifyContent: "space-between", gap: "12px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "16px" }}>⭐</span>
-          <div>
-            <span style={{ fontSize: "13px", fontWeight: 700, color: "#92400e" }}>¿Querés aparecer aquí?</span>
-            <span style={{ fontSize: "12px", color: "#b45309", marginLeft: "6px" }}>· Recibí 5× más consultas</span>
-          </div>
-        </div>
-        <Link href="/upgrade">
-          <button style={{
-            background: "linear-gradient(135deg,#f59e0b,#fbbf24)", color: "#fff",
-            border: "none", borderRadius: "7px", padding: "6px 14px",
-            fontWeight: 800, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap",
-          }}>
-            Ver planes →
-          </button>
-        </Link>
-      </div>
     </div>
   );
 }

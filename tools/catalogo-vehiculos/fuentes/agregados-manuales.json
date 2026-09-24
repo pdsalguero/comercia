@@ -1,0 +1,735 @@
+{
+ "nota": "Modelos cargados a mano que la tabla DNRPA no trae: clásicos anteriores a 2002 populares en Argentina y lanzamientos que todavía no tienen valuación. tipo → slug de marca → { label, modelos }. Autos/camionetas en formato título; motos en mayúsculas como el resto de la lista de motos.",
+ "tipos": {
+  "auto": {
+   "fiat": {
+    "label": "Fiat",
+    "modelos": [
+     "125",
+     "128",
+     "133",
+     "147",
+     "600",
+     "800",
+     "1500",
+     "1600",
+     "Duna",
+     "Elba",
+     "Europa",
+     "Premio",
+     "Regatta",
+     "Spazio",
+     "Super Europa",
+     "Tempra",
+     "Tipo",
+     "Uno",
+     "Vivace"
+    ]
+   },
+   "renault": {
+    "label": "Renault",
+    "modelos": [
+     "Dauphine",
+     "Fuego",
+     "Gordini",
+     "R4",
+     "R5",
+     "R6",
+     "R9",
+     "R11",
+     "R12",
+     "R18",
+     "R19",
+     "R21",
+     "Torino",
+     "Clio",
+     "Laguna",
+     "Megane",
+     "Twingo"
+    ]
+   },
+   "ford": {
+    "label": "Ford",
+    "modelos": [
+     "Escort",
+     "Fairlane",
+     "Falcon",
+     "Falcon Futura",
+     "Falcon Rural",
+     "Fiesta",
+     "Galaxy",
+     "Ka",
+     "Mondeo",
+     "Orion",
+     "Sierra",
+     "Taunus",
+     "Edge",
+     "Fusion"
+    ]
+   },
+   "chevrolet": {
+    "label": "Chevrolet",
+    "modelos": [
+     "400",
+     "Astra",
+     "Chevy",
+     "Corsa",
+     "Corvair",
+     "Kadett",
+     "Monza",
+     "Super Sport",
+     "Vectra",
+     "Onix Plus"
+    ]
+   },
+   "volkswagen": {
+    "label": "Volkswagen",
+    "modelos": [
+     "1500",
+     "1600",
+     "Carat",
+     "Escarabajo",
+     "Gacel",
+     "Gol",
+     "Golf",
+     "Logus",
+     "Passat",
+     "Pointer",
+     "Polo Classic",
+     "Quantum",
+     "Santana",
+     "Senda"
+    ]
+   },
+   "peugeot": {
+    "label": "Peugeot",
+    "modelos": [
+     "104",
+     "106",
+     "204",
+     "205",
+     "304",
+     "306",
+     "309",
+     "404",
+     "405",
+     "406",
+     "504",
+     "505",
+     "604",
+     "605"
+    ]
+   },
+   "citroen": {
+    "label": "Citroën",
+    "modelos": [
+     "2CV",
+     "3CV",
+     "Ami 8",
+     "AX",
+     "BX",
+     "Dyane",
+     "GS",
+     "Saxo",
+     "Xantia",
+     "Xsara",
+     "ZX"
+    ]
+   },
+   "dodge": {
+    "label": "Dodge",
+    "modelos": [
+     "1500",
+     "1800",
+     "Coronado",
+     "GTX",
+     "Polara",
+     "Valiant"
+    ]
+   },
+   "ika": {
+    "label": "IKA",
+    "modelos": [
+     "Bergantín",
+     "Rambler",
+     "Torino"
+    ]
+   },
+   "toyota": {
+    "label": "Toyota",
+    "modelos": [
+     "Camry",
+     "Carina",
+     "Celica",
+     "Corolla",
+     "Corona",
+     "Supra"
+    ]
+   },
+   "honda": {
+    "label": "Honda",
+    "modelos": [
+     "Accord",
+     "Civic",
+     "CRX",
+     "Integra",
+     "Prelude",
+     "Jazz"
+    ]
+   },
+   "nissan": {
+    "label": "Nissan",
+    "modelos": [
+     "Bluebird",
+     "Sentra",
+     "Leaf"
+    ]
+   },
+   "mitsubishi": {
+    "label": "Mitsubishi",
+    "modelos": [
+     "Colt",
+     "Galant",
+     "Lancer"
+    ]
+   },
+   "daewoo": {
+    "label": "Daewoo",
+    "modelos": [
+     "Cielo",
+     "Espero",
+     "Lanos",
+     "Leganza",
+     "Racer",
+     "Tico"
+    ]
+   },
+   "opel": {
+    "label": "Opel",
+    "modelos": [
+     "K180"
+    ]
+   },
+   "siam_di_tella": {
+    "label": "Siam Di Tella",
+    "modelos": [
+     "1500"
+    ]
+   },
+   "lada": {
+    "label": "Lada",
+    "modelos": [
+     "Laika",
+     "Samara"
+    ]
+   },
+   "alfa_romeo": {
+    "label": "Alfa Romeo",
+    "modelos": [
+     "33",
+     "145",
+     "146",
+     "155",
+     "164",
+     "Giulia",
+     "Tonale"
+    ]
+   },
+   "bmw": {
+    "label": "BMW",
+    "modelos": [
+     "Serie 2 Gran Coupe"
+    ]
+   },
+   "audi": {
+    "label": "Audi",
+    "modelos": [
+     "e-tron"
+    ]
+   },
+   "byd": {
+    "label": "BYD",
+    "modelos": [
+     "Dolphin",
+     "Dolphin Mini",
+     "Han",
+     "Seal"
+    ]
+   },
+   "chery": {
+    "label": "Chery",
+    "modelos": [
+     "Arrizo 5",
+     "Arrizo 6"
+    ]
+   },
+   "geely": {
+    "label": "Geely",
+    "modelos": [
+     "Emgrand",
+     "GC2"
+    ]
+   },
+   "hyundai": {
+    "label": "Hyundai",
+    "modelos": [
+     "Ioniq",
+     "Ioniq 6"
+    ]
+   },
+   "kia": {
+    "label": "Kia",
+    "modelos": [
+     "Morning",
+     "Picanto",
+     "Stinger"
+    ]
+   },
+   "mercedes_benz": {
+    "label": "Mercedes-Benz",
+    "modelos": [
+     "AMG GT",
+     "190",
+     "190 D",
+     "190 E",
+     "220",
+     "230",
+     "280 SE",
+     "300 SE",
+     "380 SEC"
+    ]
+   },
+   "suzuki": {
+    "label": "Suzuki",
+    "modelos": [
+     "Ignis"
+    ]
+   },
+   "volvo": {
+    "label": "Volvo",
+    "modelos": [
+     "S90",
+     "V60",
+     "240",
+     "264",
+     "740",
+     "940"
+    ]
+   },
+   "changan": {
+    "label": "Changan",
+    "modelos": [
+     "Eado Plus"
+    ]
+   },
+   "lancia": {
+    "label": "Lancia",
+    "modelos": [
+     "Beta"
+    ]
+   }
+  },
+  "camioneta": {
+   "ford": {
+    "label": "Ford",
+    "modelos": [
+     "Courier",
+     "F-100",
+     "F-150",
+     "Ranchero",
+     "Bronco Sport"
+    ]
+   },
+   "chevrolet": {
+    "label": "Chevrolet",
+    "modelos": [
+     "Apache",
+     "Brava",
+     "C-10",
+     "C-14",
+     "C-20",
+     "Camioneta 1500",
+     "D-10",
+     "D-14",
+     "D-20",
+     "Luv",
+     "Colorado",
+     "Trax"
+    ]
+   },
+   "dodge": {
+    "label": "Dodge",
+    "modelos": [
+     "D-100",
+     "D-200",
+     "RAM 700",
+     "RAM 1500",
+     "RAM 2500",
+     "A100"
+    ]
+   },
+   "ika": {
+    "label": "IKA",
+    "modelos": [
+     "Estanciera",
+     "Gladiator"
+    ]
+   },
+   "jeep": {
+    "label": "Jeep",
+    "modelos": [
+     "CJ-5",
+     "CJ-7",
+     "IKA",
+     "Wagoneer",
+     "Willys"
+    ]
+   },
+   "rastrojero": {
+    "label": "Rastrojero",
+    "modelos": [
+     "Conosur",
+     "Frontalito",
+     "Rastrojero"
+    ]
+   },
+   "volkswagen": {
+    "label": "Volkswagen",
+    "modelos": [
+     "Kombi",
+     "Saveiro",
+     "Atlas"
+    ]
+   },
+   "peugeot": {
+    "label": "Peugeot",
+    "modelos": [
+     "404 Pick-Up",
+     "504 Pick-Up",
+     "Landtrek"
+    ]
+   },
+   "citroen": {
+    "label": "Citroën",
+    "modelos": [
+     "AK",
+     "Mehari"
+    ]
+   },
+   "toyota": {
+    "label": "Toyota",
+    "modelos": [
+     "Fortuner",
+     "Highlander",
+     "Hilux",
+     "Land Cruiser"
+    ]
+   },
+   "mitsubishi": {
+    "label": "Mitsubishi",
+    "modelos": [
+     "L200",
+     "Montero",
+     "Pajero"
+    ]
+   },
+   "nissan": {
+    "label": "Nissan",
+    "modelos": [
+     "D21",
+     "Patrol",
+     "Terrano",
+     "Qashqai"
+    ]
+   },
+   "suzuki": {
+    "label": "Suzuki",
+    "modelos": [
+     "Jimny",
+     "Samurai",
+     "Vitara",
+     "S-Cross"
+    ]
+   },
+   "lada": {
+    "label": "Lada",
+    "modelos": [
+     "Niva"
+    ]
+   },
+   "bmw": {
+    "label": "BMW",
+    "modelos": [
+     "X2",
+     "X7",
+     "iX"
+    ]
+   },
+   "byd": {
+    "label": "BYD",
+    "modelos": [
+     "Atto 3",
+     "Song Plus",
+     "Yuan Plus",
+     "Shark"
+    ]
+   },
+   "changan": {
+    "label": "Changan",
+    "modelos": [
+     "CS35",
+     "CS55",
+     "Uni-K",
+     "Uni-V"
+    ]
+   },
+   "chery": {
+    "label": "Chery",
+    "modelos": [
+     "Tiggo 2",
+     "Tiggo 3",
+     "Tiggo 4",
+     "Tiggo 4 Pro",
+     "Tiggo 5",
+     "Tiggo 5x",
+     "Tiggo 7",
+     "Tiggo 7 Pro",
+     "Tiggo 8",
+     "Tiggo 8 Pro"
+    ]
+   },
+   "geely": {
+    "label": "Geely",
+    "modelos": [
+     "Azkarra",
+     "Coolray",
+     "GX3 Pro",
+     "Monjaro",
+     "Tugella"
+    ]
+   },
+   "great_wall": {
+    "label": "Great Wall",
+    "modelos": [
+     "Wingle 5",
+     "Wingle 7",
+     "Ora 5"
+    ]
+   },
+   "haval": {
+    "label": "Haval",
+    "modelos": [
+     "F5",
+     "F7",
+     "H4",
+     "H9"
+    ]
+   },
+   "hyundai": {
+    "label": "Hyundai",
+    "modelos": [
+     "Ioniq 5",
+     "ix35",
+     "Kona Eléctrico",
+     "Venue"
+    ]
+   },
+   "kia": {
+    "label": "Kia",
+    "modelos": [
+     "EV6",
+     "Seltos",
+     "Telluride"
+    ]
+   },
+   "mercedes_benz": {
+    "label": "Mercedes-Benz",
+    "modelos": [
+     "GLS"
+    ]
+   },
+   "volvo": {
+    "label": "Volvo",
+    "modelos": [
+     "XC40"
+    ]
+   },
+   "agrale": {
+    "label": "Agrale",
+    "modelos": [
+     "AM 100",
+     "AM 200"
+    ]
+   },
+   "arcfox": {
+    "label": "Arcfox",
+    "modelos": [
+     "T1"
+    ]
+   },
+   "renault": {
+    "label": "Renault",
+    "modelos": [
+     "Niagara"
+    ]
+   }
+  },
+  "moto": {
+   "zanella": {
+    "label": "Zanella",
+    "modelos": [
+     "SAPUCAI 125",
+     "SAPUCAI 150",
+     "ZANELLA 50",
+     "ZANELLA 125",
+     "PONDEROSA"
+    ]
+   },
+   "gilera": {
+    "label": "Gilera",
+    "modelos": [
+     "MACHO 200",
+     "200 SUPER"
+    ]
+   },
+   "honda": {
+    "label": "Honda",
+    "modelos": [
+     "CG 125",
+     "CB 400",
+     "NX 150",
+     "TRANSALP 600",
+     "XR 200 R",
+     "XR 250",
+     "XR 600 R",
+     "CB 190 R",
+     "CB 300 R",
+     "CB 500 F",
+     "CBR 500 R",
+     "CG 150",
+     "CG 160",
+     "NXR 160 BROS",
+     "PCX 150",
+     "TWISTER 250",
+     "WAVE 110",
+     "XRE 190",
+     "XRE 300",
+     "AFRICA TWIN",
+     "BIZ 100",
+     "CB 450",
+     "CB 650 CUSTOM",
+     "CB 900 CUSTOM",
+     "DAX 70",
+     "ECONO POWER",
+     "LS 125",
+     "NIGHTHAWK 650",
+     "NX 650 DOMINATOR",
+     "REBEL 250",
+     "SPACY 125",
+     "TACT 50",
+     "VFR 400",
+     "XR 80",
+     "XR 100",
+     "XR 100 R",
+     "XR 400",
+     "XR 600",
+     "XR 650 R"
+    ]
+   },
+   "yamaha": {
+    "label": "Yamaha",
+    "modelos": [
+     "DT 125",
+     "DT 175",
+     "RD 350",
+     "RX 100",
+     "XJ 600",
+     "XT 225",
+     "XT 600",
+     "XV 535 VIRAGO",
+     "PASSOLA",
+     "RAZZ",
+     "RADIAN 600",
+     "TW 200",
+     "VIRAGO 250",
+     "WARRIOR 350",
+     "XS 250"
+    ]
+   },
+   "suzuki": {
+    "label": "Suzuki",
+    "modelos": [
+     "DR 200",
+     "DR 650",
+     "GN 125",
+     "GS 500",
+     "ADDRESS 50",
+     "DR 350",
+     "FA 50",
+     "GN 250",
+     "RMX 250",
+     "TS 185 ER"
+    ]
+   },
+   "kawasaki": {
+    "label": "Kawasaki",
+    "modelos": [
+     "KLR 650",
+     "KDX 200",
+     "KE 100",
+     "KLR 250",
+     "KR 150",
+     "LTD 250",
+     "LTD 440"
+    ]
+   },
+   "siambretta": {
+    "label": "Siambretta",
+    "modelos": [
+     "LD 125",
+     "LD 150",
+     "TV 175"
+    ]
+   },
+   "bajaj": {
+    "label": "Bajaj",
+    "modelos": [
+     "CLASSIC"
+    ]
+   },
+   "hero": {
+    "label": "Hero",
+    "modelos": [
+     "PUCH"
+    ]
+   },
+   "piaggio": {
+    "label": "Piaggio",
+    "modelos": [
+     "NRG"
+    ]
+   },
+   "vespa": {
+    "label": "Vespa",
+    "modelos": [
+     "EXCEL 150",
+     "PX 150"
+    ]
+   },
+   "rumi": {
+    "label": "Rumi",
+    "modelos": [
+     "FORMICHINO"
+    ]
+   }
+  },
+  "cuatriciclo": {
+   "honda": {
+    "label": "Honda",
+    "modelos": [
+     "TRX 200"
+    ]
+   }
+  }
+ }
+}

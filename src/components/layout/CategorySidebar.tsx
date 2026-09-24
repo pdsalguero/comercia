@@ -73,13 +73,13 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
               <span
                 style={{
                   fontSize: "13px",
-                  color: !activeSlug ? "#6366f1" : "#334155",
+                  color: !activeSlug ? "#1d6fb8" : "#334155",
                   fontWeight: !activeSlug ? 700 : 400,
                 }}
               >
                 Todos
                 {province && (
-                  <span style={{ color: "#6366f1", fontWeight: 700 }}>
+                  <span style={{ color: "#1d6fb8", fontWeight: 700 }}>
                     {" "}({province})
                   </span>
                 )}
@@ -111,7 +111,7 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
                 <span
                   style={{
                     fontSize: "13px",
-                    color: isActive ? "#6366f1" : enabled ? "#334155" : "#94a3b8",
+                    color: isActive ? "#1d6fb8" : enabled ? "#334155" : "#94a3b8",
                     fontWeight: isActive ? 700 : 400,
                   }}
                 >
@@ -122,8 +122,8 @@ export function CategorySidebar({ categories, hideUpsell = false, province, todo
                 <span
                   style={{
                     fontSize: "10px",
-                    color: isActive ? "#6366f1" : "#94a3b8",
-                    background: isActive ? "#e0e7ff" : "#f1f5f9",
+                    color: isActive ? "#1d6fb8" : "#94a3b8",
+                    background: isActive ? "#d5e6f6" : "#f1f5f9",
                     borderRadius: "4px",
                     padding: "1px 5px",
                     fontWeight: 600,

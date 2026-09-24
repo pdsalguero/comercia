@@ -70,6 +70,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // La home es pública y se sirve desde caché: no consulta a Supabase Auth en cada visita.
+  // La sesión se resuelve en el navegador (Navbar `loadUserOnClient`), que también renueva el token.
+  if (pathname === '/') return NextResponse.next()
+
   return await updateSession(request)
 }
 

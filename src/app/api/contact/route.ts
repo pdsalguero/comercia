@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
     // 2. Route by subject and send via SES
     const CONTACT_SUBJECTS = ["Consulta general", "Propuesta comercial", "Otro"];
     const toEmail = CONTACT_SUBJECTS.includes(subject ?? "")
-      ? (process.env.CONTACT_EMAIL ?? "contacto@comerxia.com.ar")
-      : (process.env.SUPPORT_EMAIL ?? "support@comerxia.com.ar");
+      ? (process.env.CONTACT_EMAIL ?? "contacto@cuyorodados.com.ar")
+      : (process.env.SUPPORT_EMAIL ?? "support@cuyorodados.com.ar");
 
     const { success, error: sesError } = await sendEmail({
       to: toEmail,
-      subject: `[ComerxIA] ${subject ?? "Consulta"} — ${name}`,
+      subject: `[CuyoRodados] ${subject ?? "Consulta"} — ${name}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #0f172a; padding: 24px 32px; border-radius: 10px 10px 0 0;">

@@ -1,5 +1,16 @@
 // Shared real-estate location data: province → zones
 export const RE_LOCATIONS: Record<string, { label: string; zones: { value: string; label: string }[] }> = {
+  // Cuyo primero: es la región foco del sitio y el orden de este objeto es el de los selectores.
+  "mendoza":             { label: "Mendoza", zones: [
+    { value: "mendoza-capital", label: "Mendoza Capital" },
+    { value: "godoy-cruz",      label: "Godoy Cruz" },
+    { value: "guaymallen",      label: "Guaymallén" },
+    { value: "las-heras",       label: "Las Heras" },
+    { value: "lujan-de-cuyo",   label: "Luján de Cuyo" },
+    { value: "maipu",           label: "Maipú" },
+    { value: "san-rafael",      label: "San Rafael" },
+    { value: "malargue",        label: "Malargüe" },
+  ]},
   "san-juan":            { label: "San Juan", zones: [
     { value: "capital",      label: "Capital" },
     { value: "rivadavia",    label: "Rivadavia" },
@@ -19,6 +30,11 @@ export const RE_LOCATIONS: Record<string, { label: string; zones: { value: strin
     { value: "calingasta",   label: "Calingasta" },
     { value: "san-martin",   label: "San Martín" },
     { value: "valle-fertil", label: "Valle Fértil" },
+  ]},
+  "san-luis":            { label: "San Luis", zones: [
+    { value: "san-luis-capital", label: "San Luis Capital" },
+    { value: "villa-mercedes",   label: "Villa Mercedes" },
+    { value: "merlo-sl",         label: "Merlo" },
   ]},
   "caba":                { label: "CABA", zones: [
     { value: "palermo",          label: "Palermo" },
@@ -88,16 +104,6 @@ export const RE_LOCATIONS: Record<string, { label: string; zones: { value: strin
     { value: "la-falda",         label: "La Falda" },
     { value: "jesus-maria",      label: "Jesús María" },
   ]},
-  "mendoza":             { label: "Mendoza", zones: [
-    { value: "mendoza-capital", label: "Mendoza Capital" },
-    { value: "godoy-cruz",      label: "Godoy Cruz" },
-    { value: "guaymallen",      label: "Guaymallén" },
-    { value: "las-heras",       label: "Las Heras" },
-    { value: "lujan-de-cuyo",   label: "Luján de Cuyo" },
-    { value: "maipu",           label: "Maipú" },
-    { value: "san-rafael",      label: "San Rafael" },
-    { value: "malargue",        label: "Malargüe" },
-  ]},
   "santa-fe":            { label: "Santa Fe", zones: [
     { value: "santa-fe-capital", label: "Santa Fe Capital" },
     { value: "rosario",          label: "Rosario" },
@@ -147,11 +153,6 @@ export const RE_LOCATIONS: Record<string, { label: string; zones: { value: strin
     { value: "posadas", label: "Posadas" },
     { value: "iguazu",  label: "Puerto Iguazú" },
     { value: "obera",   label: "Oberá" },
-  ]},
-  "san-luis":            { label: "San Luis", zones: [
-    { value: "san-luis-capital", label: "San Luis Capital" },
-    { value: "villa-mercedes",   label: "Villa Mercedes" },
-    { value: "merlo-sl",         label: "Merlo" },
   ]},
   "la-rioja":            { label: "La Rioja", zones: [
     { value: "la-rioja-capital", label: "La Rioja Capital" },

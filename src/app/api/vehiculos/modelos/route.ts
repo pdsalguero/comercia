@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getModelosPorMarca } from "@/data/modelos-vehiculos";
-import { getModelosMotoByTipo } from "@/data/modelos-motos";
 import { createClient } from "@/lib/supabase/server";
 
 /** Deduplicate models that are identical when spaces/hyphens are removed */
@@ -20,7 +19,7 @@ export async function GET(req: NextRequest) {
   if (!brand || !tipo) return NextResponse.json([]);
 
   if (tipo === "moto" || tipo === "cuatriciclo" || tipo === "utv") {
-    const staticModels = getModelosMotoByTipo(brand, tipo as "moto" | "cuatriciclo" | "utv");
+    const staticModels = getModelosPorMarca(brand, tipo);
 
     // Merge user-contributed models from DB
     let dbModels: string[] = [];

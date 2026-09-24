@@ -64,10 +64,10 @@ export function ContactButton({ listingId, listingTitle, sellerId, sellerName, d
           onClick={handleOpen}
           style={{
             background: "transparent",
-            border: "1.5px solid #6366f1", borderRadius: "8px",
+            border: "1.5px solid #1d6fb8", borderRadius: "8px",
             padding: "8px 16px", cursor: "pointer", fontFamily: "inherit",
             display: "inline-flex", alignItems: "center", gap: "6px",
-            color: "#6366f1", fontWeight: 600, fontSize: "13px",
+            color: "#1d6fb8", fontWeight: 600, fontSize: "13px",
             width: "auto",
           }}
         >

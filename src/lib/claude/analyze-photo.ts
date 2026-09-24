@@ -1,6 +1,7 @@
 // src/lib/claude/analyze-photo.ts
 
 import { getYearFromPatente } from "@/lib/utils/patente-year";
+import { BODY_TYPES_BY_SUBCAT } from "@/lib/vehicle-body-types";
 
 const VEHICLE_BRANDS = [
   "toyota",
@@ -81,7 +82,6 @@ const USER_PROMPT = `Analizá la imagen y devolvé exactamente este JSON (sin ca
 
 {
   "title": "título del aviso — máx 80 chars, NO incluyas el año",
-  "description": "descripción vendedora de 2-3 oraciones",
   "category_id": número,
   "condition": "new|like_new|very_good|good|fair|for_parts",
   "price_suggested": 0,
@@ -98,6 +98,7 @@ CATEGORÍA 2 — VEHÍCULOS  (el más importante, leé todo)
   "brand": "marca en minúsculas con guión_bajo (ej: yamaha, harley_davidson, can_am)",
   "model": "modelo EXACTO como aparece en la DB (ver tabla abajo)",
   "moto_subtipo": "SOLO motos (no cuatriciclos/utv): clasicas|chopper|crucero|custom|deportivas|doble_proposito|electrico|enduro_cross|mini_motos|motocarros|naked|on_off|scooters|calle|touring|triciclos|otro",
+  "body_type": "SOLO auto: sedan|hatchback|coupe|rural|minivan|descapotable|otro — SOLO camioneta: pickup_simple|pickup_doble|suv|furgon|otro",
   "cc": "SOLO motos/cuatriciclos/utv: cilindrada como número entero (ej: 150, 390, 1200). Inferila del modelo si no está visible.",
   "version": "versión si es legible",
   "patente": "solo si legible al 100% — EXACTA letra por letra",
@@ -119,6 +120,22 @@ PASO 1: CLASIFICAR EL VEHÍCULO
 • 4 ruedas + manubrio + sin cabina → cuatriciclo
 • Cabina cerrada + 4 ruedas convencional → auto o camioneta
 • Carrocería alta tipo pick-up o SUV → camioneta
+
+▸ body_type (carrocería) por silueta — SOLO si sub_category es auto o camioneta:
+  Si sub_category=auto:
+    Techo bajo + baúl separado + 3 volúmenes → sedan
+    Techo bajo + puerta trasera integrada al techo + 2 volúmenes, sin baúl saliente → hatchback
+    2 puertas + techo bajo deportivo → coupe
+    Como sedán pero con techo extendido hasta atrás, sin baúl (tipo familiar) → rural
+    Carrocería alta y espaciosa, 3ra fila o puerta corrediza → minivan
+    Sin techo rígido o con capota plegable → descapotable
+    Ninguna calza con certeza → otro
+  Si sub_category=camioneta:
+    Caja de carga abierta atrás + 1 fila de asientos, 2 puertas → pickup_simple
+    Caja de carga abierta atrás + 2 filas de asientos, 4 puertas → pickup_doble
+    Carrocería alta tipo utilitario familiar, sin caja de carga abierta → suv
+    Carrocería cerrada tipo van/furgón de carga o pasajeros → furgon
+    Ninguna calza con certeza → otro
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PASO 2: IDENTIFICAR MARCA — por texto e n el vehículo, luego logo
@@ -457,6 +474,23 @@ export async function analyzePhotoWithClaude(
         )
           attrs.sub_category = "camioneta";
         else attrs.sub_category = "auto";
+      }
+    }
+
+    // 2b. Normalize body_type — solo tiene sentido para auto/camioneta; para cualquier otro
+    // sub_category se descarta (nunca mandar un valor que el sitio no sepa filtrar).
+    if (attrs.body_type) {
+      const validList = BODY_TYPES_BY_SUBCAT[attrs.sub_category as string]?.map((b) => b.value) ?? [];
+      if (validList.length === 0) {
+        delete attrs.body_type;
+      } else {
+        const bt = String(attrs.body_type).toLowerCase().replace(/[\s-]/g, "_");
+        if (validList.includes(bt)) {
+          attrs.body_type = bt;
+        } else {
+          const match = validList.find((v) => bt.includes(v) || v.includes(bt));
+          attrs.body_type = match ?? "otro";
+        }
       }
     }
 

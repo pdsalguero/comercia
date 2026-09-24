@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { FOUNDER_PROGRAM } from '@/lib/site-config'
 
 const INPUT = {
   width: '100%',
@@ -94,6 +95,9 @@ export default function RegisterPage() {
       <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
         Crear cuenta gratis
       </h1>
+      <p style={{ fontSize: '13px', color: '#9a3412', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '8px 12px', margin: '8px 0 12px' }}>
+        Los primeros {FOUNDER_PROGRAM.slots} vendedores reciben {FOUNDER_PROGRAM.credits} avisos destacados Premium gratis.
+      </p>
       <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>
         ¿Ya tenés cuenta?{' '}
         <Link href="/login" style={{ color: '#3483fa', fontWeight: 600, textDecoration: 'none' }}>

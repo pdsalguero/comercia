@@ -13,7 +13,13 @@ import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 import { RE_LOCATIONS, ALL_RE_ZONES } from "@/lib/re-locations";
 import { MOTO_SUBTIPOS } from "@/data/modelos-motos";
-import { OrderSelect } from "@/components/ui/OrderSelect";
+import { bodyTypeOptions, bodyTypeLabel } from "@/lib/vehicle-body-types";
+import { buildWhatsappUrl } from "@/lib/whatsapp";
+import { getRecentPriceDrops } from "@/lib/price-drops";
+import { EmptyVehicleResults } from "@/components/listings/EmptyVehicleResults";
+import { VEHICLE_TYPE_OPTIONS } from "@/lib/vehicle-types";
+import { brandLabel } from "@/lib/hero-facets";
+import { OrderSelect, type OrderOption } from "@/components/ui/OrderSelect";
 import { SearchWithSuggestions } from "@/components/ui/SearchWithSuggestions";
 import type { Metadata } from "next";
 
@@ -37,6 +43,21 @@ const VEHICLE_BRANDS = [
   { value: "dodge", label: "Dodge" },
   { value: "chery", label: "Chery" },
   { value: "byd", label: "BYD" },
+];
+
+// Opciones de orden propias de vehículos — km/año/marca-modelo solo tienen sentido acá (no en
+// seller/[userId] o tienda/[slug], que muestran cualquier categoría y no implementan ese sort).
+const VEHICLE_ORDER_OPTIONS: OrderOption[] = [
+  { value: "", label: "Destacado" },
+  { value: "views", label: "Más vistas" },
+  { value: "price_asc", label: "Precio: menor a mayor" },
+  { value: "price_desc", label: "Precio: mayor a menor" },
+  { value: "km_asc", label: "Kilometraje: menor a mayor" },
+  { value: "km_desc", label: "Kilometraje: mayor a menor" },
+  { value: "year_desc", label: "Año: más nuevo" },
+  { value: "year_asc", label: "Año: más antiguo" },
+  { value: "brand_asc", label: "Marca - Modelo (A-Z)" },
+  { value: "brand_desc", label: "Marca - Modelo (Z-A)" },
 ];
 
 const VEHICLE_TYPES = [
@@ -306,14 +327,20 @@ const RE_FEATURES = [
   { key: "credit_eligible", label: "Apto crédito" },
 ];
 
+// Mismos keys que ofrece el form de publicar (CAR_ONLY_FEATURES en listings/new/page.tsx) — se
+// guardaban en attributes pero no había forma de filtrar por ellos en el listado.
+const VEHICLE_FEAT_KEYS = ["has_gnc", "has_ac", "power_steering", "has_airbags", "rear_camera", "power_windows", "central_lock"];
+
 type Params = { slug: string };
 type SP = {
   q?: string; order?: string;
   // vehicle
-  type?: string; sub_category?: string; moto_subtipo?: string; brand?: string; model?: string;
+  type?: string; sub_category?: string; moto_subtipo?: string; body_type?: string; brand?: string; model?: string;
   year_from?: string; year_to?: string;
   km_max?: string; fuel?: string; transmission?: string;
   seller_type?: string; v_province?: string; v_zone?: string;
+  has_gnc?: string; has_ac?: string; power_steering?: string; has_airbags?: string;
+  rear_camera?: string; power_windows?: string; central_lock?: string;
   // real estate
   re_type?: string; re_operation?: string; re_province?: string; re_zone?: string;
   re_bedrooms?: string; re_bathrooms?: string;
@@ -355,6 +382,7 @@ type SP = {
   price_min?: string; price_max?: string;
   // view
   view?: string;
+  page?: string;
   // general FilterPanel params (aliases for category-specific ones)
   condition?: string;
   re_sub?: string;
@@ -366,7 +394,7 @@ type SP = {
 async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
   // Params que mapean a filtros JSONB (attributes->>) — excluye q, order, price_min/max, condition, view, size
   const JSONB_FILTER_KEYS: (keyof SP)[] = [
-    "sub_category", "type", "brand", "fuel", "transmission", "seller_type", "v_zone", "moto_subtipo",
+    "sub_category", "type", "brand", "fuel", "transmission", "seller_type", "v_zone", "moto_subtipo", "body_type",
     "re_type", "re_sub", "operation", "re_operation", "bedrooms", "re_bedrooms", "re_bathrooms",
     "re_zone", "re_seller",
     "phone_type", "phone_brand", "phone_storage", "phone_ram", "phone_os", "phone_sim",
@@ -408,7 +436,7 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = pub
     .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, bumped_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
+    .select(`id, title, description, price, currency, condition, city, neighborhood, created_at, bumped_at, attributes, featured_level, view_count, user_id, listing_images(url, position)`)
     .eq("status", "active")
     .eq("category_id", catId) as any;
 
@@ -420,7 +448,9 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
   }
   if (sp.price_min) query = query.gte("price", Number(sp.price_min));
   if (sp.price_max) query = query.lte("price", Number(sp.price_max));
-  if (sp.condition) query = query.eq("condition", sp.condition);
+  // "used" = todo lo que no es nuevo (incluye avisos sin condición cargada)
+  if (sp.condition === "used") query = query.or("condition.neq.new,condition.is.null");
+  else if (sp.condition) query = query.eq("condition", sp.condition);
 
   if (isVehicles) {
     const vehicleType = sp.sub_category || sp.type;
@@ -535,16 +565,16 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
 
   const userIds = [...new Set(((rawListings as any[]) ?? []).map((l: any) => l.user_id).filter(Boolean))];
   const { data: storeProfiles } = userIds.length > 0
-    ? await pub.from("profiles").select("id, is_store, store_name").in("id", userIds)
+    ? await pub.from("profiles").select("id, is_store, store_name, store_whatsapp, phone, show_phone").in("id", userIds)
     : { data: [] };
-  const storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; phone: string | null; show_phone: boolean | null }> = {};
   for (const p of (storeProfiles ?? [])) (storeMap as any)[p.id] = p;
 
   return { rawListings: (rawListings as any[]) ?? [], storeMap };
 }
 
 const JSONB_CACHE_KEYS: (keyof SP)[] = [
-  "sub_category", "type", "brand", "fuel", "transmission", "seller_type", "v_zone", "moto_subtipo",
+  "sub_category", "type", "brand", "fuel", "transmission", "seller_type", "v_zone", "moto_subtipo", "body_type",
   "re_type", "re_sub", "operation", "re_operation", "bedrooms", "re_bedrooms", "re_bathrooms",
   "re_zone", "re_seller",
   "phone_type", "phone_brand", "phone_storage", "phone_ram", "phone_os", "phone_sim",
@@ -599,19 +629,19 @@ export async function generateMetadata(
   const meta = CATEGORY_META[slug];
   if (!meta) return { title: "Categoría" };
   return {
-    title: `${meta.name} en Argentina — Avisos clasificados`,
-    description: `Comprá y vendé ${meta.name.toLowerCase()} en Argentina. Los mejores avisos clasificados en ComerxIA, el marketplace de toda la Argentina.`,
+    title: `${meta.name} en Mendoza, San Juan y San Luis`,
+    description: `Comprá y vendé ${meta.name.toLowerCase()} en Mendoza, San Juan y San Luis. Los mejores avisos clasificados en CuyoRodados, el marketplace de Cuyo.`,
     keywords: [`${meta.name.toLowerCase()} argentina`, `comprar ${meta.name.toLowerCase()}`, `vender ${meta.name.toLowerCase()}`, "clasificados argentina"],
-    alternates: { canonical: `https://comerxia.com.ar/category/${slug}` },
+    alternates: { canonical: `https://cuyorodados.com.ar/category/${slug}` },
     openGraph: {
-      title: `${meta.name} en Argentina | ComerxIA`,
-      description: `Encontrá ${meta.name.toLowerCase()} en ComerxIA. Comprá y vendé en todo el país.`,
-      url: `https://comerxia.com.ar/category/${slug}`,
+      title: `${meta.name} en Cuyo | CuyoRodados`,
+      description: `Encontrá ${meta.name.toLowerCase()} en CuyoRodados. Comprá y vendé en Mendoza, San Juan y San Luis.`,
+      url: `https://cuyorodados.com.ar/category/${slug}`,
       type: "website",
     },
     twitter: {
       card: "summary",
-      title: `${meta.name} en Argentina | ComerxIA`,
+      title: `${meta.name} en Cuyo | CuyoRodados`,
       description: `Comprá y vendé ${meta.name.toLowerCase()} en Argentina.`,
     },
   };
@@ -674,6 +704,8 @@ export default async function CategoryPage({
       const year = Number(a.year);
       if (!isNaN(year) && year > Number(sp.year_to)) return false;
     }
+    // Modelo exacto, sin distinguir mayúsculas (JS-side, igual que año/km)
+    if (isVehicles && sp.model && String(a.model ?? "").trim().toLowerCase() !== sp.model.trim().toLowerCase()) return false;
     if (isRealEstate) {
       if (sp.m2_min) { const m2 = Number(a.m2_covered); if (!isNaN(m2) && m2 < Number(sp.m2_min)) return false; }
       if (sp.m2_max) { const m2 = Number(a.m2_covered); if (!isNaN(m2) && m2 > Number(sp.m2_max)) return false; }
@@ -691,13 +723,26 @@ export default async function CategoryPage({
     if (isVehicles && sp.moto_subtipo) {
       if ((a.moto_subtipo as string | undefined) !== sp.moto_subtipo) return false;
     }
-    // Vehicle province filter — checks attributes.zone slug OR neighborhood string
+    // Carrocería (body_type) — solo auto/camioneta, ver src/lib/vehicle-body-types.ts
+    if (isVehicles && sp.body_type) {
+      if ((a.body_type as string | undefined) !== sp.body_type) return false;
+    }
+    // Equipamiento (GNC, aire, airbags, etc.) — mismos keys que carga el form de publicar
+    // (CAR_ONLY_FEATURES en listings/new/page.tsx). Antes se guardaban pero no se podían filtrar.
+    if (isVehicles) {
+      for (const feat of VEHICLE_FEAT_KEYS) {
+        if ((sp as any)[feat] === "1" && !a[feat]) return false;
+      }
+    }
+    // Vehicle province filter — checks attributes.zone slug OR city/neighborhood string
+    // (los avisos nuevos guardan la provincia en `city`, los viejos en `neighborhood`)
     if (isVehicles && sp.v_province && RE_LOCATIONS[sp.v_province] && !sp.v_zone) {
       const provinceZones = new Set(RE_LOCATIONS[sp.v_province].zones.map(z => z.value));
       const provinceName = RE_LOCATIONS[sp.v_province].label.toLowerCase();
       const zone = (a.zone as string | undefined) ?? "";
       const nb = ((l.neighborhood as string | undefined) ?? "").toLowerCase();
-      if (!provinceZones.has(zone) && !nb.includes(provinceName)) return false;
+      const city = ((l.city as string | undefined) ?? "").toLowerCase();
+      if (!provinceZones.has(zone) && !nb.includes(provinceName) && !city.includes(provinceName)) return false;
     }
     // Real-estate province/zone filter — checks attributes.zone slug OR neighborhood string
     if (isRealEstate && (sp.re_province || sp.re_zone)) {
@@ -718,10 +763,42 @@ export default async function CategoryPage({
     if (sp.size && a.size !== sp.size) return false;
     return true;
   });
+  // Marca+modelo como string comparable para el orden alfabético (minúsculas, sin acentos raros)
+  const brandModelKey = (l: any) => {
+    const a = l.attributes ?? {};
+    return `${a.brand ?? ""} ${a.model ?? ""}`.trim().toLowerCase();
+  };
+  // Km/año viven en attributes (JSONB) y no siempre se guardaron como number — Number() defensivo,
+  // igual que el resto de los filtros de esta página. `km` también puede estar como `mileage`
+  // (avisos viejos) — mismo fallback que ya usa ListingCard.tsx. null (no "|| 0"): 0 km es válido
+  // (0 km real = 0km auto nuevo) y no debe confundirse con "sin dato".
+  const kmOf = (l: any): number | null => {
+    const raw = l.attributes?.km ?? l.attributes?.mileage;
+    const n = Number(raw);
+    return raw != null && Number.isFinite(n) ? n : null;
+  };
+  const yearOf = (l: any): number | null => {
+    const n = Number(l.attributes?.year);
+    return l.attributes?.year != null && Number.isFinite(n) ? n : null;
+  };
+  // Compara dos valores posiblemente nulos — los avisos sin el dato quedan siempre al final,
+  // sea cual sea la dirección elegida (asc/desc).
+  const compareNullable = (av: number | null, bv: number | null, desc: boolean) => {
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return desc ? bv - av : av - bv;
+  };
   const listings = filtered?.slice().sort((a: any, b: any) => {
-    if (sp.order === "price_asc") return (a.price ?? 0) - (b.price ?? 0);
+    if (sp.order === "price_asc")  return (a.price ?? 0) - (b.price ?? 0);
     if (sp.order === "price_desc") return (b.price ?? 0) - (a.price ?? 0);
-    if (sp.order === "views") return (b.view_count ?? 0) - (a.view_count ?? 0);
+    if (sp.order === "views")      return (b.view_count ?? 0) - (a.view_count ?? 0);
+    if (sp.order === "km_asc")     return compareNullable(kmOf(a), kmOf(b), false);
+    if (sp.order === "km_desc")    return compareNullable(kmOf(a), kmOf(b), true);
+    if (sp.order === "year_desc")  return compareNullable(yearOf(a), yearOf(b), true);
+    if (sp.order === "year_asc")   return compareNullable(yearOf(a), yearOf(b), false);
+    if (sp.order === "brand_asc")  return brandModelKey(a).localeCompare(brandModelKey(b), "es");
+    if (sp.order === "brand_desc") return brandModelKey(b).localeCompare(brandModelKey(a), "es");
     // Default: featured first (gold > silver > bronze > null)
     const fa = FEAT_ORDER[a.featured_level ?? ""] ?? 3;
     const fb = FEAT_ORDER[b.featured_level ?? ""] ?? 3;
@@ -790,6 +867,7 @@ export default async function CategoryPage({
   let vProvinceCounts: Record<string, number> = {};
   let vZoneCounts: Record<string, number> = {};
   let motoSubtipoCounts: Record<string, number> = {};
+  let bodyTypeCounts: Record<string, number> = {};
   let noSubCatVehicleCount = 0;
   if (isVehicles || isRealEstate || isElectronics || isPhones || isAppliances || isClothing || isBabies || isBeauty || isHomeGarden || isSports || isTools || isToys || isBooks || isPets || isServices || isOther) {
     const all = await getCategoryFilterDataCached(cat.id);
@@ -804,6 +882,11 @@ export default async function CategoryPage({
         if (t === "moto") {
           const ms = ((row.attributes as any)?.moto_subtipo as string | undefined) || "otro";
           motoSubtipoCounts[ms] = (motoSubtipoCounts[ms] ?? 0) + 1;
+        }
+        // Carrocería counts — clave "tipo:valor" porque auto y camioneta comparten el valor "otro"
+        if (t === "auto" || t === "camioneta") {
+          const bt = (row.attributes as any)?.body_type as string | undefined;
+          if (bt) bodyTypeCounts[`${t}:${bt}`] = (bodyTypeCounts[`${t}:${bt}`] ?? 0) + 1;
         }
         // Filter brands by selected type and moto subtype
         const activeVType = sp.sub_category || sp.type;
@@ -1027,10 +1110,12 @@ export default async function CategoryPage({
     const merged: Record<string, string | undefined> = {
       q: sp.q, order: sp.order,
       // vehicle
-      type: sp.type, sub_category: sp.sub_category, moto_subtipo: sp.moto_subtipo, brand: sp.brand, model: sp.model,
+      type: sp.type, sub_category: sp.sub_category, moto_subtipo: sp.moto_subtipo, body_type: sp.body_type, brand: sp.brand, model: sp.model,
       year_from: sp.year_from, year_to: sp.year_to,
       km_max: sp.km_max, fuel: sp.fuel, transmission: sp.transmission,
       seller_type: sp.seller_type, v_province: sp.v_province, v_zone: sp.v_zone,
+      has_gnc: sp.has_gnc, has_ac: sp.has_ac, power_steering: sp.power_steering, has_airbags: sp.has_airbags,
+      rear_camera: sp.rear_camera, power_windows: sp.power_windows, central_lock: sp.central_lock,
       // real estate
       re_type: sp.re_type, re_operation: sp.re_operation, re_province: sp.re_province, re_zone: sp.re_zone,
       re_bedrooms: sp.re_bedrooms, re_bathrooms: sp.re_bathrooms,
@@ -1085,6 +1170,15 @@ export default async function CategoryPage({
 
   const hasFilters = Object.values(sp).some(Boolean);
 
+  // Qué buscaba la persona, para el mensaje de "sin resultados" ("Toyota Corolla", "Motos"…)
+  const emptyTypeLabel = VEHICLE_TYPE_OPTIONS.find((t) => t.value === (sp.sub_category || sp.type))?.label;
+  const emptyWanted = isVehicles
+    ? sp.brand || sp.model
+      ? [sp.brand ? brandLabel(sp.brand) : "", sp.model ?? ""].filter(Boolean).join(" ")
+      : emptyTypeLabel?.toLowerCase() ?? ""
+    : "";
+  const emptyProvince = isVehicles && sp.v_province ? RE_LOCATIONS[sp.v_province]?.label : undefined;
+
   // ── Subcategory pills (mobile only) — maps each category to its type param + label list
   const CLOTHING_TYPES_INLINE = [
     { value: "ropa", label: "Ropa" }, { value: "calzado", label: "Calzado" },
@@ -1129,6 +1223,23 @@ export default async function CategoryPage({
   const subcatAllHref = subcatPillsConfig ? buildUrl(subcatPillsConfig.clearOverride as any) : `/category/${slug}`;
   const subcatIsAllActive = !subcatPillsConfig?.typeParam;
 
+  // Vehículos arrancan en vista lista (a pedido del usuario); el resto de las categorías sigue
+  // en grilla por defecto. sp.view, si viene en la URL, siempre gana.
+  const effectiveView = sp.view ?? (isVehicles ? "list" : "grid");
+
+  // Paginado — 20 por página. La vista lista arma filas altas (foto grande + specs +
+  // descripción), así que un número más alto haría la página demasiado larga; en grilla son
+  // 4-5 filas de tarjetas, un tamaño cómodo también ahí. `page` NO se agrega al objeto `merged`
+  // de buildUrl(), así que cualquier link de filtro (que no pasa `page`) vuelve solo a la página 1.
+  const PAGE_SIZE = 20;
+  const totalPages = Math.max(1, Math.ceil((listings?.length ?? 0) / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, Number(sp.page) || 1), totalPages);
+  const pagedListings = (listings ?? []).slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Bajas de precio recientes, solo de los avisos de esta página (una consulta).
+  const priceDrops = isVehicles
+    ? await getRecentPriceDrops(createPublicClient(), pagedListings.map((l: any) => l.id))
+    : {};
+
   // ── Filter chip helper
   function FilterSection({ title }: { title: string; children: React.ReactNode }) {
     return null; // just for type reference
@@ -1150,15 +1261,16 @@ export default async function CategoryPage({
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
                 Tipo de vehículo <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
-              {VEHICLE_TYPES.filter(t => typeCounts[t.value] > 0).map((t) => {
+              {VEHICLE_TYPES.map((t) => {
                 const active = sp.type === t.value;
+                const count = typeCounts[t.value] ?? 0;
                 return (
                   <Link key={t.value} href={buildUrl({ type: active ? undefined : t.value })} style={{ textDecoration: "none" }}>
                     <div style={{
                       padding: "9px 16px", fontSize: "13px", cursor: "pointer",
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                       background: active ? "#eff6ff" : "transparent",
-                      color: active ? "#2563eb" : "#444",
+                      color: active ? "#2563eb" : count > 0 ? "#444" : "#b0b8c4",
                       fontWeight: active ? 700 : 400,
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
@@ -1166,8 +1278,8 @@ export default async function CategoryPage({
                       <span style={{
                         fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px",
                         background: active ? "#dbeafe" : "#f1f5f9",
-                        color: active ? "#2563eb" : "#888",
-                      }}>{typeCounts[t.value]}</span>
+                        color: active ? "#2563eb" : count > 0 ? "#888" : "#c2c8d1",
+                      }}>{count}</span>
                     </div>
                   </Link>
                 );
@@ -1218,6 +1330,36 @@ export default async function CategoryPage({
             </details>
           )}
 
+          {/* Carrocería — mismo patrón anidado que "Tipo de moto", solo auto/camioneta */}
+          {isVehicles && (sp.type === "auto" || sp.type === "camioneta") &&
+            bodyTypeOptions(sp.type).some(o => (bodyTypeCounts[`${sp.type}:${o.value}`] ?? 0) > 0) && (
+            <details open className="sf">
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Carrocería <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              {bodyTypeOptions(sp.type).filter(o => (bodyTypeCounts[`${sp.type}:${o.value}`] ?? 0) > 0).map(o => {
+                const active = sp.body_type === o.value;
+                return (
+                  <Link key={o.value} href={buildUrl({ body_type: active ? undefined : o.value })} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px 8px 28px", fontSize: "13px", cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#555",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      <span>{o.label}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "1px 6px", borderRadius: "20px", background: active ? "#dbeafe" : "#f1f5f9", color: active ? "#2563eb" : "#888" }}>
+                        {bodyTypeCounts[`${sp.type}:${o.value}`]}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </details>
+          )}
+
           {/* Brand */}
           {isVehicles && Object.keys(brandCounts).length > 0 && (
             <details open className="sf">
@@ -1242,9 +1384,9 @@ export default async function CategoryPage({
             </details>
           )}
 
-          {/* Price (vehicles) */}
+          {/* Price (vehicles) — colapsado salvo que ya haya un filtro de precio activo */}
           {isVehicles && (
-            <details open className="sf">
+            <details open={!!(sp.price_min || sp.price_max)} className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
                 Precio <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
@@ -1268,9 +1410,9 @@ export default async function CategoryPage({
             </details>
           )}
 
-          {/* Year range (vehicles) */}
+          {/* Year range (vehicles) — colapsado salvo que ya haya un filtro de año activo */}
           {isVehicles && (
-            <details open className="sf">
+            <details open={!!(sp.year_from || sp.year_to)} className="sf">
               <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
                 Año <span style={{ fontSize: "11px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
               </summary>
@@ -3016,7 +3158,7 @@ export default async function CategoryPage({
 
           {/* Publicar con una foto widget */}
           <div style={{
-            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            background: "linear-gradient(135deg, #1d6fb8 0%, #8b5cf6 100%)",
             borderRadius: "10px", padding: "16px", color: "#fff",
           }}>
             <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "4px" }}>✨ Publicá con una foto</div>
@@ -3025,7 +3167,7 @@ export default async function CategoryPage({
             </div>
             <a href="/listings/new" style={{ textDecoration: "none" }}>
               <div style={{
-                background: "#fff", color: "#6366f1", borderRadius: "6px",
+                background: "#fff", color: "#1d6fb8", borderRadius: "6px",
                 padding: "8px 12px", fontSize: "12px", fontWeight: 700,
                 textAlign: "center", cursor: "pointer",
               }}>
@@ -3167,15 +3309,17 @@ export default async function CategoryPage({
                 action={`/category/${slug}`}
                 hiddenFields={Object.fromEntries(Object.entries(sp).filter(([k, v]) => v && k !== "order") as [string, string][])}
                 className="sort-select"
+                options={isVehicles ? VEHICLE_ORDER_OPTIONS : undefined}
               />
 
-              {/* Grid / List toggle */}
+              {/* Grid / List toggle — en vehículos la lista es la vista por defecto, así que ahí
+                  es "grilla" la que necesita el param explícito y "lista" la que lo limpia. */}
               <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
-                <Link href={buildUrl({ view: undefined })} style={{ textDecoration: "none" }}>
+                <Link href={buildUrl({ view: isVehicles ? "grid" : undefined })} style={{ textDecoration: "none" }}>
                   <div title="Ver en grilla" style={{
                     padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center",
-                    background: (sp.view ?? "grid") === "grid" ? "#6366f1" : "#fff",
-                    color: (sp.view ?? "grid") === "grid" ? "#fff" : "#94a3b8",
+                    background: effectiveView === "grid" ? "#1d6fb8" : "#fff",
+                    color: effectiveView === "grid" ? "#fff" : "#94a3b8",
                   }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -3183,11 +3327,11 @@ export default async function CategoryPage({
                     </svg>
                   </div>
                 </Link>
-                <Link href={buildUrl({ view: "list" })} style={{ textDecoration: "none" }}>
+                <Link href={buildUrl({ view: isVehicles ? undefined : "list" })} style={{ textDecoration: "none" }}>
                   <div title="Ver en lista" style={{
                     padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center",
-                    background: sp.view === "list" ? "#6366f1" : "#fff",
-                    color: sp.view === "list" ? "#fff" : "#94a3b8",
+                    background: effectiveView === "list" ? "#1d6fb8" : "#fff",
+                    color: effectiveView === "list" ? "#fff" : "#94a3b8",
                   }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -3203,6 +3347,7 @@ export default async function CategoryPage({
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
               {isVehicles && sp.type && <Chip label={`Tipo: ${VEHICLE_TYPES.find(t => t.value === sp.type)?.label ?? sp.type}`} href={buildUrl({ type: undefined })} />}
               {isVehicles && sp.moto_subtipo && <Chip label={`Subtipo: ${MOTO_SUBTIPOS.find(s => s.value === sp.moto_subtipo)?.label ?? sp.moto_subtipo}`} href={buildUrl({ moto_subtipo: undefined })} />}
+              {isVehicles && sp.body_type && <Chip label={`Carrocería: ${bodyTypeLabel(sp.type, sp.body_type) ?? sp.body_type}`} href={buildUrl({ body_type: undefined })} />}
               {isVehicles && sp.brand && <Chip label={`Marca: ${VEHICLE_BRANDS.find(b => b.value === sp.brand)?.label ?? sp.brand}`} href={buildUrl({ brand: undefined })} />}
               {isElectronics && sp.tech_group && <Chip label={TECH_GROUPS[sp.tech_group]?.label ?? sp.tech_group} href={buildUrl({ tech_group: undefined, tech_type: undefined })} />}
               {isElectronics && sp.tech_type && <Chip label={`Tipo: ${sp.tech_type}`} href={buildUrl({ tech_type: undefined })} />}
@@ -3297,34 +3442,43 @@ export default async function CategoryPage({
 
           {/* Grid / List */}
           {!listings || listings.length === 0 ? (
-            <div style={{
-              background: "#fff", borderRadius: "10px",
-              padding: "64px", textAlign: "center", color: "#999",
-            }}>
-              <div style={{ fontSize: "48px", marginBottom: "12px" }}>🔍</div>
-              <p style={{ fontSize: "15px", marginBottom: "12px" }}>No se encontraron avisos con esos filtros.</p>
-              <Link href={`/category/${slug}`} style={{ textDecoration: "none" }}>
-                <span style={{ color: "#2563eb", fontSize: "14px", fontWeight: 600 }}>Ver todos →</span>
-              </Link>
-            </div>
-          ) : sp.view === "list" ? (
+            <EmptyVehicleResults
+              wanted={emptyWanted}
+              province={emptyProvince}
+              hasFilters={hasFilters}
+              nationwideHref={emptyProvince ? buildUrl({ v_province: undefined, v_zone: undefined }) : undefined}
+              clearHref={`/category/${slug}`}
+            />
+          ) : effectiveView === "list" ? (
             <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-              {listings.map((listing: any, i: number) => {
+              {pagedListings.map((listing: any, i: number) => {
                 const images = listing.listing_images as { url: string; position: number }[] | null;
-                const cover = images?.slice().sort((a: any, b: any) => a.position - b.position)[0]?.url ?? null;
+                const sortedImages = images?.slice().sort((a: any, b: any) => a.position - b.position) ?? [];
+                const cover = sortedImages[0]?.url ?? null;
                 const a = listing.attributes ?? {};
                 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
                 const RE_OP_L: Record<string,string> = { venta:"Venta", alquiler:"Alquiler", "alquiler-temporal":"Alq. Temp." };
                 const RE_PROP_L: Record<string,string> = { casa:"Casa", departamento:"Dpto.", terreno:"Terreno", finca:"Finca", local:"Local", galpon:"Galpón", cochera:"Cochera" };
                 const VEH_SUB_L: Record<string,string> = { auto:"Auto", camioneta:"Pickup/SUV", moto:"Moto", cuatriciclo:"Cuatriciclo", utv:"UTV/Arenero", camion:"Camión", nautica:"Náutica" };
+                // Los hrefs usan el buildUrl de la página (preserva el resto de filtros activos —
+                // provincia, precio, etc. — en vez de armar una URL "limpia" con un solo filtro).
+                const chipBrand = a.brand ? String(a.brand).toLowerCase() : undefined;
                 const breadcrumbs = [
-                  a.sub_category    ? { label: VEH_SUB_L[String(a.sub_category)] ?? cap(String(a.sub_category)), variant: "primary" as const } : null,
-                  a.brand           ? { label: cap(String(a.brand)) }                                                                           : null,
-                  a.model           ? { label: String(a.model) }                                                                                : null,
-                  a.operation_type  ? { label: RE_OP_L[String(a.operation_type)] ?? cap(String(a.operation_type)), variant: "primary" as const }: null,
-                  a.property_type   ? { label: RE_PROP_L[String(a.property_type)] ?? cap(String(a.property_type)) }                             : null,
-                  a.bedrooms        ? { label: `${a.bedrooms} dorm.` }                                                                          : null,
-                ].filter(Boolean) as { label: string; variant?: "primary" | "secondary" }[];
+                  a.sub_category    ? { label: VEH_SUB_L[String(a.sub_category)] ?? cap(String(a.sub_category)), variant: "primary" as const, href: buildUrl({ type: String(a.sub_category), sub_category: undefined }) } : null,
+                  a.brand           ? { label: cap(String(a.brand)), href: buildUrl({ brand: chipBrand }) }                                                                                                            : null,
+                  a.model           ? { label: String(a.model), href: buildUrl({ brand: chipBrand, model: String(a.model) }) }                                                                                         : null,
+                  a.operation_type  ? { label: RE_OP_L[String(a.operation_type)] ?? cap(String(a.operation_type)), variant: "primary" as const, href: buildUrl({ operation: String(a.operation_type), re_operation: undefined }) } : null,
+                  a.property_type   ? { label: RE_PROP_L[String(a.property_type)] ?? cap(String(a.property_type)), href: buildUrl({ re_sub: String(a.property_type), re_type: undefined }) }                          : null,
+                  a.bedrooms        ? { label: `${a.bedrooms} dorm.`, href: buildUrl({ bedrooms: String(a.bedrooms), re_bedrooms: undefined }) }                                                                       : null,
+                ].filter(Boolean) as { label: string; variant?: "primary" | "secondary"; href: string }[];
+                const seller = storeMap[(listing as any).user_id] as { is_store?: boolean; store_name?: string | null; store_whatsapp?: string | null; phone?: string | null; show_phone?: boolean | null } | undefined;
+                const whatsappUrl = buildWhatsappUrl({
+                  showPhone: seller?.show_phone,
+                  storeWhatsapp: seller?.store_whatsapp,
+                  phone: seller?.phone,
+                  listingWhatsappOverride: a.whatsapp_phone as string | undefined,
+                  listingTitle: listing.title,
+                });
                 return (
                   <ListingListCard
                     key={listing.id}
@@ -3338,15 +3492,30 @@ export default async function CategoryPage({
                     neighborhood={listing.neighborhood}
                     view_count={listing.view_count}
                     created_at={listing.created_at}
+                    bumped_at={(listing as any).bumped_at ?? null}
                     breadcrumbs={breadcrumbs.length > 0 ? breadcrumbs : undefined}
-                    showDivider={i < listings.length - 1}
+                    attributes={listing.attributes}
+                    description={(listing as any).description ?? null}
+                    photo_count={images?.length ?? null}
+                    photos={sortedImages.map((img) => img.url)}
+                    is_store={seller?.is_store ?? null}
+                    store_name={seller?.store_name ?? null}
+                    whatsappUrl={whatsappUrl}
+                    priceDropPct={priceDrops[listing.id] ?? null}
+                    showDivider={i < pagedListings.length - 1}
                   />
                 );
               })}
             </div>
           ) : (() => {
-            const featured = listings.filter((l: any) => l.featured_level);
-            const regular  = listings.filter((l: any) => !l.featured_level);
+            // El corte "destacados arriba, el resto abajo" solo tiene sentido con el orden por
+            // defecto (Destacado). Con un orden explícito (precio, km, año, marca...) el usuario
+            // pidió un orden estricto de punta a punta — separar por destacado lo rompería (un
+            // aviso no destacado con el km más alto quedaría igual al final, debajo de todos los
+            // destacados, aunque el resto del sitio diga que está ordenado por km).
+            const useDestacadoSplit = !sp.order;
+            const featured = useDestacadoSplit ? pagedListings.filter((l: any) => l.featured_level) : pagedListings;
+            const regular  = useDestacadoSplit ? pagedListings.filter((l: any) => !l.featured_level) : [];
             const cardGrid = (items: any[]) => (
               <div className="grid-cols-auto">
                 {items.map((listing: any) => {
@@ -3368,6 +3537,8 @@ export default async function CategoryPage({
                       bumped_at={(listing as any).bumped_at ?? null}
                       is_store={storeMap[(listing as any).user_id]?.is_store ?? null}
                       store_name={storeMap[(listing as any).user_id]?.store_name ?? null}
+                      photo_count={images?.length ?? null}
+                      priceDropPct={priceDrops[listing.id] ?? null}
                     />
                   );
                 })}
@@ -3380,6 +3551,32 @@ export default async function CategoryPage({
               </div>
             );
           })()}
+
+          {/* Paginado */}
+          {totalPages > 1 && (
+            <nav aria-label="Paginado de avisos" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "6px", marginTop: "24px", flexWrap: "wrap" }}>
+              {currentPage > 1 && (
+                <Link href={buildUrl({ page: String(currentPage - 1) })} style={pageBtnStyle(false)} aria-label="Página anterior">‹</Link>
+              )}
+              {paginationRange(currentPage, totalPages).map((p, i) =>
+                p === "…" ? (
+                  <span key={`gap-${i}`} style={{ padding: "0 4px", color: "#94a3b8", fontSize: "13px" }}>…</span>
+                ) : (
+                  <Link
+                    key={p}
+                    href={buildUrl({ page: p === 1 ? undefined : String(p) })}
+                    style={pageBtnStyle(p === currentPage)}
+                    aria-current={p === currentPage ? "page" : undefined}
+                  >
+                    {p}
+                  </Link>
+                )
+              )}
+              {currentPage < totalPages && (
+                <Link href={buildUrl({ page: String(currentPage + 1) })} style={pageBtnStyle(false)} aria-label="Página siguiente">›</Link>
+              )}
+            </nav>
+          )}
         </div>
 
 
@@ -3402,4 +3599,36 @@ function Chip({ label, href }: { label: string; href: string }) {
       </span>
     </Link>
   );
+}
+
+// Ventana de números de página con "…" para los huecos — siempre muestra la primera, la
+// última y un entorno de 1 alrededor de la página actual (1 … 4 5 6 … 20).
+function paginationRange(current: number, total: number): (number | "…")[] {
+  const delta = 1;
+  const withEnds = [
+    1,
+    ...Array.from({ length: Math.min(total, current + delta) - Math.max(1, current - delta) + 1 }, (_, i) => Math.max(1, current - delta) + i),
+    total,
+  ].filter((v, i, arr) => arr.indexOf(v) === i).sort((a, b) => a - b);
+
+  const result: (number | "…")[] = [];
+  let prev = 0;
+  for (const v of withEnds) {
+    if (prev && v - prev > 1) result.push("…");
+    result.push(v);
+    prev = v;
+  }
+  return result;
+}
+
+function pageBtnStyle(active: boolean): React.CSSProperties {
+  return {
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    minWidth: "34px", height: "34px", padding: "0 8px",
+    borderRadius: "8px", fontSize: "13px", fontWeight: active ? 800 : 600,
+    textDecoration: "none",
+    background: active ? "#1d6fb8" : "#fff",
+    color: active ? "#fff" : "#475569",
+    border: active ? "1px solid #1d6fb8" : "1px solid #e2e8f0",
+  };
 }

@@ -59,7 +59,7 @@ export default async function FavoritesPage() {
         {favorites.length > 0 && (
           <Link href="/listings" style={{ textDecoration: "none" }}>
             <button style={{
-              background: "#6366f1", color: "#fff", border: "none",
+              background: "#1d6fb8", color: "#fff", border: "none",
               borderRadius: "8px", padding: "8px 16px",
               fontWeight: 700, fontSize: "13px", cursor: "pointer",
             }}>
@@ -84,7 +84,7 @@ export default async function FavoritesPage() {
           </p>
           <Link href="/listings">
             <button style={{
-              background: "#6366f1", color: "#fff", border: "none",
+              background: "#1d6fb8", color: "#fff", border: "none",
               borderRadius: "8px", padding: "12px 28px",
               fontWeight: 700, fontSize: "14px", cursor: "pointer",
             }}>

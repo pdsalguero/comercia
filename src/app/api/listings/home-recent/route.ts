@@ -1,6 +1,8 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { NextResponse } from "next/server";
 import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
+import { buildWhatsappUrl } from "@/lib/whatsapp";
+import { getRecentPriceDrops } from "@/lib/price-drops";
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +14,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from("listings")
       .select(
-        "id,title,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,listing_images(url,position),categories(name,slug)"
+        "id,title,description,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images(url,position),categories(name,slug)"
       )
       .eq("status", "active")
       .in("category_id", ENABLED_CATEGORY_IDS)
@@ -33,23 +35,34 @@ export async function GET(request: Request) {
     const userIds = [
       ...new Set((data ?? []).map((l: any) => l.user_id).filter(Boolean)),
     ] as string[];
-    let storeMap: Record<string, { is_store: boolean; store_name: string | null }> = {};
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, is_store, store_name")
-        .in("id", userIds);
-      for (const p of profiles ?? []) storeMap[p.id] = p;
-    }
+    let storeMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; phone: string | null; show_phone: boolean | null }> = {};
+    const [{ data: profiles }, priceDrops] = await Promise.all([
+      userIds.length > 0
+        ? supabase.from("profiles").select("id, is_store, store_name, store_whatsapp, phone, show_phone").in("id", userIds)
+        : Promise.resolve({ data: [] as any[] }),
+      getRecentPriceDrops(supabase, (data ?? []).map((l: any) => l.id)),
+    ]);
+    for (const p of profiles ?? []) storeMap[p.id] = p as any;
 
-    const result = (data ?? []).map((l: any) => ({
-      ...l,
-      listing_images: [...(l.listing_images ?? [])].sort(
-        (a: any, b: any) => a.position - b.position
-      ),
-      is_store: storeMap[l.user_id]?.is_store ?? null,
-      store_name: storeMap[l.user_id]?.store_name ?? null,
-    }));
+    const result = (data ?? []).map((l: any) => {
+      const seller = storeMap[l.user_id];
+      return {
+        ...l,
+        listing_images: [...(l.listing_images ?? [])].sort(
+          (a: any, b: any) => a.position - b.position
+        ),
+        is_store: seller?.is_store ?? null,
+        store_name: seller?.store_name ?? null,
+        price_drop_pct: priceDrops[l.id] ?? null,
+        whatsapp_url: buildWhatsappUrl({
+          showPhone: seller?.show_phone,
+          storeWhatsapp: seller?.store_whatsapp,
+          phone: seller?.phone,
+          listingWhatsappOverride: l.attributes?.whatsapp_phone,
+          listingTitle: l.title,
+        }),
+      };
+    });
 
     return NextResponse.json(result);
   } catch (e) {

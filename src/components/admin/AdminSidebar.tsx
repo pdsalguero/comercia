@@ -42,7 +42,7 @@ export function AdminSidebar({ admin }: Props) {
       {/* Logo */}
       <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div style={{ fontSize: "13px", fontWeight: 800, color: "#f97316", letterSpacing: "0.05em" }}>
-          COMERXIA
+          CUYORODADOS
         </div>
         <div style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginTop: "2px" }}>
           Panel de Administración
@@ -131,7 +131,7 @@ export function AdminSidebar({ admin }: Props) {
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <span style={{ fontSize: "14px", fontWeight: 800, color: "#f97316" }}>COMERXIA Admin</span>
+        <span style={{ fontSize: "14px", fontWeight: 800, color: "#f97316" }}>CUYORODADOS Admin</span>
         <div style={{ width: "44px" }} />
       </div>
 

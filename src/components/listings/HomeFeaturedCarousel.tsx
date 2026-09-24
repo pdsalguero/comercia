@@ -19,6 +19,9 @@ interface Item {
   bumped_at?: string | null;
   is_store?: boolean | null;
   store_name?: string | null;
+  photo_count?: number | null;
+  photos?: string[] | null;
+  price_drop_pct?: number | null;
 }
 
 export function HomeFeaturedCarousel({
@@ -42,5 +45,5 @@ export function HomeFeaturedCarousel({
 
   if (items.length === 0) return null;
 
-  return <FeaturedCarousel title="👑 Destacados" items={items} href={viewAllHref} />;
+  return <FeaturedCarousel title="Destacados" items={items} href={viewAllHref} />;
 }

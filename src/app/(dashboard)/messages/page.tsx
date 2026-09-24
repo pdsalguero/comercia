@@ -166,7 +166,7 @@ export default async function MessagesPage() {
                   </span>
                 </div>
                 {conv.listingTitle && (
-                  <div style={{ fontSize: "11px", color: "#6366f1", fontWeight: 600, marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: "11px", color: "#1d6fb8", fontWeight: 600, marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     Re: {conv.listingTitle}
                   </div>
                 )}

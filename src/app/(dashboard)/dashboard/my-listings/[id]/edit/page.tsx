@@ -4,6 +4,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { EditForm } from "./EditForm";
 import { isCategoryEnabled } from "@/lib/site-config";
+import { revalidateHome } from "@/lib/revalidate-home";
+import { listingUrl } from "@/lib/listing-url";
 
 async function saveListing(id: string, formData: FormData): Promise<{ error?: string }> {
   "use server";
@@ -16,21 +18,29 @@ async function saveListing(id: string, formData: FormData): Promise<{ error?: st
   const price        = Number(String(formData.get("price") ?? "0").replace(/[^0-9]/g, ""));
   const currency     = formData.get("currency") as string;
   const condition    = formData.get("condition") as string;
-  const neighborhood = formData.get("neighborhood") as string;
   const category_id  = Number(formData.get("category_id") || 0) || undefined;
   const attributesRaw = formData.get("attributes") as string;
   let attributes: Record<string, any> = {};
   try { attributes = JSON.parse(attributesRaw); } catch { /* ignore */ }
 
-  const { error } = await supabase
+  // Ubicación: solo se toca si el formulario la manda. Antes, para vehículos no venía el campo y
+  // la localidad se guardaba vacía, borrándola del aviso en cada edición.
+  const location: { city?: string | null; neighborhood?: string | null } = {};
+  if (formData.has("city")) location.city = (formData.get("city") as string) || null;
+  if (formData.has("neighborhood")) location.neighborhood = (formData.get("neighborhood") as string) || null;
+
+  const { data: updated, error } = await supabase
     .from("listings")
-    .update({ title, description, price, currency, condition: condition || null, neighborhood: neighborhood || null, attributes, ...(category_id && isCategoryEnabled(category_id) ? { category_id } : {}) })
+    .update({ title, description, price, currency, condition: condition || null, ...location, attributes, ...(category_id && isCategoryEnabled(category_id) ? { category_id } : {}) })
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("title")
+    .single();
 
   if (error) return { error: error.message };
   revalidatePath("/my-listings");
-  revalidatePath(`/listings/${id}`);
+  revalidatePath(listingUrl(id, updated?.title ?? title));
+  revalidateHome();
   return {};
 }
 
@@ -39,6 +49,7 @@ async function deleteImage(imageId: string): Promise<void> {
   const supabase = await createClient();
   await supabase.from("listing_images").delete().eq("id", imageId);
   revalidatePath("/my-listings");
+  revalidateHome();
 }
 
 async function addImage(listingId: string, url: string): Promise<void> {
@@ -53,6 +64,7 @@ async function addImage(listingId: string, url: string): Promise<void> {
   const nextPosition = (existing?.[0]?.position ?? -1) + 1;
   await supabase.from("listing_images").insert({ listing_id: listingId, url, position: nextPosition });
   revalidatePath("/my-listings");
+  revalidateHome();
 }
 
 export default async function EditListingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ upgraded?: string }> }) {
@@ -66,7 +78,7 @@ export default async function EditListingPage({ params, searchParams }: { params
     .from("listings")
     .select(`
       id, title, description, price, currency, condition,
-      neighborhood, category_id, attributes, featured_level,
+      city, neighborhood, category_id, attributes, featured_level,
       listing_images(id, url, position)
     `)
     .eq("id", id)
@@ -170,6 +182,7 @@ export default async function EditListingPage({ params, searchParams }: { params
           price: listing.price,
           currency: listing.currency,
           condition: listing.condition,
+          city: listing.city,
           neighborhood: listing.neighborhood,
           category_id: listing.category_id,
           attributes: listing.attributes as Record<string, any> | null,

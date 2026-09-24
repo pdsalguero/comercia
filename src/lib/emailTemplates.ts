@@ -38,15 +38,15 @@ function shell(headerContent: string, bodyContent: string): string {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <div class="logo">Comerxia</div>
+        <div class="logo">CuyoRodados</div>
         ${headerContent}
       </div>
       <div class="content">
         ${bodyContent}
       </div>
       <div class="footer">
-        <p>© ${new Date().getFullYear()} ComerxIA · San Juan, Argentina</p>
-        <p><a href="https://comerxia.com.ar">comerxia.com.ar</a> · <a href="https://comerxia.com.ar/privacidad">Privacidad</a> · <a href="https://comerxia.com.ar/terminos">Términos</a></p>
+        <p>© ${new Date().getFullYear()} CuyoRodados · San Juan, Argentina</p>
+        <p><a href="https://cuyorodados.com.ar">cuyorodados.com.ar</a> · <a href="https://cuyorodados.com.ar/privacidad">Privacidad</a> · <a href="https://cuyorodados.com.ar/terminos">Términos</a></p>
       </div>
     </div>
   </div>
@@ -70,7 +70,7 @@ export function listingPublishedTemplate({ userName, listingTitle, listingUrl }:
     `<p style="color:#94a3b8; font-size:13px; margin:8px 0 0;">Tu aviso ya está en vivo</p>`,
     `
     <h1 class="title">🎉 ¡Tu publicación está en vivo!</h1>
-    <p class="text">Hola <strong>${userName}</strong>, tu aviso fue publicado exitosamente en ComerxIA y ya es visible para miles de compradores.</p>
+    <p class="text">Hola <strong>${userName}</strong>, tu aviso fue publicado exitosamente en CuyoRodados y ya es visible para miles de compradores.</p>
 
     <div class="card">
       <div class="card-title">📋 Tu publicación</div>
@@ -89,11 +89,11 @@ export function listingPublishedTemplate({ userName, listingTitle, listingUrl }:
       <div class="tip"><span>⭐</span><span>Destacá tu aviso para aparecer primero en los resultados y recibir 5× más visitas.</span></div>
     </div>
 
-    <p class="text" style="font-size:13px; color:#94a3b8;">Si necesitás editar o pausar tu aviso, podés hacerlo desde <a href="https://comerxia.com.ar/dashboard/my-listings" style="color:#1E5BA8;">Mis avisos</a>.</p>
+    <p class="text" style="font-size:13px; color:#94a3b8;">Si necesitás editar o pausar tu aviso, podés hacerlo desde <a href="https://cuyorodados.com.ar/dashboard/my-listings" style="color:#1E5BA8;">Mis avisos</a>.</p>
     `
   );
 
-  return { subject: "🎉 Tu publicación está en vivo — ComerxIA", html };
+  return { subject: "🎉 Tu publicación está en vivo — CuyoRodados", html };
 }
 
 // ── Template 2: Bienvenida ────────────────────────────────────────────────────
@@ -106,11 +106,11 @@ export function welcomeEmailTemplate(userName: string): {
     `
     <p style="color:#94a3b8; font-size:13px; margin:16px 0 4px; letter-spacing:0.04em; text-transform:uppercase;">Bienvenido/a</p>
     <p style="color:#ffffff; font-size:26px; font-weight:800; margin:0 0 6px; line-height:1.2;">${userName} 👋</p>
-    <p style="color:#93c5fd; font-size:14px; margin:0; line-height:1.5;">Ya podés publicar y vender.<br>Conectá con compradores de todo el país.</p>
+    <p style="color:#93c5fd; font-size:14px; margin:0; line-height:1.5;">Ya podés publicar y vender.<br>Conectá con compradores de toda la región de Cuyo.</p>
     `,
     `
     <h1 class="title">Sacá una foto. Publicá. Vendé.</h1>
-    <p class="text">En ComerxIA armamos el título, la descripción y el precio sugerido por vos — solo subís una foto. Llegá a compradores de todo el país sin perder tiempo, ya seas particular o concesionaria.</p>
+    <p class="text">En CuyoRodados armamos el título, la descripción y el precio sugerido por vos — solo subís una foto. Llegá a compradores de Mendoza, San Juan y San Luis sin perder tiempo, ya seas particular o concesionaria.</p>
 
     <!-- Feature cards -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
@@ -126,7 +126,7 @@ export function welcomeEmailTemplate(userName: string): {
         <td style="padding:0 0 12px;">
           <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #1E5BA8; border-radius:10px; padding:16px 20px;">
             <p style="margin:0 0 4px; font-size:13px; font-weight:700; color:#1E5BA8; text-transform:uppercase; letter-spacing:0.5px;">🏪 Tu tienda virtual gratis</p>
-            <p style="margin:0; font-size:14px; color:#374151; line-height:1.5;">Página propia con tu marca personal y catálogo ilimitado. Compartila con un link y vendé también fuera de ComerxIA.</p>
+            <p style="margin:0; font-size:14px; color:#374151; line-height:1.5;">Página propia con tu marca personal y catálogo ilimitado. Compartila con un link y vendé también fuera de CuyoRodados.</p>
           </div>
         </td>
       </tr>
@@ -150,19 +150,19 @@ export function welcomeEmailTemplate(userName: string): {
 
     <!-- CTA principal -->
     <div class="btn-wrap" style="margin:36px 0 16px;">
-      <a href="https://comerxia.com.ar/listings/new" class="btn" style="font-size:16px; padding:16px 40px;">Crear mi primera publicación →</a>
+      <a href="https://cuyorodados.com.ar/listings/new" class="btn" style="font-size:16px; padding:16px 40px;">Crear mi primera publicación →</a>
     </div>
 
     <!-- CTA secundario -->
     <p style="text-align:center; margin:0 0 32px;">
-      <a href="https://comerxia.com.ar/listings" style="font-size:13px; color:#1E5BA8; text-decoration:none;">O primero explorá qué están vendiendo cerca tuyo →</a>
+      <a href="https://cuyorodados.com.ar/listings" style="font-size:13px; color:#1E5BA8; text-decoration:none;">O primero explorá qué están vendiendo cerca tuyo →</a>
     </p>
 
-    <p class="text" style="font-size:13px; color:#94a3b8; text-align:center; margin:0;">¿Tenés alguna duda? Escribinos a <a href="mailto:contacto@comerxia.com.ar" style="color:#1E5BA8;">contacto@comerxia.com.ar</a> — respondemos en menos de 24 hs.</p>
+    <p class="text" style="font-size:13px; color:#94a3b8; text-align:center; margin:0;">¿Tenés alguna duda? Escribinos a <a href="mailto:contacto@cuyorodados.com.ar" style="color:#1E5BA8;">contacto@cuyorodados.com.ar</a> — respondemos en menos de 24 hs.</p>
     `
   );
 
-  return { subject: `Ya podés vender en ComerxIA, ${userName} 🚀`, html };
+  return { subject: `Ya podés vender en CuyoRodados, ${userName} 🚀`, html };
 }
 
 // ── Template 3: Destacado activado ───────────────────────────────────────────
@@ -312,7 +312,7 @@ export function resetPasswordTemplate({
     `<p style="color:#94a3b8; font-size:13px; margin:8px 0 0;">Restablecé tu contraseña</p>`,
     `
     <h1 class="title">🔐 Restablecé tu contraseña</h1>
-    <p class="text">Hola ${userName}, recibimos una solicitud para restablecer la contraseña de tu cuenta en ComerxIA.</p>
+    <p class="text">Hola ${userName}, recibimos una solicitud para restablecer la contraseña de tu cuenta en CuyoRodados.</p>
     <p class="text">Hacé clic en el botón para elegir una nueva contraseña:</p>
     <div class="btn-wrap">
       <a href="${resetUrl}" class="btn">Restablecer contraseña</a>
@@ -320,5 +320,5 @@ export function resetPasswordTemplate({
     <p class="text" style="font-size:13px; color:#94a3b8;">Si no solicitaste este cambio, ignorá este email. Tu contraseña no será modificada.<br>Este link expira en 1 hora.</p>
     `
   );
-  return { subject: `🔐 Restablecé tu contraseña — ComerxIA`, html };
+  return { subject: `🔐 Restablecé tu contraseña — CuyoRodados`, html };
 }

@@ -139,18 +139,18 @@ function BooksIcon({ size = 28 }: Props) {
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       {/* book 1 (back) */}
       <rect x="6" y="6" width="12" height="22" rx="2"
-        fill="#e0e7ff" stroke="#4f46e5" strokeWidth="1.5"/>
+        fill="#d5e6f6" stroke="#175a96" strokeWidth="1.5"/>
       {/* spine */}
       <rect x="6" y="6" width="3" height="22" rx="1.5"
-        fill="#c7d2fe"/>
+        fill="#b9d4ee"/>
       {/* book 2 (front, tilted suggestion) */}
       <rect x="14" y="8" width="12" height="20" rx="2"
-        fill="#eef2ff" stroke="#4f46e5" strokeWidth="1.5"/>
+        fill="#e8f1fa" stroke="#175a96" strokeWidth="1.5"/>
       <rect x="14" y="8" width="3" height="20" rx="1.5"
-        fill="#c7d2fe"/>
+        fill="#b9d4ee"/>
       {/* lines */}
       <path d="M19 13h5M19 16h5M19 19h3"
-        stroke="#4f46e5" strokeWidth="1.2" strokeLinecap="round"/>
+        stroke="#175a96" strokeWidth="1.2" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -263,11 +263,11 @@ function TechAudioIcon({ size = 28 }: Props) {
 function TechTVIcon({ size = 28 }: Props) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <rect x="2" y="6" width="28" height="19" rx="3" fill="#e0e7ff" stroke="#4f46e5" strokeWidth="1.6"/>
-      <rect x="5" y="9" width="22" height="13" rx="1.5" fill="#c7d2fe" stroke="#4f46e5" strokeWidth="1.2"/>
-      <path d="M12 28h8M16 25v3" stroke="#4f46e5" strokeWidth="1.6" strokeLinecap="round"/>
-      <circle cx="26" cy="13" r="1" fill="#4f46e5"/>
-      <circle cx="26" cy="17" r="1" fill="#4f46e5"/>
+      <rect x="2" y="6" width="28" height="19" rx="3" fill="#d5e6f6" stroke="#175a96" strokeWidth="1.6"/>
+      <rect x="5" y="9" width="22" height="13" rx="1.5" fill="#b9d4ee" stroke="#175a96" strokeWidth="1.2"/>
+      <path d="M12 28h8M16 25v3" stroke="#175a96" strokeWidth="1.6" strokeLinecap="round"/>
+      <circle cx="26" cy="13" r="1" fill="#175a96"/>
+      <circle cx="26" cy="17" r="1" fill="#175a96"/>
     </svg>
   );
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { revalidateHome } from '@/lib/revalidate-home'
 
 export async function PATCH(
   request: Request,
@@ -26,5 +27,6 @@ export async function PATCH(
     .eq('user_id', user.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidateHome()
   return NextResponse.json({ ok: true })
 }

@@ -237,7 +237,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
           }}>
             <div>
               <input type="checkbox" checked={allSelected} onChange={toggleAll}
-                style={{ width: "15px", height: "15px", cursor: "pointer", accentColor: "#6366f1" }} />
+                style={{ width: "15px", height: "15px", cursor: "pointer", accentColor: "#1d6fb8" }} />
             </div>
             <span>Foto</span>
             <span>Publicación</span>
@@ -284,7 +284,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
               {/* Checkbox */}
               <div>
                 <input type="checkbox" checked={isSelected} onChange={() => toggleOne(listing.id)}
-                  style={{ width: "15px", height: "15px", cursor: "pointer", accentColor: "#6366f1" }} />
+                  style={{ width: "15px", height: "15px", cursor: "pointer", accentColor: "#1d6fb8" }} />
               </div>
 
               {/* Photo */}
@@ -308,7 +308,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
                 </Link>
                 <div style={{ display: "flex", alignItems: "center", gap: "5px", flexWrap: "wrap" }}>
                   {listing.categories?.slug && (
-                    <span style={{ fontSize: "10px", fontWeight: 600, color: "#6366f1", background: "#eef2ff", borderRadius: "4px", padding: "1px 5px" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 600, color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 5px" }}>
                       {CAT_NAMES[listing.categories.slug] ?? listing.categories.name}
                     </span>
                   )}

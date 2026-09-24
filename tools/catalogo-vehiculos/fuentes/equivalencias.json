@@ -1,0 +1,14 @@
+{
+ "nota": "Nombre que sale de DNRPA → nombre que usa el sitio, por marca (slug). Sirve para que DNRPA no agregue un duplicado con otro nombre y para no romper avisos existentes (attributes.model guarda el texto). Un valor vacío (\"\") descarta ese nombre (no es un modelo). Las diferencias solo de mayúsculas, espacios o guiones ya se unen solas.",
+ "marcas": {
+  "toyota": { "SW4": "Hilux SW4", "4Runner": "Four Runner", "GR86": "86", "86 GT": "86", "Lexus": "" },
+  "renault": { "19": "R19", "CLIO2": "Clio", "Meganeii": "Megane", "Grand Scenic": "Scenic" },
+  "volkswagen": { "Beetle": "New Beetle" },
+  "citroen": { "C-Elysée": "C-Elysee", "Spacetourer": "SpaceTourer" },
+  "ford": { "F350LARIAT": "F350", "RANGER2": "Ranger", "Ghia": "", "Festiva L": "Festiva" },
+  "fiat": { "Weekend": "Palio Weekend", "Stile": "Stilo" },
+  "hyundai": { "i10": "I10", "i30": "I30", "HD65": "HD-65", "HD72": "HD-72", "HD78": "HD-78" },
+  "nissan": { "X-Terra": "XTerra", "X-Trail": "XTrail", "NP300": "NP" },
+  "mercedes_benz": { "CLK": "Clase CLK", "CLS": "Clase CLS", "CLC": "Clase CLC", "SL": "Clase SL", "SLK": "Clase SLK", "SLC": "Clase SLC", "CL": "Clase CL", "Mercedes": "", "Mercedes-amg": "" }
+ }
+}

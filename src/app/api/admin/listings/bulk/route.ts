@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { revalidateHome } from "@/lib/revalidate-home";
 
 export async function POST(req: NextRequest) {
   const { ids, action, reason } = await req.json();
@@ -20,5 +21,6 @@ export async function POST(req: NextRequest) {
   const { error } = await supabase.from("listings").update(update).in("id", ids);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  revalidateHome();
   return NextResponse.json({ ok: true, count: ids.length });
 }

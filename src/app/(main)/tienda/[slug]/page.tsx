@@ -92,22 +92,22 @@ export async function generateMetadata(
   const name = p.store_name ?? slug;
   const desc = p.store_description
     ? p.store_description.slice(0, 155)
-    : `Visitá la tienda virtual de ${name} en ComerxIA. Comprá con confianza.`;
+    : `Visitá la tienda virtual de ${name} en CuyoRodados. Comprá con confianza.`;
 
   return {
     title: `${name} — Tienda Virtual`,
     description: desc,
-    alternates: { canonical: `https://comerxia.com.ar/tienda/${slug}` },
+    alternates: { canonical: `https://cuyorodados.com.ar/tienda/${slug}` },
     openGraph: {
-      title: `${name} | ComerxIA`,
+      title: `${name} | CuyoRodados`,
       description: desc,
-      url: `https://comerxia.com.ar/tienda/${slug}`,
+      url: `https://cuyorodados.com.ar/tienda/${slug}`,
       ...(p.store_logo_url ? { images: [{ url: p.store_logo_url, alt: name }] } : {}),
       type: "website",
     },
     twitter: {
       card: p.store_logo_url ? "summary_large_image" : "summary",
-      title: `${name} | ComerxIA`,
+      title: `${name} | CuyoRodados`,
       description: desc,
       ...(p.store_logo_url ? { images: [p.store_logo_url] } : {}),
     },
@@ -263,7 +263,7 @@ export default async function TiendaPage({
           height: "100px", position: "relative",
           background: profile.store_banner_url
             ? `url(${profile.store_banner_url}) center/cover`
-            : "linear-gradient(120deg,#0f172a 0%,#1E5BA8 55%,#6366f1 100%)",
+            : "linear-gradient(120deg,#0f172a 0%,#1E5BA8 55%,#1d6fb8 100%)",
         }}>
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.35) 100%)" }} />
         </div>
@@ -306,7 +306,7 @@ export default async function TiendaPage({
               <h1 style={{ fontSize: "18px", fontWeight: 800, color: "#1e293b", margin: 0, lineHeight: 1.2 }}>
                 {storeName}
               </h1>
-              <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.4px" }}>
+              <span style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.4px" }}>
                 TIENDA
               </span>
               {profile.store_verified && (
@@ -618,7 +618,7 @@ export default async function TiendaPage({
               {/* Grid / List toggle */}
               <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden", flexShrink: 0 }}>
                 <Link href={buildUrl(base, sp, { view: undefined })} style={{ textDecoration: "none" }}>
-                  <div title="Grilla" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: isGrid ? "#6366f1" : "#fff", color: isGrid ? "#fff" : "#94a3b8" }}>
+                  <div title="Grilla" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: isGrid ? "#1d6fb8" : "#fff", color: isGrid ? "#fff" : "#94a3b8" }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                       <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
@@ -626,7 +626,7 @@ export default async function TiendaPage({
                   </div>
                 </Link>
                 <Link href={buildUrl(base, sp, { view: "list" })} style={{ textDecoration: "none" }}>
-                  <div title="Lista" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: !isGrid ? "#6366f1" : "#fff", color: !isGrid ? "#fff" : "#94a3b8" }}>
+                  <div title="Lista" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: !isGrid ? "#1d6fb8" : "#fff", color: !isGrid ? "#fff" : "#94a3b8" }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                       <rect x="3" y="5" width="18" height="2" rx="1"/><rect x="3" y="11" width="18" height="2" rx="1"/><rect x="3" y="17" width="18" height="2" rx="1"/>
                     </svg>
@@ -685,6 +685,7 @@ export default async function TiendaPage({
                     featured_level={l.featured_level}
                     view_count={l.view_count ?? null}
                     created_at={l.created_at ?? null}
+                    photo_count={l.listing_images?.length ?? null}
                   />
                 );
               })}
@@ -702,7 +703,7 @@ export default async function TiendaPage({
                       <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                         {cover
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={storageImg(cover, 200)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <img src={storageImg(cover, 200, 75, 175)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                         }
                       </div>
@@ -713,7 +714,7 @@ export default async function TiendaPage({
                         {subPills.length > 0 && (
                           <div style={{ display: "flex", gap: "4px", marginBottom: "4px" }}>
                             {subPills.map((p, i) => (
-                              <span key={i} style={{ fontSize: "11px", color: "#6366f1", background: "#eef2ff", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
+                              <span key={i} style={{ fontSize: "11px", color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
                             ))}
                           </div>
                         )}
@@ -773,10 +774,10 @@ export default async function TiendaPage({
             {reviews.map((review) => (
               <div key={review.id} style={{ background: "#fff", borderRadius: "12px", border: "1px solid #f1f5f9", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#e0e7ff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "14px", position: "relative" }}>
+                  <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#d5e6f6", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: "14px", position: "relative" }}>
                     {review.reviewer?.avatar_url
                       // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={storageImg(review.reviewer.avatar_url, 80)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <img src={storageImg(review.reviewer.avatar_url, 80, 75, 80)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : "👤"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

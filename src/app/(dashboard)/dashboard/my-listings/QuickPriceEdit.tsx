@@ -59,7 +59,7 @@ export function QuickPriceEdit({ listingId, price, currency, onSave }: Props) {
         onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false) }}
         style={{
           width: '90px', padding: '3px 6px',
-          border: '1.5px solid #6366f1', borderRadius: '6px',
+          border: '1.5px solid #1d6fb8', borderRadius: '6px',
           fontSize: '13px', fontWeight: 700, textAlign: 'right',
           outline: 'none', color: '#1e293b',
         }}
@@ -68,7 +68,7 @@ export function QuickPriceEdit({ listingId, price, currency, onSave }: Props) {
         onClick={handleSave}
         disabled={saving}
         style={{
-          background: '#6366f1', color: '#fff', border: 'none',
+          background: '#1d6fb8', color: '#fff', border: 'none',
           borderRadius: '5px', padding: '3px 7px',
           fontSize: '11px', fontWeight: 700, cursor: 'pointer',
         }}

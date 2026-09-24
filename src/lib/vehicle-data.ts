@@ -3,42 +3,15 @@
 // Valores en USD
 
 import { vehicleVersions } from "./vehicle-versions";
+import { MARCAS_CATALOGO } from "@/data/catalogo/marcas.generated";
 
-export const CAR_BRANDS: { value: string; label: string }[] = [
-  { value: "agrale", label: "Agrale" },
-  { value: "alfa_romeo", label: "Alfa Romeo" },
-  { value: "audi", label: "Audi" },
-  { value: "baic", label: "BAIC" },
-  { value: "bmw", label: "BMW" },
-  { value: "byd", label: "BYD" },
-  { value: "changan", label: "Changan" },
-  { value: "chery", label: "Chery" },
-  { value: "chevrolet", label: "Chevrolet" },
-  { value: "citroen", label: "Citroën" },
-  { value: "cupra", label: "Cupra" },
-  { value: "dodge", label: "Dodge" },
-  { value: "fiat", label: "Fiat" },
-  { value: "ford", label: "Ford" },
-  { value: "geely", label: "Geely" },
-  { value: "great_wall", label: "Great Wall" },
-  { value: "haval", label: "Haval" },
-  { value: "honda", label: "Honda" },
-  { value: "hyundai", label: "Hyundai" },
-  { value: "jac", label: "JAC" },
-  { value: "jeep", label: "Jeep" },
-  { value: "kia", label: "Kia" },
-  { value: "mercedes_benz", label: "Mercedes Benz" },
-  { value: "mg", label: "MG" },
-  { value: "nissan", label: "Nissan" },
-  { value: "peugeot", label: "Peugeot" },
-  { value: "renault", label: "Renault" },
-  { value: "seat", label: "SEAT" },
-  { value: "skoda", label: "Skoda" },
-  { value: "suzuki", label: "Suzuki" },
-  { value: "toyota", label: "Toyota" },
-  { value: "volkswagen", label: "Volkswagen" },
-  { value: "volvo", label: "Volvo" },
-];
+// Marcas de autos y camionetas: catálogo generado (src/data/catalogo/, ver tools/catalogo-vehiculos/README.md).
+// CAR_MODELS y los precios de referencia de abajo siguen siendo la lista CCA.
+export const CAR_BRANDS: { value: string; label: string }[] = (() => {
+  const all = new Map<string, { value: string; label: string }>();
+  for (const b of [...MARCAS_CATALOGO.auto, ...MARCAS_CATALOGO.camioneta]) if (!all.has(b.value)) all.set(b.value, b);
+  return [...all.values()].sort((x, y) => x.label.localeCompare(y.label, "es"));
+})();
 
 export const CAR_MODELS: Record<string, string[]> = {
   agrale: ["AM 100", "AM 200"],

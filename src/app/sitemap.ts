@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 import { listingUrl } from "@/lib/listing-url";
 import { ENABLED_CATEGORY_IDS, ENABLED_CATEGORY_SLUGS } from "@/lib/site-config";
 
-const BASE = "https://comerxia.com.ar";
+const BASE = "https://cuyorodados.com.ar";
 
 // Solo categorías habilitadas: las demás redirigen y no deben indexarse
 const STATIC_CATEGORIES = ENABLED_CATEGORY_SLUGS;
@@ -52,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: BASE, changeFrequency: "daily", priority: 1.0 },
     { url: `${BASE}/listings`, changeFrequency: "daily", priority: 0.9 },
     { url: `${BASE}/tiendas`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/costo-transferencia`, changeFrequency: "monthly", priority: 0.7 },
     ...categoryUrls,
     ...listingUrls,
     ...storeUrls,

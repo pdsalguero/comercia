@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { StoreCarousel } from "./StoreCarousel";
 
 const CAT_ID_LABEL: Record<number, string> = {
@@ -9,7 +9,8 @@ const CAT_ID_LABEL: Record<number, string> = {
 };
 
 export async function StoreCards() {
-  const supabase = await createClient();
+  // Solo datos públicos: el cliente sin cookies permite que la home se sirva desde caché
+  const supabase = createPublicClient();
 
   const { data: stores } = await supabase
     .from("profiles")

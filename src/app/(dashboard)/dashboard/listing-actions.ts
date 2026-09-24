@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidateHome } from '@/lib/revalidate-home'
 
 export async function toggleListingStatus(listingId: string, currentStatus: string): Promise<void> {
   const supabase = await createClient()
@@ -15,6 +16,8 @@ export async function toggleListingStatus(listingId: string, currentStatus: stri
     .update({ status: newStatus })
     .eq('id', listingId)
     .eq('user_id', user.id) // ensures ownership
+
+  revalidateHome()
 }
 
 export async function deleteListing(listingId: string): Promise<void> {
@@ -27,4 +30,6 @@ export async function deleteListing(listingId: string): Promise<void> {
     .delete()
     .eq('id', listingId)
     .eq('user_id', user.id) // ensures ownership
+
+  revalidateHome()
 }

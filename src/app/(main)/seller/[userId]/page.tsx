@@ -274,7 +274,7 @@ export default async function SellerPage({
           height: "56px",
           background: profile.store_banner_url
             ? `url(${profile.store_banner_url}) center/cover`
-            : "linear-gradient(120deg,#1e3a5f 0%,#3b82f6 55%,#6366f1 100%)",
+            : "linear-gradient(120deg,#1e3a5f 0%,#3b82f6 55%,#1d6fb8 100%)",
         }} />
 
         {/* Main content row */}
@@ -320,7 +320,7 @@ export default async function SellerPage({
                   {displayName ?? "Vendedor"}
                 </h1>
                 {profile.is_store && (
-                  <span style={{ background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.3px" }}>
+                  <span style={{ background: "linear-gradient(135deg,#3b82f6,#1d6fb8)", color: "#fff", borderRadius: "20px", padding: "1px 8px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.3px" }}>
                     TIENDA
                   </span>
                 )}
@@ -431,7 +431,7 @@ export default async function SellerPage({
               <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f8fafc", cursor: "pointer", background: !sp.cat ? "#f0f4ff" : "#fff" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <CategoryIcon slug="other" size={18} />
-                  <span style={{ fontSize: "13px", color: !sp.cat ? "#6366f1" : "#334155", fontWeight: !sp.cat ? 700 : 400 }}>Todas</span>
+                  <span style={{ fontSize: "13px", color: !sp.cat ? "#1d6fb8" : "#334155", fontWeight: !sp.cat ? 700 : 400 }}>Todas</span>
                 </div>
               </div>
             </Link>
@@ -444,13 +444,13 @@ export default async function SellerPage({
                     <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: isLast ? "none" : "1px solid #f8fafc", cursor: "pointer", background: active ? "#f0f4ff" : "#fff" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <CategoryIcon slug={cat.slug} size={18} />
-                        <span style={{ fontSize: "13px", color: active ? "#6366f1" : "#334155", fontWeight: active ? 700 : 400 }}>
+                        <span style={{ fontSize: "13px", color: active ? "#1d6fb8" : "#334155", fontWeight: active ? 700 : 400 }}>
                           {CATEGORY_NAMES[cat.slug] ?? cat.name}
                         </span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}
-                        <span style={{ fontSize: "10px", color: active ? "#6366f1" : "#94a3b8", background: active ? "#e0e7ff" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
+                        {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1d6fb8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}
+                        <span style={{ fontSize: "10px", color: active ? "#1d6fb8" : "#94a3b8", background: active ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
                           {cat.count}
                         </span>
                       </div>
@@ -462,7 +462,7 @@ export default async function SellerPage({
                     <div style={{ borderBottom: i === categories.length - 1 ? "none" : "1px solid #f8fafc" }}>
                       <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
                         <div style={{ padding: "7px 16px 7px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: !sp.tipo ? "#f5f3ff" : "#fafafa" }}>
-                          <span style={{ fontSize: "12px", color: !sp.tipo ? "#6366f1" : "#64748b", fontWeight: !sp.tipo ? 700 : 400 }}>Todos</span>
+                          <span style={{ fontSize: "12px", color: !sp.tipo ? "#1d6fb8" : "#64748b", fontWeight: !sp.tipo ? 700 : 400 }}>Todos</span>
                         </div>
                       </Link>
                       {tipos.map(([tipo, count], ti) => {
@@ -478,10 +478,10 @@ export default async function SellerPage({
                               borderTop: "1px solid #f1f5f9",
                             }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: tipoActive ? "#6366f1" : "#cbd5e1", flexShrink: 0 }} />
-                                <span style={{ fontSize: "12px", color: tipoActive ? "#6366f1" : "#475569", fontWeight: tipoActive ? 700 : 400 }}>{label}</span>
+                                <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: tipoActive ? "#1d6fb8" : "#cbd5e1", flexShrink: 0 }} />
+                                <span style={{ fontSize: "12px", color: tipoActive ? "#1d6fb8" : "#475569", fontWeight: tipoActive ? 700 : 400 }}>{label}</span>
                               </div>
-                              <span style={{ fontSize: "10px", color: tipoActive ? "#6366f1" : "#94a3b8", background: tipoActive ? "#e0e7ff" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
+                              <span style={{ fontSize: "10px", color: tipoActive ? "#1d6fb8" : "#94a3b8", background: tipoActive ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
                                 {count}
                               </span>
                             </div>
@@ -563,7 +563,7 @@ export default async function SellerPage({
             {/* Grid / List toggle */}
             <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden", flexShrink: 0 }}>
               <Link href={buildUrl(base, sp, { view: undefined })} style={{ textDecoration: "none" }}>
-                <div title="Ver en grilla" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: isGrid ? "#6366f1" : "#fff", color: isGrid ? "#fff" : "#94a3b8" }}>
+                <div title="Ver en grilla" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: isGrid ? "#1d6fb8" : "#fff", color: isGrid ? "#fff" : "#94a3b8" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                     <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
@@ -571,7 +571,7 @@ export default async function SellerPage({
                 </div>
               </Link>
               <Link href={buildUrl(base, sp, { view: "list" })} style={{ textDecoration: "none" }}>
-                <div title="Ver en lista" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: !isGrid ? "#6366f1" : "#fff", color: !isGrid ? "#fff" : "#94a3b8" }}>
+                <div title="Ver en lista" style={{ padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center", background: !isGrid ? "#1d6fb8" : "#fff", color: !isGrid ? "#fff" : "#94a3b8" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="3" y="5" width="18" height="2" rx="1"/><rect x="3" y="11" width="18" height="2" rx="1"/><rect x="3" y="17" width="18" height="2" rx="1"/>
                   </svg>
@@ -624,6 +624,7 @@ export default async function SellerPage({
                 featured_level={l.featured_level}
                 view_count={l.view_count ?? null}
                 created_at={l.created_at ?? null}
+                photo_count={l.listing_images?.length ?? null}
               />
               );
             })}
@@ -651,7 +652,7 @@ export default async function SellerPage({
                       {subPills.length > 0 && (
                         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "4px" }}>
                           {subPills.map((p, i) => (
-                            <span key={i} style={{ fontSize: "11px", color: "#6366f1", background: "#eef2ff", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
+                            <span key={i} style={{ fontSize: "11px", color: "#1d6fb8", background: "#e8f1fa", borderRadius: "4px", padding: "1px 6px", fontWeight: 600, textTransform: "capitalize" }}>{p}</span>
                           ))}
                         </div>
                       )}
@@ -734,7 +735,7 @@ export default async function SellerPage({
                   {/* Avatar */}
                   <div style={{
                     width: "34px", height: "34px", borderRadius: "50%",
-                    background: "#e0e7ff", flexShrink: 0,
+                    background: "#d5e6f6", flexShrink: 0,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     overflow: "hidden", fontSize: "14px",
                   }}>

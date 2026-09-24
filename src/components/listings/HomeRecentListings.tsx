@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useHomeProvince } from "./HomeProvinceContext";
 import { RecentListings } from "./RecentListings";
 
 type Listing = {
   id: string;
   title: string;
+  description?: string | null;
   price: number;
   currency: string;
   condition: string;
@@ -14,13 +15,19 @@ type Listing = {
   created_at?: string | null;
   bumped_at?: string | null;
   view_count?: number | null;
+  featured_level?: string | null;
+  attributes?: Record<string, string | number | boolean | null> | null;
   listing_images?: { url: string; position: number }[];
   categories?: { name: string; slug: string } | null;
   is_store?: boolean | null;
   store_name?: string | null;
+  whatsapp_url?: string | null;
+  price_drop_pct?: number | null;
 };
 
-export function HomeRecentListings({ initialItems }: { initialItems: Listing[] }) {
+const FEATURED_RANK: Record<string, number> = { gold: 3, silver: 2, bronze: 1 };
+
+export function HomeRecentListings({ initialItems, title }: { initialItems: Listing[]; title?: string }) {
   const { province } = useHomeProvince();
   const initialRef = useRef(initialItems);
   const [items, setItems] = useState<Listing[]>(initialItems);
@@ -63,9 +70,13 @@ export function HomeRecentListings({ initialItems }: { initialItems: Listing[] }
     ? `/listings?location=${encodeURIComponent(province)}`
     : "/listings";
 
+  // Los destacados van primero (el orden se mantiene estable dentro de cada nivel)
+  const sorted = useMemo(
+    () => [...items].sort((a, b) => (FEATURED_RANK[b.featured_level ?? ""] ?? 0) - (FEATURED_RANK[a.featured_level ?? ""] ?? 0)),
+    [items]
+  );
+
   return (
-    <div style={{ opacity: loading ? 0.5 : 1, transition: "opacity 0.2s" }}>
-      <RecentListings items={items} viewAllHref={viewAllHref} />
-    </div>
+    <RecentListings items={sorted} viewAllHref={viewAllHref} title={title} loading={loading} />
   );
 }

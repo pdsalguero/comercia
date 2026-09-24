@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { Logo } from "@/components/ui/Logo";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface FeatureCard {
@@ -61,7 +62,7 @@ const SELLER_BENEFITS = [
 ];
 
 const BUYER_BENEFITS = [
-  "Avisos de todo el país en un solo lugar",
+  "Avisos de toda la región de Cuyo en un solo lugar",
   "Avisos verificados y actualizados",
   "Filtros avanzados por localidad, precio y características",
   "Contacto directo con el vendedor",
@@ -73,11 +74,11 @@ const STATS: Stat[] = [
   { value: "< 1 min", label: "para publicar" },
   { value: "0%", label: "comisión por venta" },
   { value: "100%", label: "gratis para empezar" },
-  { value: "Argentina", label: "en todo el país" },
+  { value: "Cuyo", label: "Mendoza, San Juan y San Luis" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export function ComerxIALanding() {
+export function CuyoRodadosLanding() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -134,7 +135,7 @@ export function ComerxIALanding() {
         maxWidth: "100%",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <img src="/logo.png" alt="ComerxIA" style={{ height: "36px", width: "auto" }} />
+          <Logo height={36} />
         </div>
         <div style={{
           background: "rgba(255,140,0,0.15)", border: "1px solid rgba(255,140,0,0.4)",
@@ -164,7 +165,7 @@ export function ComerxIALanding() {
         <div style={{
           position: "absolute", bottom: "10%", right: "5%",
           width: "400px", height: "400px", borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(99,102,241,0.2),transparent 70%)",
+          background: "radial-gradient(circle,rgba(29,111,184,0.2),transparent 70%)",
           pointerEvents: "none",
         }} />
 
@@ -201,7 +202,7 @@ export function ComerxIALanding() {
           maxWidth: "600px", lineHeight: 1.6, marginBottom: "40px",
         }}>
           Publicá tu auto, moto o camioneta en{" "}
-          <strong style={{ color: "#fff" }}>30 segundos</strong> y llegá a compradores de todo el país.
+          <strong style={{ color: "#fff" }}>30 segundos</strong> y llegá a compradores de toda la región de Cuyo.
           Gratis, sin comisiones.
         </p>
 
@@ -310,7 +311,7 @@ export function ComerxIALanding() {
               padding: "4px 14px", fontSize: "12px", fontWeight: 700,
               color: "#ea580c", marginBottom: "14px",
             }}>
-              POR QUÉ COMERXIA
+              POR QUÉ CUYORODADOS
             </div>
             <h2 style={{ fontSize: "clamp(26px,4vw,42px)", fontWeight: 900, color: "#0f172a", lineHeight: 1.2 }}>
               Publicar nunca fue tan fácil
@@ -400,7 +401,7 @@ export function ComerxIALanding() {
               Para vendedores
             </h3>
             <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "24px" }}>
-              Publicá más rápido y llegá a compradores de toda la Argentina. Ideal para particulares y concesionarias.
+              Publicá más rápido y llegá a compradores de Mendoza, San Juan y San Luis. Ideal para particulares y concesionarias.
             </p>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
               {SELLER_BENEFITS.map((b) => (
@@ -456,7 +457,7 @@ export function ComerxIALanding() {
             ¿Listo para vender más?
           </h2>
           <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", marginBottom: "36px", lineHeight: 1.6 }}>
-            Unite a los primeros vendedores de ComerxIA.
+            Unite a los primeros vendedores de CuyoRodados.
           </p>
           <form onSubmit={handleSubmit} style={{
             display: "flex", gap: "10px", flexWrap: "wrap",
@@ -516,7 +517,7 @@ export function ComerxIALanding() {
         background: "#0f172a", padding: "28px 20px",
         textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: "13px",
       }}>
-        © {new Date().getFullYear()} ComerxIA · Autos y motos en toda la Argentina
+        © {new Date().getFullYear()} CuyoRodados · Autos y motos en Mendoza, San Juan y San Luis
       </footer>
 
       <style>{`

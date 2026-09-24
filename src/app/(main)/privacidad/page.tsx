@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad | ComerxIA",
-  description: "Política de Privacidad de ComerxIA. Conocé cómo recopilamos, usamos y protegemos tus datos.",
+  title: "Política de Privacidad",
+  description: "Política de Privacidad de CuyoRodados. Conocé cómo recopilamos, usamos y protegemos tus datos.",
 };
 
 const S = {
@@ -123,7 +123,7 @@ export default function PrivacidadPage() {
         <div style={S.header}>
           <h1 style={S.h1}>Política de Privacidad</h1>
           <p style={{ ...S.meta, margin: 0 }}>
-            ComerxIA · Última actualización: 28 de Marzo de 2026
+            CuyoRodados · Última actualización: 23 de Septiembre de 2026
           </p>
         </div>
 
@@ -131,15 +131,15 @@ export default function PrivacidadPage() {
 
           {/* Intro */}
           <div style={S.highlight}>
-            ComerxIA valora tu privacidad. Esta Política explica qué datos recopilamos, cómo los usamos, cómo los protegemos y cuáles son tus derechos. Al usar ComerxIA, aceptás esta Política en su totalidad.
+            CuyoRodados valora tu privacidad. Esta Política explica qué datos recopilamos, cómo los usamos, cómo los protegemos y cuáles son tus derechos. Al usar CuyoRodados, aceptás esta Política en su totalidad.
           </div>
 
           {/* 1 */}
           <h2 style={S.h2}>1. Información del Responsable</h2>
           <table style={S.table}>
             <tbody>
-              <tr><td style={{ ...S.td, fontWeight: 700, width: "180px" }}>Sitio Web</td><td style={S.td}>https://comerxia.com.ar</td></tr>
-              <tr><td style={{ ...S.td, fontWeight: 700 }}>Email de Privacidad</td><td style={S.td}><a href="mailto:privacidad@comerxia.com.ar" style={{ color: "#f97316" }}>privacidad@comerxia.com.ar</a></td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700, width: "180px" }}>Sitio Web</td><td style={S.td}>https://cuyorodados.com.ar</td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700 }}>Email de Privacidad</td><td style={S.td}><a href="mailto:privacidad@cuyorodados.com.ar" style={{ color: "#f97316" }}>privacidad@cuyorodados.com.ar</a></td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Jurisdicción</td><td style={S.td}>Argentina (Provincia de San Juan)</td></tr>
             </tbody>
           </table>
@@ -155,7 +155,7 @@ export default function PrivacidadPage() {
           <p style={S.p}><strong>Pagos (Destacados):</strong> al pagar a través de MercadoPago, los datos bancarios van directamente a MercadoPago — nosotros solo guardamos fecha de pago, monto y método (ej: "Mercado Pago").</p>
 
           <h3 style={S.h3}>2.2 Datos Recopilados Automáticamente</h3>
-          <p style={S.p}>Cuando navegás ComerxIA, recopilamos automáticamente:</p>
+          <p style={S.p}>Cuando navegás CuyoRodados, recopilamos automáticamente:</p>
           <ul style={S.ul}>
             <li><strong>Tipo de dispositivo:</strong> móvil, tablet o escritorio (detectado desde el User-Agent)</li>
             <li><strong>Navegador:</strong> Chrome, Firefox, Safari, Edge, u otro</li>
@@ -238,7 +238,7 @@ export default function PrivacidadPage() {
             <li>Acceso restringido a datos (solo personal autorizado)</li>
           </ul>
           <div style={S.warning}>
-            ComerxIA NO es responsable por hacks o ataques cibernéticos, malware en tu dispositivo, ni acceso no autorizado a tu cuenta por pérdida de contraseña. Usá contraseña fuerte y no la compartas.
+            CuyoRodados NO es responsable por hacks o ataques cibernéticos, malware en tu dispositivo, ni acceso no autorizado a tu cuenta por pérdida de contraseña. Usá contraseña fuerte y no la compartas.
           </div>
 
           {/* 6 */}
@@ -315,13 +315,13 @@ export default function PrivacidadPage() {
           </table>
           <h3 style={S.h3}>Cómo Ejercer tus Derechos</h3>
           <p style={S.p}>
-            Enviá tu solicitud a <a href="mailto:privacidad@comerxia.com.ar" style={{ color: "#f97316" }}>privacidad@comerxia.com.ar</a> incluyendo: nombre completo, email registrado, tipo de solicitud y descripción.
+            Enviá tu solicitud a <a href="mailto:privacidad@cuyorodados.com.ar" style={{ color: "#f97316" }}>privacidad@cuyorodados.com.ar</a> incluyendo: nombre completo, email registrado, tipo de solicitud y descripción.
           </p>
 
           {/* 9 */}
           <h2 style={S.h2}>9. Privacidad de Menores</h2>
           <div style={S.warning}>
-            ComerxIA es SOLO para mayores de 18 años. Si detectamos una cuenta de un menor, la eliminamos inmediatamente sin compartir datos con terceros.
+            CuyoRodados es SOLO para mayores de 18 años. Si detectamos una cuenta de un menor, la eliminamos inmediatamente sin compartir datos con terceros.
           </div>
 
           {/* 10 */}
@@ -329,7 +329,7 @@ export default function PrivacidadPage() {
           <p style={S.p}>
             Por defecto <strong>no recibís</strong> emails de promociones ni newsletters. Para activarlos, debés marcar la casilla en configuración. Podés desuscribirte en cualquier momento desde cualquier email de marketing.
           </p>
-          <p style={S.p}>ComerxIA <strong>no usa publicidad dirigida de terceros</strong> ni comparte datos de navegación con plataformas publicitarias.</p>
+          <p style={S.p}>CuyoRodados <strong>no usa publicidad dirigida de terceros</strong> ni comparte datos de navegación con plataformas publicitarias.</p>
 
           {/* 11 */}
           <h2 style={S.h2}>11. Transferencia Internacional de Datos</h2>
@@ -347,18 +347,18 @@ export default function PrivacidadPage() {
           <h2 style={S.h2}>13. Contacto y Reclamos</h2>
           <table style={S.table}>
             <tbody>
-              <tr><td style={{ ...S.td, fontWeight: 700, width: "160px" }}>Email de privacidad</td><td style={S.td}><a href="mailto:privacidad@comerxia.com.ar" style={{ color: "#f97316" }}>privacidad@comerxia.com.ar</a></td></tr>
+              <tr><td style={{ ...S.td, fontWeight: 700, width: "160px" }}>Email de privacidad</td><td style={S.td}><a href="mailto:privacidad@cuyorodados.com.ar" style={{ color: "#f97316" }}>privacidad@cuyorodados.com.ar</a></td></tr>
               <tr><td style={{ ...S.td, fontWeight: 700 }}>Tiempo de respuesta</td><td style={S.td}>Máximo 48 horas</td></tr>
             </tbody>
           </table>
           <p style={S.p}>
-            Si considerás que ComerxIA viola tu privacidad y no resolvemos en 30 días, podés denunciar ante los <strong>Juzgados Civiles de Argentina</strong> o la <strong>Defensoría del Consumidor</strong>.
+            Si considerás que CuyoRodados viola tu privacidad y no resolvemos en 30 días, podés denunciar ante los <strong>Juzgados Civiles de Argentina</strong> o la <strong>Defensoría del Consumidor</strong>.
           </p>
 
           {/* Footer */}
           <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: "1px solid #f1f5f9", fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>
             <p style={{ margin: "0 0 8px" }}>Vigente desde el 28 de Marzo de 2026 · <Link href="/terminos" style={{ color: "#f97316" }}>Términos y Condiciones</Link></p>
-            <p style={{ margin: 0 }}>Al usar ComerxIA aceptás la recopilación y uso de datos conforme a esta Política.</p>
+            <p style={{ margin: 0 }}>Al usar CuyoRodados aceptás la recopilación y uso de datos conforme a esta Política.</p>
           </div>
 
         </div>

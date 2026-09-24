@@ -9,7 +9,7 @@ export async function GET() {
     const { html } = welcomeEmailTemplate('Pablo');
     await sendEmail({
       to: 'pdsalguero@gmail.com',
-      subject: '¡Bienvenido a ComerxIA!',
+      subject: '¡Bienvenido a CuyoRodados!',
       html,
     });
     return Response.json({ success: true, message: 'Email enviado' });

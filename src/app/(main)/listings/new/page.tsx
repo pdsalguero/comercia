@@ -7,9 +7,12 @@ import { createClient } from "@/lib/supabase/client";
 import { CATEGORY_CONFIGS, getCategoryConfig, SERVICE_CATEGORIES, SERVICE_SUBCATS } from "@/lib/category-config";
 import { CategoryIcon, TechGroupIcon } from "@/components/ui/CategoryIcon";
 import { CAR_BRANDS, getModels } from "@/lib/vehicle-data";
-import { CAMION_BRANDS_LIST } from "@/data/modelos-vehiculos";
+import { CAMION_BRANDS_LIST } from "@/data/vehiculos";
 import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CATEGORIAS } from "@/data/vehiculos";
 import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
+import { bodyTypeOptions } from "@/lib/vehicle-body-types";
+import { ARGENTINA_PROVINCES, LOCALITIES_BY_PROVINCE } from "@/lib/ar-locations";
+import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
 import { PropertyLocation } from "@/components/listings/PropertyLocation";
 import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
 
@@ -34,149 +37,6 @@ const CONDITIONS = [
   { value: "for_parts", label: "Para repuestos" },
 ];
 
-const ARGENTINA_PROVINCES = [
-  "Buenos Aires",
-  "CABA",
-  "Catamarca",
-  "Chaco",
-  "Chubut",
-  "Córdoba",
-  "Corrientes",
-  "Entre Ríos",
-  "Formosa",
-  "Jujuy",
-  "La Pampa",
-  "La Rioja",
-  "Mendoza",
-  "Misiones",
-  "Neuquén",
-  "Río Negro",
-  "Salta",
-  "San Juan",
-  "San Luis",
-  "Santa Cruz",
-  "Santa Fe",
-  "Santiago del Estero",
-  "Tierra del Fuego",
-  "Tucumán",
-];
-
-const LOCALITIES_BY_PROVINCE: Record<string, string[]> = {
-  "Buenos Aires": [
-    "La Plata","Mar del Plata","Bahía Blanca","Quilmes","Lanús","Lomas de Zamora","General San Martín",
-    "Morón","Tres de Febrero","Tigre","San Isidro","Vicente López","Berazategui","Florencio Varela",
-    "Almirante Brown","Esteban Echeverría","La Matanza","Merlo","Moreno","Hurlingham","Ituzaingó",
-    "San Miguel","Malvinas Argentinas","José C. Paz","Avellaneda","Pergamino","Tandil","Junín",
-    "Pilar","Campana","Zárate","San Nicolás de los Arroyos","Necochea","Olavarría","Azul","Luján",
-    "Mercedes","San Antonio de Padua","Pacheco","Mar del Plata","Dolores","9 de Julio","Pehuajó",
-    "Trenque Lauquen","General Pico","Coronel Suárez","Balcarce","Miramar","Villa Gesell",
-    "Pinamar","Mar de Ajó","San Clemente del Tuyú","Otro",
-  ],
-  "CABA": [
-    "Almagro","Balvanera","Barracas","Belgrano","Boedo","Caballito","Chacarita","Coghlan",
-    "Colegiales","Constitución","Flores","Floresta","La Boca","La Paternal","Liniers","Mataderos",
-    "Monte Castro","Montserrat","Nueva Pompeya","Núñez","Palermo","Parque Avellaneda",
-    "Parque Chacabuco","Parque Chas","Parque Patricios","Puerto Madero","Recoleta","Retiro",
-    "Saavedra","San Cristóbal","San Nicolás","San Telmo","Vélez Sársfield","Versalles",
-    "Villa Crespo","Villa del Parque","Villa Devoto","Villa General Mitre","Villa Lugano",
-    "Villa Luro","Villa Ortúzar","Villa Pueyrredón","Villa Real","Villa Riachuelo","Villa Santa Rita",
-    "Villa Soldati","Villa Urquiza","Otro",
-  ],
-  "Catamarca": [
-    "San Fernando del Valle de Catamarca","Andalgalá","Tinogasta","Belén","Santa María",
-    "La Rioja","Recreo","San José","Fiambalá","Hualfín","Pomán","Otro",
-  ],
-  "Chaco": [
-    "Resistencia","Presidencia Roque Sáenz Peña","Villa Ángela","Charata","Barranqueras",
-    "Fontana","Juan José Castelli","Las Breñas","Quitilipi","Presidencia de la Plaza",
-    "La Escondida","Machagai","Puerto Tirol","Otro",
-  ],
-  "Chubut": [
-    "Rawson","Comodoro Rivadavia","Trelew","Puerto Madryn","Esquel","Rada Tilly",
-    "Sarmiento","Camarones","Gaiman","Dolavon","28 de Julio","Alto Río Senguer","Otro",
-  ],
-  "Córdoba": [
-    "Córdoba Capital","Villa Carlos Paz","Río Cuarto","San Francisco","Villa María","Río Tercero",
-    "Alta Gracia","Cosquín","La Falda","Villa General Belgrano","Cruz del Eje","Deán Funes",
-    "Jesús María","Oncativo","Arroyito","Marcos Juárez","Bell Ville","Laboulaye","Victorica",
-    "Mina Clavero","Villa Dolores","Río Ceballos","Saldán","Mendiolaza","Unquillo","La Calera",
-    "Malagueño","Pilar","Laguna Larga","Monte Buey","Otro",
-  ],
-  "Corrientes": [
-    "Corrientes","Goya","Posadas","Paso de los Libres","Curuzú Cuatiá","Mercedes","Saladas",
-    "Santo Tomé","Bella Vista","Esquina","Ituzaingó","Yapeyú","Monte Caseros","Otro",
-  ],
-  "Entre Ríos": [
-    "Paraná","Concordia","Gualeguaychú","Concepción del Uruguay","Gualeguay","Villaguay",
-    "Colón","San Salvador","Federal","La Paz","Crespo","Diamante","Victoria","Federación","Otro",
-  ],
-  "Formosa": [
-    "Formosa","Clorinda","Pirané","El Colorado","Ingeniero Juárez","Las Lomitas",
-    "General Enrique Mosconi","Comandante Fontana","Otro",
-  ],
-  "Jujuy": [
-    "San Salvador de Jujuy","Palpalá","San Pedro de Jujuy","Libertador General San Martín",
-    "Humahuaca","Tilcara","La Quiaca","Abra Pampa","El Carmen","Perico","Fraile Pintado","Otro",
-  ],
-  "La Pampa": [
-    "Santa Rosa","General Pico","Toay","Realicó","General Acha","Eduardo Castex","Victorica",
-    "Intendente Alvear","Guatraché","25 de Mayo","Bernardo Larroudé","Otro",
-  ],
-  "La Rioja": [
-    "La Rioja","Chilecito","Aimogasta","Chamical","Chepes","Villa Unión","Vinchina",
-    "Patquía","Famatina","Villa Castelli","Otro",
-  ],
-  "Mendoza": [
-    "Mendoza Capital","Godoy Cruz","Guaymallén","Las Heras","Maipú","Luján de Cuyo",
-    "San Rafael","Rivadavia","Junín","General Alvear","Malargüe","La Paz","San Martín",
-    "Tunuyán","Tupungato","San Carlos","Ciudad","Rodeo del Medio","Otro",
-  ],
-  "Misiones": [
-    "Posadas","Oberá","El Dorado","Eldorado","Apóstoles","Leandro N. Alem","Puerto Iguazú",
-    "Aristóbulo del Valle","Montecarlo","San Vicente","Puerto Rico","Concepción de la Sierra","Otro",
-  ],
-  "Neuquén": [
-    "Neuquén Capital","Cipolletti","Cutral Có","Plaza Huincul","Plottier","San Martín de los Andes",
-    "Villa La Angostura","Zapala","Junín de los Andes","Las Lajas","Chos Malal","Rincón de los Sauces","Otro",
-  ],
-  "Río Negro": [
-    "Viedma","Bariloche","General Roca","Cipolletti","Allen","Villa Regina","Lamarque",
-    "Ingeniero Jacobacci","El Bolsón","Choele Choel","Las Grutas","Sierra Grande","Otro",
-  ],
-  "Salta": [
-    "Salta Capital","San Ramón de la Nueva Orán","Tartagal","General Güemes","Cafayate",
-    "Rosario de la Frontera","Metán","Joaquín V. González","Embarcación","Cerrillos","Otro",
-  ],
-  "San Juan": [
-    "Capital","Rivadavia","Rawson","Santa Lucía","Chimbas","Pocito","Caucete",
-    "25 de Mayo","Ullum","Zonda","Sarmiento","Angaco","Albardón","Jáchal","Otro",
-  ],
-  "San Luis": [
-    "San Luis Capital","Villa Mercedes","Merlo","Quines","Justo Daract","La Toma",
-    "Buena Esperanza","Arizona","Concarán","Naschel","Otro",
-  ],
-  "Santa Cruz": [
-    "Río Gallegos","Caleta Olivia","Pico Truncado","Puerto Madryn","Los Antiguos",
-    "Perito Moreno","Las Heras","El Calafate","Gobernador Gregores","Puerto Santa Cruz","Otro",
-  ],
-  "Santa Fe": [
-    "Rosario","Santa Fe Capital","Rafaela","Venado Tuerto","Santo Tomé","Villa Constitución",
-    "Reconquista","Avellaneda","Cañada de Gómez","Casilda","Esperanza","Las Rosas","Rufino",
-    "San Lorenzo","Firmat","Villa Gobernador Gálvez","Pérez","Funes","Roldan","Otro",
-  ],
-  "Santiago del Estero": [
-    "Santiago del Estero Capital","La Banda","Termas de Río Hondo","Añatuya","Frías",
-    "Loreto","Fernández","Quimilí","Suncho Corral","Monte Quemado","Otro",
-  ],
-  "Tierra del Fuego": [
-    "Ushuaia","Río Grande","Tolhuin","Otro",
-  ],
-  "Tucumán": [
-    "San Miguel de Tucumán","Tafí Viejo","Banda del Río Salí","Yerba Buena","Concepción",
-    "Monteros","Aguilares","Alderetes","Famaillá","Juan Bautista Alberdi","Simoca",
-    "Bella Vista","Trancas","Otro",
-  ],
-};
 
 const FUELS = [
   "Nafta",
@@ -188,6 +48,23 @@ const FUELS = [
   "GLP",
 ];
 const TRANSMISIONS = ["Manual", "Automática", "CVT"];
+const TRACCIONES = [
+  { value: "4x2", label: "4x2" },
+  { value: "4x4", label: "4x4" },
+  { value: "awd", label: "AWD" },
+];
+const DOORS = ["2", "3", "4", "5"];
+// Características que no aplican a moto/cuatriciclo/utv
+const CAR_ONLY_FEATURES = ["has_gnc", "has_ac", "power_steering", "has_airbags", "rear_camera", "power_windows", "central_lock"];
+// Frases cortas para armar la descripción a mano — la IA ya no la escribe (ver [[project-publish-flow-improvements]])
+const DESCRIPTION_HINTS = [
+  "Único dueño",
+  "Service al día",
+  "Impecable, sin detalles",
+  "Poco uso",
+  "Listo para transferir",
+  "Acepta permuta",
+];
 
 const TECH_GROUPS: Record<string, { label: string; items: [string, string][] }> = {
   computacion: { label: "Computación",                items: [["notebook","Notebook / Laptop"],["pc","PC / Computadora de escritorio"],["tablet","Tablets y Accesorios"],["monitor","Monitores y Accesorios"],["componentes-pc","Componentes de PC"],["impresion","Impresión"],["conectividad","Conectividad y Redes"],["otro-comp","Otro"]] },
@@ -1090,6 +967,17 @@ export default function NewListingPage() {
   };
   const handleAttr = (k: string, v: any) => setAttrs((p) => ({ ...p, [k]: v }));
 
+  // Agrega una frase corta a la descripción (no genera texto — solo evita la hoja en blanco)
+  const addDescriptionHint = (hint: string) => {
+    setDescription((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return `${hint}.`;
+      if (trimmed.toLowerCase().includes(hint.toLowerCase())) return prev;
+      const sep = /[.!?]$/.test(trimmed) ? " " : ". ";
+      return `${trimmed}${sep}${hint}.`;
+    });
+  };
+
   // ── AI analysis ─────────────────────────────────────────────
   const analyzePhotos = async (files: File[]) => {
     if (!files.length) return;
@@ -1108,7 +996,7 @@ export default function NewListingPage() {
       if (!res.ok) throw new Error(data.error ?? "Error al analizar");
       setAiData(data);
       if (data.title) setTitle(data.title);
-      if (data.description) setDescription(data.description);
+      // La IA no completa la descripción — el vendedor la escribe con su propia voz (ver [[project-vehicles-only-rebrand]])
       if (data.category_id) {
         if (!ENABLED_CAT_IDS.has(data.category_id)) {
           const catName = CATEGORY_CONFIGS.find(c => c.id === data.category_id)?.name ?? "esta categoría";
@@ -1175,12 +1063,12 @@ export default function NewListingPage() {
       // ── AI WOW moment ──
       const filledFields: string[] = [];
       if (data.title) filledFields.push("Título");
-      if (data.description) filledFields.push("Descripción");
       if (data.category_id) filledFields.push("Categoría");
       if (data.condition) filledFields.push("Estado");
       if (data.attributes?.brand) filledFields.push("Marca");
       if (data.attributes?.model) filledFields.push("Modelo");
       if (data.attributes?.moto_subtipo) filledFields.push("Tipo de moto");
+      if (data.attributes?.body_type) filledFields.push("Carrocería");
       if (data.attributes?.year) filledFields.push("Año");
       if (data.attributes?.km) filledFields.push("Kilómetros");
       if (data.attributes?.cilindrada) filledFields.push("Cilindrada");
@@ -1201,9 +1089,12 @@ export default function NewListingPage() {
       setError("Completá título y categoría.");
       return;
     }
+    // Todos los campos faltantes se juntan en una sola lista — así el
+    // vendedor los ve todos de una vez, no uno por uno en sucesivas idas y vueltas.
+    const missing: string[] = [];
+    if (photos.length === 0) missing.push("Foto");
     // Vehicle-specific required fields
     if (isVehicle) {
-      const missing: string[] = [];
       if (!attrs.sub_category) missing.push("Tipo de vehículo");
       if (attrs.sub_category === "nautica") {
         if (!attrs.nautica_categoria) missing.push("Categoría náutica");
@@ -1213,31 +1104,29 @@ export default function NewListingPage() {
         if (!attrs.brand) missing.push("Marca");
         if (!attrs.model) missing.push("Modelo");
       }
-      if (missing.length > 0) {
-        setValidationErrors(missing);
-        return;
-      }
+      // Año — se pide siempre, salvo náutica de servicios/accesorios (no aplica)
+      const anioAplica = attrs.sub_category !== "nautica" || (!!attrs.nautica_categoria && !["servicios", "accesorios_nauticos"].includes(attrs.nautica_categoria));
+      if (anioAplica && !attrs.year) missing.push("Año");
+      // Km/Horas — mismo criterio que el campo en el formulario (ver más abajo)
+      const kmAplica = attrs.sub_category !== "nautica" || (!!attrs.nautica_categoria && !["servicios", "accesorios_nauticos", "inflables_recreacion"].includes(attrs.nautica_categoria));
+      if (kmAplica && !attrs.km) missing.push(attrs.sub_category === "nautica" ? "Horas de uso" : "Kilómetros");
+      if (!zone) missing.push("Provincia");
+      if (!condition) missing.push("Estado");
     }
     // Technology-specific required fields
     if (isTechnology) {
-      const missing: string[] = [];
       if (!techGroup) missing.push("Grupo");
       if (!attrs.sub_category) missing.push("Tipo");
-      if (missing.length > 0) {
-        setValidationErrors(missing);
-        return;
-      }
     }
     // Generic category required fields
     if (!isVehicle && !isRealEstate && catConfig) {
-      const missing: string[] = [];
       for (const field of catConfig.fields) {
         if (field.required && !attrs[field.key]) missing.push(field.label);
       }
-      if (missing.length > 0) {
-        setValidationErrors(missing);
-        return;
-      }
+    }
+    if (missing.length > 0) {
+      setValidationErrors(missing);
+      return;
     }
     setStep("publishing");
     setError(null);
@@ -1472,7 +1361,7 @@ export default function NewListingPage() {
           {/* Background flash */}
           <div style={{
             position: "absolute", inset: 0,
-            background: "radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.08) 50%, transparent 75%)",
+            background: "radial-gradient(ellipse at center, rgba(29,111,184,0.18) 0%, rgba(139,92,246,0.08) 50%, transparent 75%)",
             animation: "aiRevealBg 3s ease forwards",
           }} />
           {/* Center card */}
@@ -1482,7 +1371,7 @@ export default function NewListingPage() {
             borderRadius: "20px",
             padding: "32px 40px",
             textAlign: "center",
-            boxShadow: "0 24px 80px rgba(99,102,241,0.5), 0 0 0 1px rgba(165,180,252,0.2)",
+            boxShadow: "0 24px 80px rgba(29,111,184,0.5), 0 0 0 1px rgba(165,180,252,0.2)",
             animation: "aiRevealCard 3s ease forwards",
             maxWidth: "340px",
             width: "90%",
@@ -1499,7 +1388,7 @@ export default function NewListingPage() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center" }}>
               {aiRevealFields.map((f, i) => (
                 <span key={f} style={{
-                  background: "rgba(99,102,241,0.3)", border: "1px solid rgba(165,180,252,0.3)",
+                  background: "rgba(29,111,184,0.3)", border: "1px solid rgba(165,180,252,0.3)",
                   borderRadius: "20px", padding: "4px 12px",
                   fontSize: "12px", fontWeight: 700, color: "rgba(224,231,255,0.9)",
                   animation: `aiRevealPill 0.4s ease ${i * 0.1}s both`,
@@ -1520,7 +1409,7 @@ export default function NewListingPage() {
         @keyframes aiRevealCard { 0%{opacity:0;transform:scale(0.85) translateY(20px)} 15%{opacity:1;transform:scale(1) translateY(0)} 70%{opacity:1;transform:scale(1) translateY(0)} 100%{opacity:0;transform:scale(0.95) translateY(-10px)} }
         @keyframes aiRevealStar { 0%{transform:scale(0) rotate(-30deg)} 20%{transform:scale(1.2) rotate(10deg)} 35%{transform:scale(1) rotate(0)} 100%{transform:scale(1) rotate(0)} }
         @keyframes aiRevealPill { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes aiFieldShimmer { 0%{box-shadow:none} 50%{box-shadow:0 0 0 3px rgba(99,102,241,0.35),inset 0 0 12px rgba(99,102,241,0.08)} 100%{box-shadow:none} }
+        @keyframes aiFieldShimmer { 0%{box-shadow:none} 50%{box-shadow:0 0 0 3px rgba(29,111,184,0.35),inset 0 0 12px rgba(29,111,184,0.08)} 100%{box-shadow:none} }
       `}</style>
 
       {/* ════ FLOATING PUBLISH BUTTON ════ */}
@@ -1660,7 +1549,7 @@ export default function NewListingPage() {
                     </div>
                     <div style={{ fontSize: "13px", color: C.slate500, marginBottom: "24px", lineHeight: 1.6 }}>
                       Identificamos tu producto como <strong style={{ color: C.slate700 }}>{unsupportedCategoryName}</strong>.
-                      Por ahora ComerxIA es solo para <strong style={{ color: C.slate700 }}>Vehículos</strong>: autos, motos, camionetas, camiones y más —
+                      Por ahora CuyoRodados es solo para <strong style={{ color: C.slate700 }}>Vehículos</strong>: autos, motos, camionetas, camiones y más —
                       pero ya estamos trabajando para sumar más. ¡Gracias por la paciencia!
                     </div>
                     <button
@@ -1723,19 +1612,19 @@ export default function NewListingPage() {
                     }}
                   >
                     {/* Subtle glow orbs */}
-                    <div style={{ position: "absolute", top: "-30px", left: "50%", transform: "translateX(-50%)", width: "160px", height: "160px", borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,.25) 0%, transparent 70%)", pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", top: "-30px", left: "50%", transform: "translateX(-50%)", width: "160px", height: "160px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,111,184,.25) 0%, transparent 70%)", pointerEvents: "none" }} />
                     <div style={{ position: "absolute", bottom: "-20px", right: "20%", width: "100px", height: "100px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,.2) 0%, transparent 70%)", pointerEvents: "none" }} />
 
                     {/* AI badge */}
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "linear-gradient(135deg, rgba(99,102,241,.35), rgba(139,92,246,.35))", border: "1px solid rgba(165,180,252,.4)", borderRadius: "20px", padding: "4px 12px", marginBottom: "14px" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "linear-gradient(135deg, rgba(29,111,184,.35), rgba(139,92,246,.35))", border: "1px solid rgba(165,180,252,.4)", borderRadius: "20px", padding: "4px 12px", marginBottom: "14px" }}>
                       <span style={{ fontSize: "11px" }}>✨</span>
                       <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(199,210,254,.95)", letterSpacing: "0.4px" }}>Completado automático incluido</span>
                     </div>
 
                     {/* Camera icon with glow */}
                     <div style={{ position: "relative", display: "inline-flex", marginBottom: "12px" }}>
-                      <div style={{ position: "absolute", inset: "-8px", borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,.35) 0%, transparent 70%)" }} />
-                      <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(99,102,241,.5)", position: "relative" }}>
+                      <div style={{ position: "absolute", inset: "-8px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,111,184,.35) 0%, transparent 70%)" }} />
+                      <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "linear-gradient(135deg, #1d6fb8, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(29,111,184,.5)", position: "relative" }}>
                         <span style={{ fontSize: "26px", lineHeight: 1 }}>📷</span>
                       </div>
                     </div>
@@ -1744,10 +1633,10 @@ export default function NewListingPage() {
                       {dragOver ? "¡Soltá las fotos aquí!" : "Subí las fotos de tu vehículo"}
                     </div>
                     <div style={{ fontSize: "12px", color: "rgba(199,210,254,.75)", marginBottom: "6px" }}>
-                      Detectamos categoría, título y descripción automáticamente
+                      Detectamos categoría, título y datos del vehículo automáticamente
                     </div>
                     <div style={{ fontSize: "11px", color: "rgba(148,163,184,.65)", marginBottom: "18px" }}>
-                      Arrastrá o seleccioná desde tu dispositivo
+                      Arrastrá o seleccioná desde tu dispositivo · al menos 1 foto
                     </div>
 
                     <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" as const }}>
@@ -1755,11 +1644,11 @@ export default function NewListingPage() {
                         type="button"
                         onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
                         style={{
-                          background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                          background: "linear-gradient(135deg, #1d6fb8 0%, #8b5cf6 100%)",
                           color: "#fff", border: "none",
                           borderRadius: "10px", padding: "11px 28px",
                           fontSize: "13px", fontWeight: 700, cursor: "pointer",
-                          boxShadow: "0 4px 16px rgba(99,102,241,.5)",
+                          boxShadow: "0 4px 16px rgba(29,111,184,.5)",
                           letterSpacing: "0.2px",
                         }}
                       >
@@ -1890,7 +1779,7 @@ export default function NewListingPage() {
                         <span style={{
                           fontSize: "9px", fontWeight: 800, letterSpacing: "0.8px",
                           textTransform: "uppercase" as const,
-                          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                          background: "linear-gradient(135deg, #1d6fb8, #8b5cf6)",
                           color: "#fff", borderRadius: "20px", padding: "3px 8px",
                           flexShrink: 0,
                         }}>✦ Auto</span>
@@ -1970,6 +1859,25 @@ export default function NewListingPage() {
                     </div>
                   </Field>
                   <Field label="Descripción">
+                    {isVehicle && (
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px", marginBottom: "8px" }}>
+                        {DESCRIPTION_HINTS.map((hint) => (
+                          <button
+                            key={hint}
+                            type="button"
+                            onClick={() => addDescriptionHint(hint)}
+                            style={{
+                              padding: "5px 11px", borderRadius: "20px",
+                              border: `1.5px solid ${C.slate200}`, background: C.white,
+                              color: C.slate600, fontSize: "12px", fontWeight: 500,
+                              cursor: "pointer", fontFamily: "inherit", transition: "all .12s",
+                            }}
+                          >
+                            + {hint}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -2077,6 +1985,21 @@ export default function NewListingPage() {
                             <option value="">Seleccionar...</option>
                             {MOTO_SUBTIPOS.map((s) => (
                               <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                          </FocusSel>
+                        </Field>
+                      )}
+
+                      {/* Carrocería — solo auto/camioneta, ej: Sedán, Hatchback, SUV, Pickup */}
+                      {(attrs.sub_category === "auto" || attrs.sub_category === "camioneta") && (
+                        <Field label="Carrocería" required>
+                          <FocusSel
+                            value={attrs.body_type ?? ""}
+                            onChange={(e) => handleAttr("body_type", e.target.value)}
+                          >
+                            <option value="">Seleccionar...</option>
+                            {bodyTypeOptions(attrs.sub_category).map((b) => (
+                              <option key={b.value} value={b.value}>{b.label}</option>
                             ))}
                           </FocusSel>
                         </Field>
@@ -2328,9 +2251,14 @@ export default function NewListingPage() {
                           <Field label="Provincia" required>
                             <FocusSel value={zone} onChange={(e) => { setZone(e.target.value); setLocality(""); }}>
                               <option value="">Seleccioná...</option>
-                              {ARGENTINA_PROVINCES.map((p) => (
-                                <option key={p} value={p}>{p}</option>
-                              ))}
+                              <optgroup label={FOCUS_REGION_LABEL}>
+                                {FOCUS_PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+                              </optgroup>
+                              <optgroup label="Otras provincias">
+                                {ARGENTINA_PROVINCES.filter((p) => !isFocusProvince(p)).map((p) => (
+                                  <option key={p} value={p}>{p}</option>
+                                ))}
+                              </optgroup>
                             </FocusSel>
                           </Field>
                           <Field label="Localidad">
@@ -2378,9 +2306,9 @@ export default function NewListingPage() {
                         >
                           <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                             <span>Datos adicionales</span>
-                            {(attrs.version || attrs.fuel || attrs.transmission || attrs.color || attrs.engine || attrs.patente) && (
+                            {(attrs.version || attrs.fuel || attrs.transmission || attrs.color || attrs.engine || attrs.traction || attrs.doors || attrs.patente) && (
                               <span style={{ fontSize: "10px", background: C.blue, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontWeight: 700 }}>
-                                {[attrs.version, attrs.fuel, attrs.transmission, attrs.color, attrs.engine, attrs.patente].filter(Boolean).length} completados
+                                {[attrs.version, attrs.fuel, attrs.transmission, attrs.color, attrs.engine, attrs.traction, attrs.doors, attrs.patente].filter(Boolean).length} completados
                               </span>
                             )}
                           </span>
@@ -2435,6 +2363,26 @@ export default function NewListingPage() {
                               </Field>
                             )}
 
+                            {/* Tracción — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Tracción">
+                                <FocusSel value={attrs.traction ?? ""} onChange={(e) => handleAttr("traction", e.target.value)}>
+                                  <option value="">Seleccionar...</option>
+                                  {TRACCIONES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                </FocusSel>
+                              </Field>
+                            )}
+
+                            {/* Puertas — no aplica para motos */}
+                            {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
+                              <Field label="Puertas">
+                                <FocusSel value={attrs.doors ?? ""} onChange={(e) => handleAttr("doors", e.target.value)}>
+                                  <option value="">Seleccionar...</option>
+                                  {DOORS.map((d) => <option key={d} value={d}>{d}</option>)}
+                                </FocusSel>
+                              </Field>
+                            )}
+
                             {/* Patente — no aplica para motos */}
                             {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
                               <Field label="Patente">
@@ -2445,7 +2393,7 @@ export default function NewListingPage() {
                                   style={{ letterSpacing: "2px", fontWeight: 700 }}
                                 />
                                 <label style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "12px", color: "#94a3b8", cursor: "pointer", userSelect: "none" as const }}>
-                                  <input type="checkbox" checked={attrs.show_patente ?? false} onChange={(e) => handleAttr("show_patente", e.target.checked)} style={{ accentColor: "#6366f1", cursor: "pointer" }} />
+                                  <input type="checkbox" checked={attrs.show_patente ?? false} onChange={(e) => handleAttr("show_patente", e.target.checked)} style={{ accentColor: "#1d6fb8", cursor: "pointer" }} />
                                   Mostrar patente en la publicación
                                 </label>
                               </Field>
@@ -2501,7 +2449,13 @@ export default function NewListingPage() {
                                   ["has_gnc", "Con GNC"],
                                   ["has_alarm", "Con alarma"],
                                   ["has_service", "Con service"],
-                                ].filter(([k]) => k !== "has_gnc" || !["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? ""))
+                                  ["has_ac", "Aire acondicionado"],
+                                  ["power_steering", "Dirección asistida"],
+                                  ["has_airbags", "Airbags"],
+                                  ["rear_camera", "Cámara de retroceso"],
+                                  ["power_windows", "Vidrios eléctricos"],
+                                  ["central_lock", "Cierre centralizado"],
+                                ].filter(([k]) => !CAR_ONLY_FEATURES.includes(k) || !["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? ""))
                                 .map(([k, l]) => {
                                   const active = !!attrs[k];
                                   return (
@@ -3048,7 +3002,7 @@ export default function NewListingPage() {
               Publicando tu aviso...
             </div>
             <div style={{ fontSize: "13px", color: C.slate400 }}>
-              Subiendo fotos y guardando en ComerxIA
+              Subiendo fotos y guardando en CuyoRodados
             </div>
           </div>
           <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
@@ -3085,9 +3039,9 @@ export default function NewListingPage() {
               },
               {
                 key: "silver", badge: "🚀 DESTACADO", name: "Destacado", price: "3.500",
-                color: "#6366f1", colorLight: "#eef2ff", colorBorder: "#c7d2fe",
-                gradient: "linear-gradient(135deg,#6366f1,#818cf8)",
-                shadow: "0 4px 24px rgba(99,102,241,0.22)",
+                color: "#1d6fb8", colorLight: "#e8f1fa", colorBorder: "#b9d4ee",
+                gradient: "linear-gradient(135deg,#1d6fb8,#4d94d1)",
+                shadow: "0 4px 24px rgba(29,111,184,0.22)",
                 features: ["Todo lo de Esencial","Badge 🚀 Destacado en tu publicación","Borde violeta llamativo","Posición preferencial en la categoría","Vigencia 15 días"],
                 cta: "Activar Destacado",
                 popular: true,
@@ -3235,7 +3189,7 @@ export default function NewListingPage() {
                 lineHeight: 1.5,
               }}
             >
-              Tu aviso ya está visible en ComerxIA.
+              Tu aviso ya está visible en CuyoRodados.
             </div>
             <div
               style={{

@@ -48,6 +48,21 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
     resetTransform();
   };
 
+  // Navegación por teclado en el lightbox (← → para cambiar de foto, Esc para cerrar) — mismo
+  // patrón que ChileAutos/Yapo. Solo activa con el lightbox abierto, para no interceptar flechas
+  // que el resto de la página pudiera usar.
+  useEffect(() => {
+    if (!lightbox || images.length === 0) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightbox, images.length]);
+
   const getDistance = (t1: Touch, t2: Touch) => {
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
@@ -195,7 +210,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={storageImg(img.url, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={storageImg(img.url, 150, 75, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>
@@ -423,7 +438,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={storageImg(img.url, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={storageImg(img.url, 150, 75, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </button>
               ))}
             </div>

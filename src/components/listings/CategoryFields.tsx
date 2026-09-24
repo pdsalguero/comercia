@@ -150,9 +150,9 @@ function FieldInput({
               width: "20px",
               height: "20px",
               flexShrink: 0,
-              border: `2px solid ${value ? "#6366f1" : "#d1d5db"}`,
+              border: `2px solid ${value ? "#1d6fb8" : "#d1d5db"}`,
               borderRadius: "5px",
-              background: value ? "#6366f1" : "#fff",
+              background: value ? "#1d6fb8" : "#fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -192,12 +192,12 @@ function FieldInput({
                 gap: "6px",
                 cursor: "pointer",
                 padding: "7px 14px",
-                border: `2px solid ${value === o.value ? "#6366f1" : "#e2e8f0"}`,
+                border: `2px solid ${value === o.value ? "#1d6fb8" : "#e2e8f0"}`,
                 borderRadius: "8px",
                 background: value === o.value ? "#f0f4ff" : "#fff",
                 fontSize: "13px",
                 fontWeight: value === o.value ? 700 : 400,
-                color: value === o.value ? "#6366f1" : "#374151",
+                color: value === o.value ? "#1d6fb8" : "#374151",
                 transition: "all 0.15s",
               }}
               onClick={() => onChange(o.value)}
@@ -207,8 +207,8 @@ function FieldInput({
                   width: "14px",
                   height: "14px",
                   borderRadius: "50%",
-                  border: `2px solid ${value === o.value ? "#6366f1" : "#d1d5db"}`,
-                  background: value === o.value ? "#6366f1" : "#fff",
+                  border: `2px solid ${value === o.value ? "#1d6fb8" : "#d1d5db"}`,
+                  background: value === o.value ? "#1d6fb8" : "#fff",
                   flexShrink: 0,
                 }}
               />

@@ -1,0 +1,194 @@
+<title>Catálogo DNRPA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #f4f7fa; --surface: #ffffff; --ink: #16202c; --muted: #5b6878; --faint: #8a97a8; --line: #dde4ec;
+  --blue: #1d6fb8; --orange: #e07a10;
+  --known-bg: #eaf2fa; --known-ink: #1d5a93; --known-line: #cfe0f1;
+  --new-bg: #fff2e3; --new-ink: #95500a; --new-line: #f7d3a8;
+  --man-bg: #e7f5ee; --man-ink: #1c6b45; --man-line: #bfe3cf;
+  --sans: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1620; --surface: #16202b; --ink: #e5ecf4; --muted: #9aa8b9; --faint: #6f7d8f; --line: #263443;
+    --blue: #5aa6e8; --orange: #f4a04a;
+    --known-bg: #152c43; --known-ink: #a6cdf1; --known-line: #214262;
+    --new-bg: #36240f; --new-ink: #ffc98c; --new-line: #5a3b16;
+    --man-bg: #12301f; --man-ink: #9ee0bb; --man-line: #1f4a33;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1620; --surface: #16202b; --ink: #e5ecf4; --muted: #9aa8b9; --faint: #6f7d8f; --line: #263443;
+  --blue: #5aa6e8; --orange: #f4a04a;
+  --known-bg: #152c43; --known-ink: #a6cdf1; --known-line: #214262;
+  --new-bg: #36240f; --new-ink: #ffc98c; --new-line: #5a3b16;
+  --man-bg: #12301f; --man-ink: #9ee0bb; --man-line: #1f4a33;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 70ch; }
+.meta { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 10px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 24px 0 14px; }
+.tab { font: 600 13px var(--sans); color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; display: inline-flex; gap: 8px; align-items: baseline; }
+.tab .n { font-family: var(--mono); font-weight: 400; font-size: 11.5px; color: var(--faint); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab[aria-selected="true"] .n { color: var(--bg); opacity: .7; }
+.tab:focus-visible, .seg button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+.stat { background: var(--surface); padding: 12px 16px; }
+.stat b { display: block; font: 700 22px var(--sans); font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 12.5px; }
+.stat b em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--new-ink); margin-left: 6px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+.search { flex: 1 1 260px; position: relative; }
+.search input { width: 100%; font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 13px var(--sans); color: var(--muted); background: transparent; border: 0; padding: 8px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { color: var(--ink); background: var(--bg); font-weight: 700; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin: 6px 0 18px; align-items: center; }
+.legend .li { display: inline-flex; align-items: center; gap: 6px; }
+
+.missing { font-size: 13px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
+.missing b { color: var(--ink); }
+
+.brands { display: flex; flex-direction: column; gap: 8px; }
+details.brand { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+details.brand > summary { list-style: none; cursor: pointer; padding: 11px 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+details.brand > summary::-webkit-details-marker { display: none; }
+summary .name { font-weight: 700; font-size: 15px; }
+summary .count { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+summary .caret { margin-left: auto; color: var(--faint); transition: transform .15s; }
+details[open] > summary .caret { transform: rotate(90deg); }
+.badge { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--new-ink); background: var(--new-bg); border: 1px solid var(--new-line); border-radius: 4px; padding: 1px 6px; }
+.body { padding: 2px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: baseline; gap: 6px; font-size: 13px; border-radius: 6px; padding: 3px 8px; border: 1px solid; }
+.chip small { font-family: var(--mono); font-size: 10.5px; opacity: .75; }
+.chip.known { background: var(--known-bg); color: var(--known-ink); border-color: var(--known-line); }
+.chip.new { background: var(--new-bg); color: var(--new-ink); border-color: var(--new-line); }
+.chip.manual { background: var(--man-bg); color: var(--man-ink); border-color: var(--man-line); }
+.sub { font-size: 12px; color: var(--muted); font-weight: 600; }
+mark { background: color-mix(in srgb, var(--orange) 35%, transparent); color: inherit; border-radius: 2px; }
+.empty { color: var(--muted); padding: 24px 4px; }
+footer { margin-top: 36px; color: var(--muted); font-size: 12.5px; max-width: 75ch; display: flex; flex-direction: column; gap: 6px; }
+footer b { color: var(--ink); }
+@media (max-width: 520px) { .wrap { padding-inline: 16px; } header h1 { font-size: 22px; } }
+@media (prefers-reduced-motion: reduce) { summary .caret { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Catálogo de marcas y modelos DNRPA</h1>
+    <p>Lista unificada que usan los formularios de publicar y el buscador: las listas que ya tenía el sitio, más la tabla oficial de valuación DNRPA, más clásicos y lanzamientos cargados a mano.</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <label class="search" for="q"><input id="q" type="search" placeholder="Buscar marca o modelo (ej: Hilux, Benelli, Tiggo)" autocomplete="off"></label>
+    <div class="seg" id="filter" role="group" aria-label="Filtro">
+      <button type="button" data-f="all" aria-pressed="true">Todo</button>
+      <button type="button" data-f="dnrpa" aria-pressed="false">Agregado por DNRPA</button>
+      <button type="button" data-f="manual" aria-pressed="false">Agregado a mano</button>
+    </div>
+  </div>
+  <div class="legend">
+    <span class="li"><span class="chip known">Corolla <small>2002–0 km</small></span> ya estaba en el sitio</span>
+    <span class="li"><span class="chip new">Corolla Cross <small>2021–0 km</small></span> agregado desde DNRPA</span>
+    <span class="li"><span class="chip manual">Falcon</span> clásico o lanzamiento agregado a mano</span>
+  </div>
+  <div class="brands" id="brands"></div>
+
+  <footer>
+    <div><b>Cómo leerlo.</b> Los años son el primer y el último modelo con valuación DNRPA; "0 km" significa que se vende nuevo hoy. Pasá el mouse por un modelo para ver cuántas versiones de la tabla agrupa.</div>
+    <div><b>Límites de la fuente.</b> La tabla DNRPA solo cubre modelos 2002 en adelante; lo anterior sale de las listas del sitio y de la carga manual. DNRPA no separa SUV de rural: los modelos que el sitio ya tenía como SUV quedan en Pickups / SUV.</div>
+    <div><b>Para corregir.</b> Editar <code>tools/catalogo-vehiculos/fuentes/</code> (equivalencias de nombres o agregados a mano) y volver a correr <code>construir_catalogo.py</code>.</div>
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const TYPES = [["auto","Autos"],["camioneta","Pickups / SUV / Utilitarios"],["moto","Motos"],["cuatriciclo","Cuatriciclos"],["utv","UTV"],["camion","Camiones"]];
+const OPEN = new Set(["toyota","volkswagen","ford","chevrolet","fiat","renault","peugeot","honda","yamaha","zanella","motomel","bajaj"]);
+let state = { t: "auto", q: "", f: "all" };
+try { const s = JSON.parse(localStorage.getItem("dnrpa-review") || "{}"); if (s.t) state.t = s.t; } catch (e) {}
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fold = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+function hl(text, q) {
+  if (!q) return esc(text);
+  const i = fold(text).indexOf(q);
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+}
+const pl = (n, one, many) => `${n.toLocaleString("es-AR")} ${n === 1 ? one : many}`;
+const yrs = (a, b) => a == null ? "" : (b >= 2026 ? `${a}–0 km` : a === b ? `${a}` : `${a}–${b}`);
+
+$("meta").textContent = `Tabla vigente desde ${DATA.vigencia} · ${Object.values(DATA.resumen).reduce((a, r) => a + r.modelos, 0).toLocaleString("es-AR")} modelos en ${TYPES.length} tipos`;
+
+function renderTabs() {
+  $("tabs").innerHTML = TYPES.map(([k, l]) =>
+    `<button class="tab" role="tab" id="tab-${k}" aria-selected="${k === state.t}" data-t="${k}">${l}<span class="n">${DATA.resumen[k].modelos.toLocaleString("es-AR")}</span></button>`).join("");
+}
+function renderStats() {
+  const r = DATA.resumen[state.t];
+  $("stats").innerHTML = `
+    <div class="stat"><b>${r.marcas}</b><span>marcas</span></div>
+    <div class="stat"><b>${r.modelos.toLocaleString("es-AR")}</b><span>modelos en total</span></div>
+    <div class="stat"><b>${(r.dnrpa || 0).toLocaleString("es-AR")}</b><span>agregados desde DNRPA</span></div>
+    <div class="stat"><b>${(r.manual || 0).toLocaleString("es-AR")}</b><span>agregados a mano</span></div>`;
+}
+const CLS = { sitio: "known", dnrpa: "new", manual: "manual" };
+function renderBrands() {
+  const q = fold(state.q.trim());
+  const out = [];
+  for (const b of DATA.tipos[state.t]) {
+    const brandHit = q && fold(b.l).includes(q);
+    let models = b.m;
+    if (state.f !== "all") models = models.filter((m) => m[3] === state.f);
+    if (q && !brandHit) models = models.filter((m) => fold(m[0]).includes(q));
+    if (!models.length) continue;
+    const added = b.m.filter((m) => m[3] !== "sitio").length;
+    const isNew = b.m.every((m) => m[3] !== "sitio");
+    const open = q || state.f !== "all" || OPEN.has(b.s);
+    out.push(`<details class="brand"${open ? " open" : ""}>
+      <summary><span class="name">${hl(b.l, brandHit ? q : "")}</span>${isNew ? '<span class="badge">marca nueva</span>' : ""}
+        <span class="count">${pl(b.m.length, "modelo", "modelos")}${added && !isNew ? ` · ${pl(added, "agregado", "agregados")}` : ""}</span><span class="caret" aria-hidden="true">›</span></summary>
+      <div class="body"><div class="chips">${models.map((m) =>
+        `<span class="chip ${CLS[m[3]]}"${m[4] ? ` title="${m[4]} ${m[4] === 1 ? "versión" : "versiones"} en la tabla DNRPA"` : ""}>${hl(m[0], brandHit ? "" : q)}${m[1] ? ` <small>${yrs(m[1], m[2])}</small>` : ""}</span>`).join("")}</div>
+      </div></details>`);
+  }
+  $("brands").innerHTML = out.length ? out.join("") : `<div class="empty">No hay resultados para “${esc(state.q)}” en ${TYPES.find((t) => t[0] === state.t)[1]}. Probá en otro tipo.</div>`;
+}
+function render() { renderTabs(); renderStats(); renderBrands(); }
+
+$("tabs").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-t]"); if (!t) return;
+  state.t = t.dataset.t; try { localStorage.setItem("dnrpa-review", JSON.stringify({ t: state.t })); } catch (err) {}
+  render();
+});
+$("filter").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-f]"); if (!b) return;
+  state.f = b.dataset.f;
+  for (const x of $("filter").querySelectorAll("button")) x.setAttribute("aria-pressed", String(x === b));
+  renderBrands();
+});
+let timer; $("q").addEventListener("input", (e) => { clearTimeout(timer); timer = setTimeout(() => { state.q = e.target.value; renderBrands(); }, 120); });
+render();
+</script>
