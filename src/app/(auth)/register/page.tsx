@@ -39,6 +39,7 @@ export default function RegisterPage() {
   const [confirm, setConfirm]   = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+  const [sentTo, setSentTo]     = useState('')
   // Disponibilidad del usuario, chequeada en vivo contra profiles (lectura pública).
   // Se guarda el último resultado y el estado se deriva: si el usuario cambió, está "verificando".
   const [checked, setChecked] = useState<{ name: string; taken: boolean } | null>(null)
@@ -80,7 +81,12 @@ export default function RegisterPage() {
       email,
       password,
       // trim: hubo perfiles guardados con espacio final ("Diego Morales ")
-      options: { data: { full_name: fullName.trim().replace(/\s+/g, ' '), username } },
+      options: {
+        data: { full_name: fullName.trim().replace(/\s+/g, ' '), username },
+        // El link del mail vuelve por (auth)/callback, que canjea el código, deja la sesión iniciada
+        // y manda la bienvenida (sin esto Supabase manda a la Site URL con un ?code= que nadie procesa)
+        emailRedirectTo: `${window.location.origin}/callback`,
+      },
     })
 
     if (signUpError) {
@@ -93,7 +99,7 @@ export default function RegisterPage() {
 
     // Si no hay sesión, el email requiere confirmación
     if (!data.session) {
-      setError('Revisá tu email para confirmar la cuenta.')
+      setSentTo(email)
       setLoading(false)
       return
     }
@@ -149,7 +155,7 @@ export default function RegisterPage() {
       </div>
 
       {error && (
-        <div style={{
+        <div role="alert" style={{
           background: '#fef2f2', border: '1px solid #fecaca',
           borderRadius: '8px', padding: '10px 14px',
           fontSize: '13px', color: '#dc2626', marginBottom: '18px',
@@ -158,6 +164,19 @@ export default function RegisterPage() {
         </div>
       )}
 
+      {sentTo ? (
+        <div role="status" style={{
+          background: '#f0fdf4', border: '1px solid #bbf7d0',
+          borderRadius: '10px', padding: '16px 18px',
+          fontSize: '14px', color: '#166534', lineHeight: 1.6,
+        }}>
+          <strong>¡Casi listo!</strong> Te mandamos un mail a <strong>{sentTo}</strong>.
+          Tocá el link para confirmar tu cuenta y vas a entrar directo.
+          <div style={{ fontSize: '13px', color: '#15803d', marginTop: '8px' }}>
+            ¿No te llegó? Revisá la carpeta de spam o promociones.
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
         {step === 1 && (
@@ -325,6 +344,7 @@ export default function RegisterPage() {
           </>
         )}
       </form>
+      )}
     </div>
   )
 }

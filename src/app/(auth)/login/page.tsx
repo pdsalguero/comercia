@@ -32,7 +32,12 @@ function LoginForm() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
+  // Los callbacks de los links de mail (confirmar cuenta, recuperar contraseña) mandan acá si el link no sirve
+  const [error, setError]       = useState(
+    searchParams.get('error') === 'link_expirado'
+      ? 'El link venció o ya se usó. Ingresá con tu mail y contraseña, o pedí uno nuevo desde "¿Olvidaste tu contraseña?".'
+      : ''
+  )
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()

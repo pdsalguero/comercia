@@ -5,7 +5,9 @@ import { cookies } from 'next/headers'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  // Solo rutas internas: "//otro-sitio.com" o "https://…" convertirían el link del mail en una redirección abierta
+  const rawNext = searchParams.get('next') ?? '/'
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.startsWith('/\\') ? rawNext : '/'
 
   if (code) {
     const cookieStore = await cookies()

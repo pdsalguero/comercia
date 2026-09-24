@@ -9,14 +9,17 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { data } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) return NextResponse.redirect(`${origin}/login?error=link_expirado`)
 
-    // Solo enviar bienvenida en el primer login (registro)
+    // Bienvenida solo al confirmar el registro: el mail se acaba de confirmar (este link es el de
+    // confirmación). Antes se miraba created_at < 1 minuto y casi nunca se cumplía, porque la gente
+    // tarda más que eso en abrir el mail.
     if (data?.user) {
-      const createdAt = new Date(data.user.created_at).getTime()
-      const isNewUser = Date.now() - createdAt < 60_000 // menos de 1 minuto
+      const confirmedAt = data.user.email_confirmed_at ? new Date(data.user.email_confirmed_at).getTime() : 0
+      const justConfirmed = Date.now() - confirmedAt < 10 * 60_000
 
-      if (isNewUser && data.user.email) {
+      if (justConfirmed && data.user.email) {
         const userName = data.user.user_metadata?.full_name?.split(' ')[0]
           ?? data.user.email.split('@')[0]
 
