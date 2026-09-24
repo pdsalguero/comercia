@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildKeywordFilters } from "@/lib/search-query";
 import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
+import { plural } from "@/lib/labels";
 import { storageImg } from "@/lib/storage-image";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -63,19 +64,6 @@ function buildUrl(base: string, sp: SP, override: Partial<SP>) {
   }
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
-}
-
-function timeAgo(dateStr: string) {
-  const d = new Date(dateStr);
-  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (diff < 60) return "hace un momento";
-  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
-  const days = Math.floor(diff / 86400);
-  if (days < 30) return `hace ${days} días`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `hace ${months} meses`;
-  return `hace ${Math.floor(months / 12)} años`;
 }
 
 export async function generateMetadata(
@@ -325,7 +313,7 @@ export default async function TiendaPage({
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#475569", background: "#f1f5f9", borderRadius: "20px", padding: "3px 10px", border: "1px solid #e2e8f0" }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                {totalListings} publicaciones
+                {plural(totalListings, "publicación", "publicaciones")}
               </span>
               {reviewCount > 0 ? (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#92400e", background: "#fef3c7", borderRadius: "20px", padding: "3px 10px", border: "1px solid #fde68a" }}>
@@ -701,7 +689,7 @@ export default async function TiendaPage({
                       <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff", position: "relative" }}>
                         {cover
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={storageImg(cover, 200, 75, 175)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <img src={storageImg(cover, 200, 75, 175)} alt={l.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                         }
                       </div>

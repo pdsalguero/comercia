@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { RE_LOCATIONS } from "@/lib/re-locations";
 import { MOTO_SUBTIPOS } from "@/data/modelos-motos";
 import { sanitizeRangeParams } from "@/lib/listing-filters";
+import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince, sortProvinces } from "@/lib/region";
+import { FUEL_OPTIONS, TRANSMISSION_OPTIONS, VEHICLE_TYPE_LABELS } from "@/lib/labels";
 
 export interface FilterValues {
   condition?: string;
@@ -228,7 +230,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                   { value: "camioneta" as any, label: "Pickups / SUV / Utilitarios" },
                   { value: "moto" as any, label: "Motos" },
                   { value: "cuatriciclo" as any, label: "Cuatriciclos" },
-                  { value: "utv" as any, label: "Areneros/UTV" },
+                  { value: "utv" as any, label: VEHICLE_TYPE_LABELS.utv },
                 ]}
               />
             </div>
@@ -266,20 +268,10 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
             )}
 
             {/* Combustible */}
-            <SelectFilter label="Combustible" field="fuel" options={[
-              { value: "nafta", label: "Nafta" },
-              { value: "diesel", label: "Diesel" },
-              { value: "gnc", label: "GNC" },
-              { value: "electrico", label: "Eléctrico" },
-              { value: "hibrido", label: "Híbrido" },
-            ]} />
+            <SelectFilter label="Combustible" field="fuel" options={FUEL_OPTIONS} />
 
             {/* Transmisión */}
-            <SelectFilter label="Transmisión" field="transmission" options={[
-              { value: "manual", label: "Manual" },
-              { value: "automatica", label: "Automática" },
-              { value: "cvt", label: "CVT" },
-            ]} />
+            <SelectFilter label="Transmisión" field="transmission" options={TRANSMISSION_OPTIONS} />
 
             {/* Año */}
             <div>
@@ -426,9 +418,14 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
             style={selectStyle}
           >
             <option value="">Todo el país</option>
-            {Object.entries(RE_LOCATIONS).map(([, prov]) => (
-              <option key={prov.label} value={prov.label}>{prov.label}</option>
-            ))}
+            <optgroup label={FOCUS_REGION_LABEL}>
+              {FOCUS_PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+            </optgroup>
+            <optgroup label="Otras provincias">
+              {sortProvinces(Object.values(RE_LOCATIONS).map((p) => p.label).filter((p) => !isFocusProvince(p)), (p) => p).map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </optgroup>
           </select>
         </div>
 

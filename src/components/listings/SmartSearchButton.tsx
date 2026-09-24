@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, X, Search } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
+import { vehiclesHref } from "@/lib/vehicle-landing";
 
 // Ejemplos que muestra el modal — cubren los tipos de filtro más comunes (km, equipamiento,
 // precio) para que la persona vea de entrada qué tipo de frase entiende la búsqueda.
@@ -71,7 +72,7 @@ export function SmartSearchButton() {
       if (!res.ok) throw new Error(data.error ?? "No se pudo interpretar la búsqueda");
       const params = buildParams(data.filters);
       setOpen(false);
-      router.push(`/category/vehicles?${params.toString()}`);
+      router.push(vehiclesHref(params));
     } catch {
       // La IA puede fallar (rate limit, timeout, etc.) — no dejar a la persona sin nada:
       // ofrecerle buscar el texto tal cual como palabra clave.

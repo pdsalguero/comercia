@@ -6,6 +6,10 @@ import { EditForm } from "./EditForm";
 import { isCategoryEnabled } from "@/lib/site-config";
 import { revalidateHome } from "@/lib/revalidate-home";
 import { listingUrl } from "@/lib/listing-url";
+import { getPrivatePatente, normalizeVehicleAttributes, savePrivatePatente, splitPrivateAttributes } from "@/lib/vehicle-attributes";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Editar aviso" };
 
 async function saveListing(id: string, formData: FormData): Promise<{ error?: string }> {
   "use server";
@@ -22,6 +26,10 @@ async function saveListing(id: string, formData: FormData): Promise<{ error?: st
   const attributesRaw = formData.get("attributes") as string;
   let attributes: Record<string, any> = {};
   try { attributes = JSON.parse(attributesRaw); } catch { /* ignore */ }
+  attributes = normalizeVehicleAttributes(attributes);
+  // La patente no queda en los atributos públicos salvo que el vendedor elija mostrarla
+  const { publicAttrs, patente } = splitPrivateAttributes(attributes);
+  attributes = publicAttrs;
 
   // Ubicación: solo se toca si el formulario la manda. Antes, para vehículos no venía el campo y
   // la localidad se guardaba vacía, borrándola del aviso en cada edición.
@@ -38,6 +46,7 @@ async function saveListing(id: string, formData: FormData): Promise<{ error?: st
     .single();
 
   if (error) return { error: error.message };
+  await savePrivatePatente(id, patente); // el update de arriba ya confirmó que el aviso es del usuario
   revalidatePath("/my-listings");
   revalidatePath(listingUrl(id, updated?.title ?? title));
   revalidateHome();
@@ -86,6 +95,12 @@ export default async function EditListingPage({ params, searchParams }: { params
     .single();
 
   if (!listing) notFound();
+
+  // Patente privada: solo el dueño la ve, en el formulario
+  const privatePatente = await getPrivatePatente(id);
+  if (privatePatente) {
+    listing.attributes = { ...((listing.attributes as Record<string, unknown>) ?? {}), patente: privatePatente };
+  }
 
   const images = ((listing.listing_images as any[]) ?? [])
     .sort((a, b) => a.position - b.position);
@@ -155,7 +170,7 @@ export default async function EditListingPage({ params, searchParams }: { params
               ⭐ Destacá este aviso y vendé más rápido
             </div>
             <div style={{ fontSize: "12px", color: "#b45309" }}>
-              Los avisos destacados reciben hasta 5× más visitas y aparecen primero en los resultados.
+              Los avisos destacados reciben hasta 5× más vistas y aparecen primero en los resultados.
             </div>
           </div>
           <Link href={`/upgrade?listing_id=${listing.id}`} style={{

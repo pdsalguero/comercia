@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { sendEmail } from '@/lib/email'
 import { listingPublishedTemplate } from '@/lib/emailTemplates'
 import { isCategoryEnabled } from '@/lib/site-config'
+import { normalizeVehicleAttributes, savePrivatePatente, splitPrivateAttributes } from '@/lib/vehicle-attributes'
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,11 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
     const body = await request.json()
+    // Combustible/transmisión sin tildes y modelo con el nombre del catálogo: así los filtros los encuentran.
+    body.attributes = normalizeVehicleAttributes(body.attributes)
+    // La patente va a listing_private salvo que el vendedor elija mostrarla (ver lib/vehicle-attributes)
+    const { publicAttrs, patente } = splitPrivateAttributes(body.attributes ?? {})
+    body.attributes = publicAttrs
 
     if (!isCategoryEnabled(Number(body.category_id))) {
       return NextResponse.json(
@@ -42,10 +48,12 @@ export async function POST(request: Request) {
         ai_price_max:   body.ai_price_max ?? null,
         ai_confidence:  body.ai_confidence ?? null,
       })
-      .select()
+      // Columnas explícitas: con la sesión del usuario no todas son legibles (fraud_*, removed_*, ai_*)
+      .select('id, title')
       .single()
 
     if (error) throw error
+    if (patente) await savePrivatePatente(listing.id, patente)
 
     // Save images if provided
     const imageList: string[] = body.images ?? body.image_urls ?? [];

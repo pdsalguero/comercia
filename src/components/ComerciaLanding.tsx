@@ -48,7 +48,7 @@ const FEATURES: FeatureCard[] = [
     icon: <TrendingUp size={28} />,
     title: "Máxima Visibilidad",
     description:
-      "Planes de destacado que ponen tu aviso frente a miles de compradores. Más visitas, más consultas, más ventas.",
+      "Planes de destacado que ponen tu aviso frente a miles de compradores. Más vistas, más consultas, más ventas.",
     highlight: "Destacado desde $699",
   },
 ];
@@ -56,7 +56,7 @@ const FEATURES: FeatureCard[] = [
 const SELLER_BENEFITS = [
   "Sacás la foto y el aviso se arma solo",
   "Precio sugerido basado en el mercado real",
-  "Estadísticas de visitas en tiempo real",
+  "Estadísticas de vistas en tiempo real",
   "Planes de destacado accesibles",
   "Sin comisiones por venta",
 ];

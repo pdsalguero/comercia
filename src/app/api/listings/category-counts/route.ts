@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       CATEGORY_IDS.map(async (id) => {
         let q = supabase
           .from("listings")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq("status", "active")
           .eq("category_id", id);
         if (province) q = (q as any).or(`city.ilike.%${province}%,neighborhood.ilike.%${province}%`);

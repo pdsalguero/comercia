@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PlanCards } from "@/components/upgrade/PlanCards";
+import { getOwnPrivateProfile } from "@/lib/supabase/admin-auth";
+import type { Metadata } from "next";
+
+// Requiere sesión y depende del aviso (?listing_id): no tiene sentido en buscadores.
+export const metadata: Metadata = {
+  title: "Destacá tu aviso",
+  description: "Elegí un plan para que tu aviso aparezca primero y reciba más consultas en CuyoRodados.",
+  robots: { index: false, follow: true },
+};
 
 export default async function UpgradePage({
   searchParams,
@@ -26,12 +35,9 @@ export default async function UpgradePage({
   }
 
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("free_destacado_credits")
-      .eq("id", user.id)
-      .single();
-    freeCredits = profile?.free_destacado_credits ?? 0;
+    // Créditos: columna privada, se lee con la clave de servicio solo para el propio usuario
+    const profile = await getOwnPrivateProfile(user.id, "free_destacado_credits");
+    freeCredits = Number(profile?.free_destacado_credits ?? 0);
   }
 
   return (

@@ -1,4 +1,6 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getOwnPrivateProfile } from '@/lib/supabase/admin-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Navbar } from '@/components/layout/Navbar'
@@ -6,6 +8,13 @@ import { Footer } from '@/components/layout/Footer'
 import { VerifyIdentityModal } from '@/components/auth/VerifyIdentityModal'
 
 export const dynamic = 'force-dynamic'
+
+// Panel del usuario (/dashboard/* y las rutas viejas del grupo: /my-listings, /messages, /favorites…):
+// privado, nunca en buscadores.
+export const metadata: Metadata = {
+  title: { default: 'Mi panel', template: '%s | Mi panel | CuyoRodados' },
+  robots: { index: false, follow: false },
+}
 
 const navItems = [
   { label: '🏠 Inicio',          href: '/dashboard' },
@@ -26,11 +35,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) redirect('/login')
 
   const [{ data: profile }, { count: unreadCount, error: unreadError }, { count: listingsCount }, { count: favoritesCount }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('username, full_name, avatar_url, is_pro, identity_verified, is_admin')
-      .eq('id', user.id)
-      .single(),
+    // is_admin es privado: se lee con la clave de servicio (ver lib/supabase/admin-auth)
+    getOwnPrivateProfile(user.id, 'username, full_name, avatar_url, is_pro, identity_verified, is_admin')
+      .then((data) => ({ data: data as { username: string | null; full_name: string | null; avatar_url: string | null; is_pro: boolean | null; identity_verified: boolean | null; is_admin: boolean | null } | null })),
     supabase
       .from('messages')
       .select('id', { count: 'exact', head: true })

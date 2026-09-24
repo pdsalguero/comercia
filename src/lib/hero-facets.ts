@@ -2,11 +2,11 @@
 // tienen avisos activos primero y su contador; los modelos con stock se calculan acá y el resto
 // del catálogo se pide al elegir la marca (/api/vehiculos/modelos).
 // Se ejecuta en el servidor: los listados de modelos (pesados) no viajan al navegador.
-import { CAR_BRANDS } from "@/lib/vehicle-data";
+import { brandLabel } from "@/lib/brand-label";
 import { CAMION_BRANDS_LIST } from "@/data/vehiculos";
 import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST } from "@/data/modelos-motos";
 import { MARCAS_CATALOGO } from "@/data/catalogo/marcas.generated";
-import { VEHICLE_TYPE_OPTIONS } from "@/lib/vehicle-types";
+import { VEHICLE_TYPE_OPTIONS } from "@/lib/labels";
 
 export type FacetOption = { value: string; label: string };
 /** `count` = avisos activos de esa marca (0 si es solo del catálogo). */
@@ -35,18 +35,6 @@ const CATALOG_BY_TYPE: Record<string, FacetOption[]> = {
   camion: CAMION_BRANDS_LIST,
 };
 
-const BRAND_LABELS = new Map<string, string>(
-  [...CAR_BRANDS, ...CAMION_BRANDS_LIST, ...MOTO_BRANDS_LIST, ...CUATRI_BRANDS_LIST, ...UTV_BRANDS_LIST].map(
-    (b) => [b.value, b.label]
-  )
-);
-
-export function brandLabel(value: string): string {
-  return (
-    BRAND_LABELS.get(value) ??
-    value.split(/[_-]/).filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-  );
-}
 
 const byLabel = (a: FacetOption, b: FacetOption) => a.label.localeCompare(b.label, "es");
 

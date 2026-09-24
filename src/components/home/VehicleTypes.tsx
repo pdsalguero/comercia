@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Car, CarFront, Motorbike, Bike, Mountain, Truck, Sailboat, Caravan, ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { FacetOption } from "@/lib/hero-facets";
+import { vehiclesHref } from "@/lib/vehicle-landing";
 
 // "Tipos de vehículo" — solo los tipos con stock, para no llevar a páginas vacías.
 const ICONS: Record<string, { Icon: LucideIcon; bg: string; fg: string }> = {
@@ -27,7 +28,7 @@ export function VehicleTypes({ types }: { types: FacetOption[] }) {
           return (
             <Link
               key={t.value}
-              href={`/category/vehicles?sub_category=${t.value}`}
+              href={vehiclesHref({ type: t.value })}
               className="home-tile"
               style={{ "--tile-bg": bg, "--tile-fg": fg } as React.CSSProperties}
             >

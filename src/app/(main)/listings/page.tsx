@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { RE_LOCATIONS } from "@/lib/re-locations";
+import { vehiclesHref } from "@/lib/vehicle-landing";
 
 // La única categoría habilitada es Vehículos (ver src/lib/site-config.ts), así que "todos los
 // avisos" y "vehículos" son exactamente el mismo listado. Esta ruta quedó de antes del rebrand
@@ -47,6 +48,5 @@ export default async function ListingsRedirectPage({
     if (key) params.set("v_province", key);
   }
 
-  const qs = params.toString();
-  redirect(`/category/vehicles${qs ? `?${qs}` : ""}`);
+  permanentRedirect(vehiclesHref(params));
 }

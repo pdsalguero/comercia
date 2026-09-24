@@ -3,19 +3,22 @@ import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { Store } from "lucide-react";
+import { absoluteUrl } from "@/lib/site-url";
 
+// Sin "verificados": todavía no hay un proceso para verificar tiendas (el sello store_verified solo se
+// muestra si alguien lo marca a mano).
 export const metadata: Metadata = {
-  title: "Concesionarias — Comprá autos y motos a vendedores verificados",
-  description: "Encontrá concesionarias y vendedores verificados en CuyoRodados. Autos, pickups y motos nuevos y usados de Mendoza, San Juan y San Luis.",
-  keywords: ["concesionarias argentina", "vendedores verificados", "autos usados concesionarias", "motos concesionarias", "comprar auto argentina"],
-  alternates: { canonical: "https://cuyorodados.com.ar/tiendas" },
+  title: "Concesionarias — Autos y motos de concesionarias de Cuyo",
+  description: "Encontrá concesionarias en CuyoRodados. Autos, pickups y motos nuevos y usados de Mendoza, San Juan y San Luis.",
+  keywords: ["concesionarias mendoza", "concesionarias san juan", "concesionarias san luis", "autos usados concesionarias", "motos concesionarias"],
+  alternates: { canonical: absoluteUrl("/tiendas") },
   openGraph: {
     title: "Concesionarias — CuyoRodados",
-    description: "Concesionarias y vendedores verificados de toda Argentina.",
-    url: "https://cuyorodados.com.ar/tiendas",
+    description: "Concesionarias de Mendoza, San Juan y San Luis.",
+    url: absoluteUrl("/tiendas"),
     type: "website",
   },
-  twitter: { card: "summary", title: "Concesionarias — CuyoRodados", description: "Concesionarias y vendedores verificados de Mendoza, San Juan y San Luis." },
+  twitter: { card: "summary", title: "Concesionarias — CuyoRodados", description: "Concesionarias de Mendoza, San Juan y San Luis." },
 };
 
 export const dynamic = "force-dynamic";

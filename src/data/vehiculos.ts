@@ -1,4 +1,5 @@
 import { MARCAS_CATALOGO } from "@/data/catalogo/marcas.generated";
+import { VEHICLE_TYPE_SINGULAR } from "@/lib/labels";
 
 // Brands from MLA Autos y Camionetas catalog (IDs from Mercado Libre)
 export const MARCAS_AUTOS: { id: string; name: string }[] = [
@@ -74,16 +75,9 @@ export const MARCAS_AUTOS: { id: string; name: string }[] = [
 ];
 
 /** Vehicle types used in the publication form */
-export const TIPOS_VEHICULO = [
-  { value: "auto",         label: "Auto" },
-  { value: "camioneta",    label: "Pickup / SUV / Utilitario" },
-  { value: "moto",         label: "Moto" },
-  { value: "cuatriciclo",  label: "Cuatriciclo" },
-  { value: "utv",          label: "Areneros/UTV" },
-  { value: "camion",       label: "Camión" },
-  { value: "nautica",      label: "Náutica" },
-  { value: "otro",         label: "Otro" },
-];
+export const TIPOS_VEHICULO = ["auto", "camioneta", "moto", "cuatriciclo", "utv", "camion", "nautica", "otro"].map(
+  (value) => ({ value, label: VEHICLE_TYPE_SINGULAR[value] })
+);
 
 /**
  * CAR_BRANDS slugs to show per vehicle tipo.

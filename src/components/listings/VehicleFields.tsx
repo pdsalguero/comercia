@@ -179,7 +179,7 @@ const SUB_CATS = [
   { value: "camioneta", label: "Pickup / SUV / Utilitario" },
   { value: "moto",        label: "Moto" },
   { value: "cuatriciclo", label: "Cuatriciclo" },
-  { value: "utv",         label: "Areneros/UTV" },
+  { value: "utv",         label: "Arenero / UTV" },
   { value: "camion", label: "Camión" },
   { value: "nautica", label: "Náutica" },
   { value: "plan-ahorro", label: "Plan de Ahorro" },
@@ -188,7 +188,7 @@ const SUB_CATS = [
 
 const FUEL_OPTS = [
   { value: "nafta", label: "Nafta" },
-  { value: "diesel", label: "Diesel" },
+  { value: "diesel", label: "Diésel" },
   { value: "gnc", label: "GNC" },
   { value: "glp", label: "GLP" },
   { value: "electrico", label: "Eléctrico" },

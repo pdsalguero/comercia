@@ -9,6 +9,7 @@ import type { User } from "@supabase/supabase-js";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { isCategorySlugEnabled } from "@/lib/site-config";
 import { VehicleNavMenu } from "@/components/layout/VehicleNavMenu";
+import { parseLandingPath } from "@/lib/vehicle-landing";
 import {
   Camera, Car, CarFront, Motorbike, Search, Menu, X, ChevronDown,
   LayoutDashboard, LayoutList, MessageSquare, Heart, Store, Settings, LogOut,
@@ -27,9 +28,9 @@ const ACCOUNT_LINKS = [
 // Accesos directos a los tipos de vehículo (los mismos de los tiles del home). Se usan mientras
 // hay una sola categoría habilitada: con más de una vuelve el desplegable "Categorías".
 const VEHICLE_LINKS = [
-  { label: "Autos",         tipo: "auto",      href: "/category/vehicles?sub_category=auto",      Icon: Car },
-  { label: "Pickups y SUV", tipo: "camioneta", href: "/category/vehicles?sub_category=camioneta", Icon: CarFront },
-  { label: "Motos",         tipo: "moto",      href: "/category/vehicles?sub_category=moto",      Icon: Motorbike },
+  { label: "Autos",         tipo: "auto",      href: "/autos",       Icon: Car },
+  { label: "Pickups y SUV", tipo: "camioneta", href: "/pickups-suv", Icon: CarFront },
+  { label: "Motos",         tipo: "moto",      href: "/motos",       Icon: Motorbike },
 ];
 
 interface Suggestion {
@@ -50,12 +51,15 @@ interface NavbarProps {
   loadUserOnClient?: boolean;
 }
 
-// En los resultados (/category/*) el buscador del header muestra el `q` actual. Va en un componente
+// Resultados: /category/* y las landings limpias (/motos, /autos/toyota…, ver lib/vehicle-landing).
+const isListingPath = (p: string) => p.startsWith("/category/") || !!parseLandingPath(p);
+
+// En los resultados el buscador del header muestra el `q` actual. Va en un componente
 // aparte dentro de <Suspense> porque useSearchParams lo exige en páginas estáticas (el home).
 function SyncSearchQuery({ onQuery }: { onQuery: (q: string) => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const q = pathname?.startsWith("/category/") ? searchParams.get("q") ?? "" : null;
+  const q = pathname && isListingPath(pathname) ? searchParams.get("q") ?? "" : null;
   useEffect(() => {
     if (q !== null) onQuery(q);
   }, [q, onQuery]);
@@ -182,7 +186,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
     setShowSuggestions(false);
     const q = query.trim();
     // Dentro de una categoría se busca ahí mismo conservando los filtros activos (tipo, marca, precio…)
-    if (typeof window !== "undefined" && window.location.pathname.startsWith("/category/")) {
+    if (typeof window !== "undefined" && isListingPath(window.location.pathname)) {
       const params = new URLSearchParams(window.location.search);
       params.delete("page");
       if (q) params.set("q", q); else params.delete("q");
@@ -190,7 +194,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
       router.push(`${window.location.pathname}${qs ? `?${qs}` : ""}`);
       return;
     }
-    if (q) router.push(`/listings?q=${encodeURIComponent(q)}`);
+    if (q) router.push(`/category/vehicles?q=${encodeURIComponent(q)}`);
   };
 
   const handleSignOut = async () => {

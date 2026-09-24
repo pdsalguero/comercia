@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { estimateTransferCosts, TRANSFER_RATES_AS_OF, type VehicleKind } from "@/lib/transfer-cost";
+import { dolarQuoteLabel } from "@/lib/dolar-label";
 
 interface Props {
   price: number;
@@ -7,6 +8,8 @@ interface Props {
   kind: VehicleKind;
   /** Venta del dólar oficial; necesaria si el aviso está en USD. */
   dolarVenta?: number | null;
+  /** Fecha de la cotización (dolarapi `fechaActualizacion`), para mostrarla junto al valor. */
+  dolarFecha?: string | null;
   /** Texto de ubicación del aviso: si nombra una provincia de Cuyo, esa fila se resalta. */
   location?: string | null;
 }
@@ -14,7 +17,7 @@ interface Props {
 const ars = (n: number) => `$ ${n.toLocaleString("es-AR")}`;
 
 // Costo estimado de transferir el vehículo del aviso en cada provincia de Cuyo.
-export function TransferCostCard({ price, currency, kind, dolarVenta, location }: Props) {
+export function TransferCostCard({ price, currency, kind, dolarVenta, dolarFecha, location }: Props) {
   const isUsd = currency === "USD";
   if (isUsd && !dolarVenta) return null;
   const priceArs = isUsd ? price * dolarVenta! : price;
@@ -57,7 +60,7 @@ export function TransferCostCard({ price, currency, kind, dolarVenta, location }
       </div>
 
       <p style={{ fontSize: "11.5px", color: "#94a3b8", margin: "10px 0 0", lineHeight: 1.5 }}>
-        Calculado sobre el precio publicado{isUsd ? ` (dólar oficial ${ars(Math.round(dolarVenta!))})` : ""}. El Registro y la provincia cobran
+        Calculado sobre el precio publicado{isUsd ? `, pasado a pesos con el ${dolarQuoteLabel(dolarVenta!, dolarFecha)}` : ""}. El Registro y la provincia cobran
         sobre el mayor entre ese precio y la{" "}
         <a href="https://www.dnrpa.gov.ar/valuacion/cons_valuacion.php" target="_blank" rel="noopener noreferrer" style={{ color: "#64748b" }}>
           valuación oficial

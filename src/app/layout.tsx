@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site-url";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
-const BASE = "https://cuyorodados.com.ar";
+const BASE = SITE_URL;
 
 const SUPABASE_ORIGIN = (() => {
   try {
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
     description: "Sacá una foto y publicá tu vehículo en 30 segundos. Gratis y sin comisiones.",
     images: [`${BASE}/og-image.jpg`],
   },
-  alternates: { canonical: BASE },
+  // Sin canonical acá: se hereda a toda página que no defina el suyo y las marcaba como copia del home.
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 

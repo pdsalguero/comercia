@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
 
 export default async function AdminUsuarios({
@@ -7,7 +7,8 @@ export default async function AdminUsuarios({
   searchParams: Promise<{ q?: string; filter?: string }>;
 }) {
   const { q, filter } = await searchParams;
-  const supabase = await createClient();
+  // Clave de servicio: el layout de /admin ya verificó que sea admin y acá se listan columnas privadas.
+  const supabase = createServiceClient();
 
   let query = supabase
     .from("profiles")

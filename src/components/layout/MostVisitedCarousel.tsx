@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { storageImg } from "@/lib/storage-image";
+import { listingUrl } from "@/lib/listing-url";
 import Link from "next/link";
 import PinIcon from "@/components/ui/PinIcon";
 
@@ -15,10 +16,6 @@ interface Item {
   cover: string | null;
 }
 
-const CONDITION_LABELS: Record<string, string> = {
-  new: "Nuevo", like_new: "Como nuevo", very_good: "Muy bueno",
-  good: "Bueno", fair: "Regular", for_parts: "Para repuestos",
-};
 
 export function MostVisitedCarousel({ items }: { items: Item[] }) {
   const [idx, setIdx] = useState(0);
@@ -54,11 +51,11 @@ export function MostVisitedCarousel({ items }: { items: Item[] }) {
       </div>
 
       {/* Card */}
-      <Link href={`/listings/${item.id}`} style={{ textDecoration: "none", display: "block" }}>
+      <Link href={listingUrl(item.id, item.title)} style={{ textDecoration: "none", display: "block" }}>
         {item.cover && (
           <div style={{ position: "relative", height: "130px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={storageImg(item.cover, 400)} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={storageImg(item.cover, 400)} alt={item.title} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
             <div style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.55)", borderRadius: "6px", padding: "2px 7px", display: "flex", alignItems: "center", gap: "4px" }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <span style={{ fontSize: "10px", fontWeight: 700, color: "#fff" }}>{item.view_count.toLocaleString("es-AR")}</span>

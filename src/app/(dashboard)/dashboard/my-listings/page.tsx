@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { ListingsGrid } from '@/components/dashboard/ListingCardActions'
 import { MyListingsSearch } from '@/components/dashboard/MyListingsSearch'
 import { MyListingsTable } from './MyListingsTable'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = { title: 'Mis avisos', description: 'Administrá, pausá y destacá tus avisos.' }
 import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
 
 async function updatePrice(id: string, price: number) {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { vehiclesHref } from "@/lib/vehicle-landing";
 
 type Brand = { value: string; label: string; count: number };
 
@@ -45,7 +46,7 @@ export function VehicleNavMenu({ label, href, tipo, className }: VehicleNavMenuP
 
   const withStock = (brands ?? []).filter((b) => b.count > 0);
   const others = (brands ?? []).filter((b) => b.count === 0);
-  const brandHref = (value: string) => `${href}&brand=${value}`;
+  const brandHref = (value: string) => vehiclesHref({ type: tipo, brand: value });
 
   const brandLink = (b: Brand) => (
     <Link

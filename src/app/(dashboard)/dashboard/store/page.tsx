@@ -6,7 +6,6 @@ import Link from "next/link";
 
 const STORE_TYPES = [
   { value: "particular",   label: "Vendedor particular" },
-  { value: "inmobiliaria", label: "Inmobiliaria" },
   { value: "automotora",   label: "Automotora / Concesionaria" },
 ];
 
@@ -273,7 +272,7 @@ export default function StorePage() {
               <input
                 type="text" value={storeWa}
                 onChange={e => setStoreWa(e.target.value)}
-                placeholder="Ej: 2646123456"
+                placeholder="Ej: 2640000000"
                 style={inputStyle}
               />
               <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>Sin espacios ni guiones. Solo números.</div>

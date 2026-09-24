@@ -5,6 +5,10 @@ import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
 import { formatListingPrice, favoriteStatus } from "@/lib/listing-display";
 import { listingUrl } from "@/lib/listing-url";
+import { conditionLabel } from "@/lib/labels";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Favoritos", description: "Los avisos que guardaste en CuyoRodados." };
 
 function CardLink({ href, children }: { href: string | null; children: React.ReactNode }) {
   if (!href) return <div style={{ display: "block" }}>{children}</div>;
@@ -16,11 +20,6 @@ function cover(listing: any): string | null {
   if (!imgs?.length) return null;
   return [...imgs].sort((a, b) => a.position - b.position)[0]?.url ?? null;
 }
-
-const CONDITION_LABELS: Record<string, string> = {
-  new: "Nuevo", like_new: "Como nuevo", very_good: "Muy bueno",
-  good: "Bueno", fair: "Regular",
-};
 
 export default async function FavoritesPage() {
   const supabase = await createClient();
@@ -152,7 +151,7 @@ export default async function FavoritesPage() {
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                       {listing.condition && (
                         <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: 600 }}>
-                          {CONDITION_LABELS[listing.condition] ?? listing.condition}
+                          {conditionLabel(listing.condition)}
                         </span>
                       )}
                       {listing.neighborhood && (

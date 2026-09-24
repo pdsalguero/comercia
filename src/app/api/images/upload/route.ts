@@ -27,7 +27,14 @@ export async function POST(request: Request) {
       .webp({ quality: WEBP_QUALITY })
       .toBuffer()
 
-    const fileName = `${user.id}/${listingId ?? 'temp'}/${Date.now()}.webp`
+    // Antes todo iba a `${user.id}/temp/…` y ese "temp" era la ubicación definitiva de las fotos de los
+    // avisos publicados (se suben antes de crear el aviso). Ya no se usa "temp" para que nadie agregue una
+    // limpieza de temporales que borre fotos en uso. Las fotos viejas quedan donde están.
+    // Carpeta pedida: el id del aviso (al editar) o "store-logo"/"store-banner" (tienda). Solo esos
+    // formatos, para que no se pueda escribir fuera de la carpeta del usuario.
+    const allowedFolder = /^([0-9a-f-]{36}|store-logo|store-banner)$/i
+    const folder = listingId && allowedFolder.test(listingId) ? listingId : `uploads/${new Date().toISOString().slice(0, 7)}`
+    const fileName = `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`
 
     const { data, error } = await supabase.storage
       .from('listing-images')

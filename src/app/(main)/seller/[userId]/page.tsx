@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { buildKeywordFilters } from "@/lib/search-query";
 import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
+import { plural, VEHICLE_TYPE_LABELS } from "@/lib/labels";
+import { absoluteUrl } from "@/lib/site-url";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -84,6 +87,34 @@ async function submitReview(
   return {};
 }
 
+// "Avisos de {nombre}": indexable solo si el vendedor tiene avisos activos. Las tiendas tienen su
+// propia página (/tienda/[slug]), que queda como canonical.
+export async function generateMetadata(
+  { params }: { params: Promise<{ userId: string }> }
+): Promise<Metadata> {
+  const { userId } = await params;
+  const { createPublicClient } = await import("@/lib/supabase/public");
+  const supabase = createPublicClient();
+  const [{ data: profile }, { count }] = await Promise.all([
+    supabase.from("profiles").select("full_name, is_store, store_name, store_slug").eq("id", userId).maybeSingle(),
+    supabase.from("listings").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "active"),
+  ]);
+  if (!profile) return { title: "Vendedor", robots: { index: false, follow: true } };
+  const name = ((profile.is_store ? profile.store_name : null) ?? profile.full_name ?? "Vendedor").trim();
+  const active = count ?? 0;
+  const canonical = profile.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`;
+  const description = active > 0
+    ? `${plural(active, "aviso", "avisos")} de ${name} en CuyoRodados: autos, camionetas y motos en Mendoza, San Juan y San Luis.`
+    : `Perfil de ${name} en CuyoRodados.`;
+  return {
+    title: `Avisos de ${name}`,
+    description,
+    alternates: { canonical: absoluteUrl(canonical) },
+    robots: active > 0 ? { index: true, follow: true } : { index: false, follow: true },
+    openGraph: { title: `Avisos de ${name} | CuyoRodados`, description, url: absoluteUrl(canonical), type: "profile" },
+  };
+}
+
 export default async function SellerPage({
   params,
   searchParams,
@@ -106,7 +137,7 @@ export default async function SellerPage({
   // Fetch seller profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_logo_url, store_banner_url, store_type, store_verified, store_whatsapp, store_description, phone, identity_verified, identity_verified_method")
+    .select("full_name, avatar_url, created_at, is_store, store_name, store_slug, store_logo_url, store_banner_url, store_type, store_verified, store_whatsapp, store_description, public_phone, show_phone, identity_verified, identity_verified_method")
     .eq("id", userId)
     .single();
 
@@ -143,9 +174,10 @@ export default async function SellerPage({
     : undefined;
   const canReview = !!currentUser && currentUser.id !== userId;
 
-  const canShowPhone = (profile as any).show_phone !== false; // default true until migration runs
+  // Antes no se pedía show_phone y el teléfono salía aunque el vendedor lo ocultara
+  const canShowPhone = profile.show_phone !== false;
   const whatsappNumber = canShowPhone
-    ? (profile.store_whatsapp ?? (profile as any).phone ?? null)
+    ? (profile.store_whatsapp ?? profile.public_phone ?? null)
     : null;
   const displayName = profile.is_store ? (profile.store_name ?? profile.full_name) : profile.full_name;
   const avatarUrl = profile.is_store ? (profile.store_logo_url ?? profile.avatar_url) : profile.avatar_url;
@@ -234,11 +266,6 @@ export default async function SellerPage({
     casa: "Casa", departamento: "Departamento", terreno: "Terreno / Lote",
     finca: "Finca / Campo", local: "Local / Oficina", galpon: "Galpón / Depósito",
     cochera: "Cochera", otro: "Otro",
-  };
-  const VEHICLE_TYPE_LABELS: Record<string, string> = {
-    auto: "Autos", camioneta: "Pickups / SUV / Utilitarios", moto: "Motos",
-    cuatriciclo: "Cuatriciclos", utv: "Areneros/UTV",
-    camion: "Camiones", nautica: "Náutica", otro: "Otros",
   };
 
   // Build subcatLabelMap using the same source as the listing detail page
@@ -356,7 +383,7 @@ export default async function SellerPage({
                 )}
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748b" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                  {(allSellerListings as any[])?.length ?? 0} publicaciones
+                  {plural((allSellerListings as any[])?.length ?? 0, "publicación", "publicaciones")}
                 </span>
                 {storeTypeLabel && (
                   <span style={{ fontSize: "12px", color: "#94a3b8" }}>{storeTypeLabel}</span>
@@ -637,7 +664,7 @@ export default async function SellerPage({
                     className="hover:shadow-sm transition-shadow">
                     <div style={{ width: "80px", height: "70px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: "#f0f4ff" }}>
                       {cover
-                        ? <img src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ? <img src={cover} alt={l.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
                       }
                     </div>

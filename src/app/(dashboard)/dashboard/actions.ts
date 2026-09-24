@@ -52,7 +52,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   ] = await Promise.all([
     supabase
       .from('listings')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'active'),
     supabase

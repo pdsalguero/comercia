@@ -1,6 +1,10 @@
 // Chips "Auto · Honda · Civic" que se muestran debajo del título en la vista en lista
 // (ListingListCard). Se comparte entre /listings, /category/[slug] y la home para que
 // las tres tengan el mismo diseño de fila — ver [[project-list-view-whitespace]].
+import { brandLabel } from "@/lib/brand-label";
+import { VEHICLE_TYPE_SHORT } from "@/lib/labels";
+import { vehiclesHref } from "@/lib/vehicle-landing";
+
 export interface BreadcrumbChip {
   label: string;
   variant?: "primary" | "secondary";
@@ -8,11 +12,7 @@ export interface BreadcrumbChip {
   href?: string;
 }
 
-const VEH_SUBCATS: Record<string, string> = {
-  auto: "Auto", camioneta: "Pickup/SUV", moto: "Moto",
-  cuatriciclo: "Cuatriciclo", utv: "UTV/Arenero",
-  camion: "Camión", nautica: "Náutica",
-};
+const VEH_SUBCATS = VEHICLE_TYPE_SHORT;
 const RE_OP: Record<string, string> = {
   venta: "Venta", alquiler: "Alquiler", "alquiler-temporal": "Alq. Temp.",
 };
@@ -29,33 +29,25 @@ function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 // category/[slug]/page.tsx (vista en lista), que arma sus propios hrefs con su `buildUrl` local.
 export function buildBreadcrumbs(
   attrs: Record<string, string | number | boolean | null> | undefined | null,
-  vehiclesBasePath = "/category/vehicles",
   realEstateBasePath = "/category/real-estate",
 ): BreadcrumbChip[] {
   if (!attrs) return [];
   const chips: BreadcrumbChip[] = [];
 
-  const brand = attrs.brand ? String(attrs.brand).toLowerCase() : null;
-  const model = attrs.model ? String(attrs.model) : null;
+  const type = attrs.sub_category ? String(attrs.sub_category) : undefined;
+  const brand = attrs.brand ? String(attrs.brand).toLowerCase() : undefined;
+  const model = attrs.model ? String(attrs.model) : undefined;
 
-  // Vehicles: sub_category > brand > model — cada chip filtra por ESE valor solo (no acumula).
-  if (attrs.sub_category) {
-    const val = String(attrs.sub_category);
-    chips.push({
-      label: VEH_SUBCATS[val] ?? cap(val),
-      variant: "primary",
-      href: `${vehiclesBasePath}?type=${encodeURIComponent(val)}`,
-    });
+  // Vehicles: tipo > marca > modelo. Marca y modelo van dentro del tipo, así el link cae en la URL
+  // limpia (/motos/benelli) y no mezcla modelos homónimos de otro fabricante o tipo.
+  if (type) {
+    chips.push({ label: VEH_SUBCATS[type] ?? cap(type), variant: "primary", href: vehiclesHref({ type }) });
   }
   if (brand) {
-    chips.push({ label: cap(brand), href: `${vehiclesBasePath}?brand=${encodeURIComponent(brand)}` });
+    chips.push({ label: brandLabel(brand), href: vehiclesHref({ type, brand }) });
   }
   if (model) {
-    // Modelo va con marca (si la hay) para no mezclar modelos homónimos de otro fabricante.
-    const p = new URLSearchParams();
-    if (brand) p.set("brand", brand);
-    p.set("model", model);
-    chips.push({ label: model, href: `${vehiclesBasePath}?${p.toString()}` });
+    chips.push({ label: model, href: vehiclesHref({ type, brand, model }) });
   }
 
   // Real estate: operation_type > property_type > bedrooms

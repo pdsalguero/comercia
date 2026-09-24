@@ -10,6 +10,8 @@ const GALLERY_HEIGHT = "min(420px, max(300px, 58vh))";
 
 export function GallerySection({ images, title }: { images: { url: string }[]; title: string }) {
   const [active, setActive] = useState(0);
+  // Texto alternativo de cada foto: "Toyota SW4 2019 – foto 2 de 8"
+  const photoAlt = (i: number) => (images.length > 1 ? `${title} – foto ${i + 1} de ${images.length}` : title);
   const [lightbox, setLightbox] = useState(false);
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -215,7 +217,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={storageImg(img.url, 150, 75, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={storageImg(img.url, 150, 75, 150)} alt={photoAlt(i)} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>
@@ -234,6 +236,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
           {/* Fondo borroso con la misma imagen */}
           <img
             src={images[active].url}
+            alt=""
             aria-hidden
             style={{
               position: "absolute", inset: 0, width: "100%", height: "100%",
@@ -244,7 +247,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
           {/* Imagen principal centrada encima */}
           <Image
             src={images[active].url}
-            alt={title}
+            alt={photoAlt(active)}
             fill
             style={{ objectFit: "contain" }}
             sizes="(max-width: 768px) 100vw, 700px"
@@ -392,7 +395,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
           >
             <img
               src={images[active].url}
-              alt={title}
+              alt={photoAlt(active)}
               draggable={false}
               style={{
                 maxWidth: "90vw",
@@ -444,7 +447,7 @@ export function GallerySection({ images, title }: { images: { url: string }[]; t
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={storageImg(img.url, 150, 75, 150)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={storageImg(img.url, 150, 75, 150)} alt={photoAlt(i)} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </button>
               ))}
             </div>

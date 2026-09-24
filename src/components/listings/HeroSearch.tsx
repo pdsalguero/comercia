@@ -7,10 +7,11 @@ import { useRouter } from "next/navigation";
 import { useHomeProvince } from "./HomeProvinceContext";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { VehicleFacets, BrandOption } from "@/lib/hero-facets";
-import { VEHICLE_TYPE_OPTIONS } from "@/lib/vehicle-types";
+import { VEHICLE_TYPE_OPTIONS } from "@/lib/labels";
 import { SmartSearchButton } from "./SmartSearchButton";
 import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
 import { sanitizeRangeParams } from "@/lib/listing-filters";
+import { vehiclesHref } from "@/lib/vehicle-landing";
 
 const PROVINCES = [
   "Buenos Aires","CABA","Catamarca","Chaco","Chubut","Córdoba",
@@ -164,8 +165,7 @@ export function HeroSearch({ facets, totalCount }: HeroSearchProps) {
     if (range.year_from) params.set("year_from", range.year_from);
     if (range.year_to) params.set("year_to", range.year_to);
     if (province) params.set("v_province", slugify(province));
-    const qs = params.toString();
-    router.push(`/category/vehicles${qs ? `?${qs}` : ""}`);
+    router.push(vehiclesHref(params));
   };
 
   const onEnter = (e: React.KeyboardEvent) => {

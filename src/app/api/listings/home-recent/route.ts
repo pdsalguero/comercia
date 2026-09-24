@@ -35,10 +35,10 @@ export async function GET(request: Request) {
     const userIds = [
       ...new Set((data ?? []).map((l: any) => l.user_id).filter(Boolean)),
     ] as string[];
-    let storeMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; phone: string | null; show_phone: boolean | null }> = {};
+    let storeMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; public_phone: string | null; show_phone: boolean | null }> = {};
     const [{ data: profiles }, priceDrops] = await Promise.all([
       userIds.length > 0
-        ? supabase.from("profiles").select("id, is_store, store_name, store_whatsapp, phone, show_phone").in("id", userIds)
+        ? supabase.from("profiles").select("id, is_store, store_name, store_whatsapp, public_phone, show_phone").in("id", userIds)
         : Promise.resolve({ data: [] as any[] }),
       getRecentPriceDrops(supabase, (data ?? []).map((l: any) => l.id)),
     ]);
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
         whatsapp_url: buildWhatsappUrl({
           showPhone: seller?.show_phone,
           storeWhatsapp: seller?.store_whatsapp,
-          phone: seller?.phone,
+          phone: seller?.public_phone,
           listingWhatsappOverride: l.attributes?.whatsapp_phone,
           listingTitle: l.title,
         }),

@@ -16,7 +16,10 @@ import { ReportButton } from "@/components/listings/ReportButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
 import { ContactButton } from "@/components/listings/ContactButton";
-import { brandLabel } from "@/lib/hero-facets";
+import { brandLabel } from "@/lib/brand-label";
+import { vehiclesHref } from "@/lib/vehicle-landing";
+import { absoluteUrl } from "@/lib/site-url";
+import { CONDITION_LABELS, VEHICLE_TYPE_LABELS, fuelLabel, transmissionLabel, plural, timeAgo } from "@/lib/labels";
 import { greetingName } from "@/lib/listing-display";
 import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
@@ -26,15 +29,6 @@ import { TransferCostCard } from "@/components/listings/TransferCostCard";
 import { PriceHistory, type PriceChange } from "@/components/listings/PriceHistory";
 import { getDolarOficial } from "@/lib/dolar";
 import { vehicleKind } from "@/lib/transfer-cost";
-
-const CONDITION_LABELS: Record<string, string> = {
-  new: "Nuevo / A estrenar",
-  like_new: "Como nuevo / Excelente",
-  very_good: "Muy bueno",
-  good: "Bueno",
-  fair: "Regular / A refaccionar",
-  for_parts: "Para repuestos",
-};
 
 const RE_OPERATION: Record<string, string> = {
   venta: "Venta",
@@ -69,23 +63,7 @@ const CATEGORY_SLUGS: Record<number, string> = {
   25: "toys", 26: "services",
 };
 
-const VEHICLE_TYPE_LABELS: Record<string, string> = {
-  auto: "Autos", camioneta: "Pickups / SUV / Utilitarios", moto: "Motos",
-  cuatriciclo: "Cuatriciclos", utv: "Areneros/UTV",
-  camion: "Camiones", nautica: "Náutica", otro: "Otros",
-};
-
 const TRACTION_LABELS: Record<string, string> = { "4x2": "4x2", "4x4": "4x4", awd: "AWD" };
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(mins / 60);
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `hace ${days} día${days > 1 ? "s" : ""}`;
-  if (hours > 0) return `hace ${hours} hora${hours > 1 ? "s" : ""}`;
-  return `hace ${mins} minuto${mins !== 1 ? "s" : ""}`;
-}
 
 function memberSince(dateStr: string) {
   return new Date(dateStr).getFullYear().toString();
@@ -102,27 +80,59 @@ function WhatsAppIcon() {
 
 type RelatedItem = { data: any[] | null };
 
-async function getRelated(currentId: string, categoryId: number, brand?: string, model?: string) {
+const RELATED_LIMIT = 10;
+
+// Relacionados, siempre del mismo tipo de vehículo (debajo de una SW4 no van motos). Orden:
+// mismo modelo → misma marca → precio parecido (±40 %, misma moneda) → resto del tipo.
+async function getRelated(
+  currentId: string,
+  categoryId: number,
+  attrs: Record<string, unknown>,
+  price: number | null,
+  currency: string | null,
+) {
   const { createPublicClient } = await import("@/lib/supabase/public");
   const supabase = createPublicClient();
   const SEL = `id, title, price, currency, neighborhood, attributes, listing_images(url, position)`;
-  const base = () => supabase.from("listings").select(SEL).eq("status", "active").neq("id", currentId);
+  const type = attrs.sub_category ? String(attrs.sub_category) : undefined;
+  const brand = attrs.brand ? String(attrs.brand) : undefined;
+  const model = attrs.model ? String(attrs.model) : undefined;
+  const base = () => {
+    const q = supabase.from("listings").select(SEL).eq("status", "active").eq("category_id", categoryId).neq("id", currentId);
+    return (type ? q.eq("attributes->>sub_category", type) : q) as any;
+  };
+  const none: Promise<RelatedItem> = Promise.resolve({ data: null });
 
-  const byModelQ: Promise<RelatedItem> = brand && model
-    ? (base() as any).eq("attributes->>brand", brand).eq("attributes->>model", model).limit(10)
-    : Promise.resolve({ data: null });
+  const tiers: Promise<RelatedItem>[] = [
+    brand && model ? base().eq("attributes->>brand", brand).ilike("attributes->>model", model).limit(RELATED_LIMIT) : none,
+    brand ? base().eq("attributes->>brand", brand).limit(RELATED_LIMIT) : none,
+    price && price > 0
+      ? base().eq("currency", currency ?? "ARS").gte("price", Math.floor(price * 0.6)).lte("price", Math.ceil(price * 1.4)).limit(RELATED_LIMIT)
+      : none,
+    base().order("created_at", { ascending: false }).limit(RELATED_LIMIT),
+  ];
+  const results = await Promise.all(tiers);
 
-  const byBrandQ: Promise<RelatedItem> = brand
-    ? (base() as any).eq("attributes->>brand", brand).limit(10)
-    : Promise.resolve({ data: null });
+  const items: NonNullable<RelatedItem["data"]> = [];
+  const seen = new Set<string>();
+  let topTier = -1;
+  results.forEach((r, tier) => {
+    for (const row of r.data ?? []) {
+      if (items.length >= RELATED_LIMIT || seen.has(row.id)) continue;
+      seen.add(row.id);
+      items.push(row);
+      if (topTier < 0) topTier = tier;
+    }
+  });
 
-  const byCatQ: Promise<RelatedItem> = base().eq("category_id", categoryId).limit(10) as any;
-
-  const [byModelRes, byBrandRes, byCatRes] = await Promise.all([byModelQ, byBrandQ, byCatQ]);
-
-  if (byModelRes.data?.length) return { items: byModelRes.data, label: `${brand} ${model}` };
-  if (byBrandRes.data?.length) return { items: byBrandRes.data, label: brand! };
-  return { items: byCatRes.data ?? [], label: "" };
+  // El título nombra lo que tienen en común todos los que se muestran.
+  const allFromTier = (tier: number) => items.every((it) => (results[tier].data ?? []).some((r: { id: string }) => r.id === it.id));
+  const label =
+    topTier === 0 && allFromTier(0) ? `${brandLabel(brand!)} ${model}`
+    : topTier <= 1 && brand && allFromTier(1) ? brandLabel(brand)
+    : type ? VEHICLE_TYPE_LABELS[type] ?? ""
+    : "";
+  return { items, label };
 }
 
 const getListing = cache(async function getListing(id: string) {
@@ -141,7 +151,7 @@ const getListing = cache(async function getListing(id: string) {
   const [{ data: profile }, { data: reviewStats }, { data: priceHistory }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, username, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, phone, identity_verified")
+      .select("full_name, username, avatar_url, created_at, is_store, store_name, store_slug, store_type, store_logo_url, store_verified, store_whatsapp, public_phone, show_phone, identity_verified")
       .eq("id", data.user_id)
       .single(),
     supabase
@@ -192,7 +202,7 @@ export async function generateMetadata(
     openGraph: {
       title: `${listing.title} — ${priceStr}`,
       description: desc,
-      url: `https://cuyorodados.com.ar${listingUrl(id, listing.title)}`,
+      url: absoluteUrl(listingUrl(id, listing.title)),
       ...(firstImage ? { images: [{ url: firstImage, width: 800, height: 600, alt: listing.title }] } : {}),
       type: "website",
     },
@@ -202,7 +212,7 @@ export async function generateMetadata(
       description: desc,
       ...(firstImage ? { images: [firstImage] } : {}),
     },
-    alternates: { canonical: `https://cuyorodados.com.ar${listingUrl(id, listing.title)}` },
+    alternates: { canonical: absoluteUrl(listingUrl(id, listing.title)) },
   };
 }
 
@@ -226,7 +236,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const needsDolar = listing.category_id === 2 && (listing as any).currency === "USD" && !!listing.price;
   const [{ data: { session } }, { items: related, label: relatedLabel }, dolar] = await Promise.all([
     authPromise,
-    getRelated(id, listing.category_id, attrs0.brand, attrs0.model),
+    getRelated(id, listing.category_id, attrs0, listing.price, (listing as any).currency),
     needsDolar ? getDolarOficial() : Promise.resolve(null),
   ]);
 
@@ -245,19 +255,21 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const currencySymbol = currency === "USD" ? "U$D" : "$";
 
   const vehicleSpecs = [
-    ["Marca",       attrs.brand],
+    ["Marca",       attrs.brand ? brandLabel(String(attrs.brand)) : null],
     ["Modelo",      attrs.model],
     ["Versión",     attrs.version],
     ["Carrocería",  bodyTypeLabel(attrs.sub_category, attrs.body_type)],
     ["Año",         attrs.year],
     ["Estado",      (listing as any).condition ? CONDITION_LABELS[(listing as any).condition] ?? (listing as any).condition : null],
     ["Kilometraje", attrs.km ? `${Number(attrs.km).toLocaleString("es-AR")} km` : null],
-    ["Combustible", attrs.fuel],
-    ["Transmisión", attrs.transmission],
+    ["Combustible", fuelLabel(attrs.fuel)],
+    ["Transmisión", transmissionLabel(attrs.transmission)],
     ["Tracción",    attrs.traction ? TRACTION_LABELS[attrs.traction] ?? attrs.traction : null],
     ["Puertas",     attrs.doors],
     ["Color",       attrs.color],
     ["Motor",       attrs.engine],
+    // Solo si el vendedor tildó "Mostrar patente"; si no, la patente ni siquiera está en attributes
+    ["Patente",     attrs.show_patente === true || attrs.show_patente === "true" ? attrs.patente : null],
   ].filter(([, v]) => v) as [string, string][];
 
   // Equipamiento — mismos 7 campos que carga el form de publicar (CAR_ONLY_FEATURES en
@@ -287,8 +299,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     : [
         attrs.year         && { icon: "📅", label: "Año",         value: String(attrs.year) },
         attrs.km           && { icon: "🛣️", label: "Kilometraje", value: `${Number(attrs.km).toLocaleString("es-AR")} km` },
-        attrs.fuel         && { icon: "⛽", label: "Combustible", value: attrs.fuel },
-        attrs.transmission && { icon: "⚙️", label: "Transmisión", value: attrs.transmission },
+        attrs.fuel         && { icon: "⛽", label: "Combustible", value: fuelLabel(attrs.fuel) },
+        attrs.transmission && { icon: "⚙️", label: "Transmisión", value: transmissionLabel(attrs.transmission) },
       ].filter(Boolean) as { icon: string; label: string; value: string }[];
 
   const realEstateSpecs = [
@@ -355,9 +367,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const tabLabel = isVehicle ? "Detalles del vehículo" : isRealEstate ? "Detalles del inmueble" : "Características";
 
   const whatsappUrl = buildWhatsappUrl({
-    showPhone: (profile as any)?.show_phone, // default true until migration runs
+    // Antes no se pedía show_phone y el teléfono se mostraba aunque el vendedor lo ocultara
+    showPhone: (profile as any)?.show_phone,
     storeWhatsapp: (profile as any)?.store_whatsapp,
-    phone: (profile as any)?.phone,
+    phone: (profile as any)?.public_phone,
     listingWhatsappOverride: attrs.whatsapp_phone as string | undefined,
     listingTitle: listing.title,
   });
@@ -380,7 +393,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     name: listing.title,
     description: listing.description ?? listing.title,
     image: images.map((i) => i.url),
-    url: `https://cuyorodados.com.ar/listings/${listing.id}`,
+    url: absoluteUrl(listingUrl(listing.id, listing.title)),
     ...(listing.price ? {
       offers: {
         "@type": "Offer",
@@ -473,7 +486,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {isVehicle && attrs.sub_category && (
                 <>
                   {sep}
-                  <Link href={`/category/${catSlug}?type=${encodeURIComponent(attrs.sub_category)}`} style={linkStyle}>
+                  <Link href={vehiclesHref({ type: attrs.sub_category })} style={linkStyle}>
                     {VEHICLE_TYPE_LABELS[attrs.sub_category] ?? String(attrs.sub_category)}
                   </Link>
                 </>
@@ -483,10 +496,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 <>
                   {sep}
                   <Link
-                    href={`/category/${catSlug}${attrs.sub_category ? `?type=${encodeURIComponent(attrs.sub_category)}&brand=${encodeURIComponent(attrs.brand)}` : `?brand=${encodeURIComponent(attrs.brand)}`}`}
-                    style={{ ...linkStyle, textTransform: "capitalize" }}
+                    href={vehiclesHref({ type: attrs.sub_category, brand: String(attrs.brand).toLowerCase() })}
+                    style={linkStyle}
                   >
-                    {String(attrs.brand).replace(/_/g, " ")}
+                    {brandLabel(String(attrs.brand))}
                   </Link>
                 </>
               )}
@@ -495,7 +508,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 <>
                   {sep}
                   <Link
-                    href={`/category/${catSlug}${attrs.sub_category ? `?type=${encodeURIComponent(attrs.sub_category)}` : ""}${attrs.brand ? `&brand=${encodeURIComponent(attrs.brand)}` : ""}${attrs.model ? `&model=${encodeURIComponent(attrs.model)}` : ""}`}
+                    href={vehiclesHref({ type: attrs.sub_category, brand: attrs.brand ? String(attrs.brand).toLowerCase() : undefined, model: String(attrs.model) })}
                     style={{ ...linkStyle, textTransform: "capitalize" }}
                   >
                     {String(attrs.model)}
@@ -611,6 +624,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 currency={currency}
                 kind={vehicleKind(attrs.sub_category)}
                 dolarVenta={dolar?.venta ?? null}
+                dolarFecha={dolar?.fechaActualizacion ?? null}
                 location={listing.neighborhood}
               />
             ) : null}
@@ -645,7 +659,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
-                    {(listing.view_count ?? 0).toLocaleString("es-AR")} visitas
+                    {plural(listing.view_count ?? 0, "vista", "vistas")}
                   </span>
                 </div>
                 {(() => {
@@ -901,7 +915,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 const thumb = rImgs[0]?.url;
                 // Show vehicle-specific OR generic meta
                 const metaParts = rAttrs.year
-                  ? [rAttrs.year, rAttrs.km ? `${Number(rAttrs.km).toLocaleString("es-AR")} km` : null, rAttrs.transmission].filter(Boolean)
+                  ? [rAttrs.year, rAttrs.km ? `${Number(rAttrs.km).toLocaleString("es-AR")} km` : null, transmissionLabel(rAttrs.transmission)].filter(Boolean)
                   : [rAttrs.storage, rAttrs.ram, rAttrs.condition].filter(Boolean);
                 return (
                   <Link

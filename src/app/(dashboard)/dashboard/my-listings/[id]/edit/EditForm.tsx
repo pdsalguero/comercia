@@ -11,36 +11,18 @@ import { bodyTypeOptions } from "@/lib/vehicle-body-types";
 import { CAMION_BRANDS_LIST } from "@/data/vehiculos";
 import { ARGENTINA_PROVINCES, LOCALITIES_BY_PROVINCE, splitListingLocation } from "@/lib/ar-locations";
 import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
+import { CONDITION_OPTIONS, FUEL_OPTIONS, TRANSMISSION_OPTIONS, normalizeSpecValue } from "@/lib/labels";
+import { canonicalModel } from "@/lib/model-normalize";
 
-const CONDITIONS = [
-  { value: "new",       label: "Nuevo / A estrenar" },
-  { value: "like_new",  label: "Como nuevo / Excelente" },
-  { value: "very_good", label: "Muy bueno" },
-  { value: "good",      label: "Bueno" },
-  { value: "fair",      label: "Regular / A refaccionar" },
-  { value: "for_parts", label: "Para repuestos" },
-];
+const CONDITIONS = CONDITION_OPTIONS;
 
 const CURRENCIES = [
   { value: "ARS", label: "$ ARS" },
   { value: "USD", label: "U$S USD" },
 ];
 
-
-const FUELS = [
-  { value: "nafta",      label: "Nafta" },
-  { value: "diesel",     label: "Diésel" },
-  { value: "gnc",        label: "GNC" },
-  { value: "nafta+gnc",  label: "Nafta + GNC" },
-  { value: "electrico",  label: "Eléctrico" },
-  { value: "hibrido",    label: "Híbrido" },
-  { value: "glp",        label: "GLP" },
-];
-const TRANSMISIONS = [
-  { value: "manual",     label: "Manual" },
-  { value: "automatica", label: "Automática" },
-  { value: "cvt",        label: "CVT" },
-];
+const FUELS = FUEL_OPTIONS;
+const TRANSMISIONS = TRANSMISSION_OPTIONS;
 const TRACCIONES = [
   { value: "4x2", label: "4x2" },
   { value: "4x4", label: "4x4" },
@@ -506,19 +488,29 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                 <label style={lbl}>Modelo <span style={{ color: "#dc2626" }}>*</span></label>
                 {loadingModelos ? (
                   <div style={{ padding: "9px 12px", fontSize: "13px", color: "#94a3b8", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}>Cargando modelos...</div>
-                ) : modelosML.length > 0 ? (
-                  <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
-                    <option value="">Seleccionar...</option>
-                    {withCurrent([...modelosML, "Otro"].map(m => ({ value: m, label: m })), attrs.model).map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                  </select>
-                ) : vehicleModels.length > 0 ? (
-                  <select value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} style={sel}>
-                    <option value="">Seleccionar...</option>
-                    {withCurrent([...vehicleModels, "Otro"].map(m => ({ value: m, label: m })), attrs.model).map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                  </select>
-                ) : (
-                  <input value={attrs.model ?? ""} onChange={e => setAttr("model", e.target.value)} placeholder="Up!, Hilux, Corolla..." style={inp} />
-                )}
+                ) : (() => {
+                  // Texto libre con sugerencias del catálogo, igual que al publicar (ver lib/model-normalize).
+                  const modelOptions = modelosML.length > 0 ? modelosML : vehicleModels;
+                  return (<>
+                    <input
+                      list={modelOptions.length > 0 ? "edit-model-options" : undefined}
+                      autoComplete="off"
+                      value={attrs.model ?? ""}
+                      onChange={e => setAttr("model", e.target.value)}
+                      onBlur={() => {
+                        const canon = canonicalModel(attrs.model, modelOptions);
+                        if (canon !== (attrs.model ?? "")) setAttr("model", canon);
+                      }}
+                      placeholder={modelOptions.length > 0 ? "Escribí o elegí de la lista" : "Up!, Hilux, Corolla..."}
+                      style={inp}
+                    />
+                    {modelOptions.length > 0 && (
+                      <datalist id="edit-model-options">
+                        {modelOptions.map(m => <option key={m} value={m} />)}
+                      </datalist>
+                    )}
+                  </>);
+                })()}
               </div>
             </>) : null}
 
@@ -618,18 +610,18 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
                   {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
                     <div>
                       <label style={lbl}>Combustible</label>
-                      <select value={attrs.fuel ?? ""} onChange={e => setAttr("fuel", e.target.value)} style={sel}>
+                      <select value={normalizeSpecValue("fuel", attrs.fuel)} onChange={e => setAttr("fuel", e.target.value)} style={sel}>
                         <option value="">Seleccionar...</option>
-                        {withCurrent(FUELS, attrs.fuel).map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                        {withCurrent(FUELS, normalizeSpecValue("fuel", attrs.fuel)).map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
                       </select>
                     </div>
                   )}
                   {!["moto", "cuatriciclo", "utv"].includes(attrs.sub_category ?? "") && (
                     <div>
                       <label style={lbl}>Transmisión</label>
-                      <select value={attrs.transmission ?? ""} onChange={e => setAttr("transmission", e.target.value)} style={sel}>
+                      <select value={normalizeSpecValue("transmission", attrs.transmission)} onChange={e => setAttr("transmission", e.target.value)} style={sel}>
                         <option value="">Seleccionar...</option>
-                        {withCurrent(TRANSMISIONS, attrs.transmission).map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        {withCurrent(TRANSMISIONS, normalizeSpecValue("transmission", attrs.transmission)).map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                       </select>
                     </div>
                   )}

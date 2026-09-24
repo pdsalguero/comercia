@@ -5,6 +5,10 @@ import { getDashboardStats, getWeeklyViews, getSmartRecommendations, getListingS
 import { WeeklyChart } from '@/components/dashboard/WeeklyChart'
 import { DashboardRefresher } from '@/components/dashboard/DashboardRefresher'
 import { getDolarOficial } from '@/lib/dolar'
+import { plural } from '@/lib/labels'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = { title: 'Resumen', description: 'Tus avisos, vistas y mensajes en CuyoRodados.' }
 import type { Recommendation, TopListing, ListingSummary } from './actions'
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
@@ -327,7 +331,7 @@ export default async function DashboardPage() {
             </h1>
             <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
               {stats.activeListings > 0
-                ? `Tenés ${stats.activeListings} aviso${stats.activeListings !== 1 ? 's' : ''} activo${stats.activeListings !== 1 ? 's' : ''} y ${weekTotal} vistas esta semana.`
+                ? `Tenés ${plural(stats.activeListings, 'aviso activo', 'avisos activos')} y ${plural(weekTotal, 'vista', 'vistas')} esta semana.`
                 : 'Publicá tu primer aviso en 30 segundos, solo con una foto.'}
             </p>
           </div>
@@ -363,7 +367,7 @@ export default async function DashboardPage() {
                   Vistas esta semana
                 </h2>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                  {weekTotal} vistas en los últimos 7 días
+                  {plural(weekTotal, 'vista', 'vistas')} en los últimos 7 días
                 </p>
               </div>
             </div>

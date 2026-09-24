@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+// Ingreso, registro y recuperación de contraseña: no aportan nada en buscadores.
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{

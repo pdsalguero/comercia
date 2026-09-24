@@ -1,9 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export default async function AdminDashboard() {
-  const supabase = await createClient();
-  const service  = createServiceClient();
+  // Clave de servicio: el acceso ya lo controla el layout de /admin, y los conteos filtran por columnas
+  // privadas de profiles (is_blocked) que la sesión del usuario no puede leer.
+  const supabase = createServiceClient();
+  const service  = supabase;
 
   const todayStart = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 

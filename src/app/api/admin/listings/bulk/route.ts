@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidateHome } from "@/lib/revalidate-home";
+import { requireAdmin } from "@/lib/supabase/admin-auth";
 
 export async function POST(req: NextRequest) {
-  const { ids, action, reason } = await req.json();
+  // Usa la clave de servicio: sin esta verificación cualquiera podía dar de baja cualquier aviso.
+  if (!(await requireAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
+  const { ids, action } = await req.json();
   if (!ids?.length || !action) return NextResponse.json({ error: "Faltan parámetros" }, { status: 400 });
 
   const supabase = createServiceClient();

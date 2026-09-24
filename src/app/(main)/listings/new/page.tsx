@@ -12,11 +12,13 @@ import { TIPOS_VEHICULO, MARCAS_POR_TIPO, NAUTICA_CATEGORIAS, OTROS_VEHICULOS_CA
 import { MOTO_BRANDS_LIST, CUATRI_BRANDS_LIST, UTV_BRANDS_LIST, MOTO_SUBTIPOS } from "@/data/modelos-motos";
 import { bodyTypeOptions } from "@/lib/vehicle-body-types";
 import { ARGENTINA_PROVINCES, LOCALITIES_BY_PROVINCE } from "@/lib/ar-locations";
-import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
+import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince, sortProvinces } from "@/lib/region";
 import { PropertyLocation } from "@/components/listings/PropertyLocation";
 import { ENABLED_CATEGORY_IDS } from "@/lib/site-config";
 import { Dialog } from "@/components/ui/Dialog";
 import { parsePriceInput } from "@/lib/price-input";
+import { CONDITION_OPTIONS, FUEL_OPTIONS, TRANSMISSION_OPTIONS, normalizeSpecValue, plural } from "@/lib/labels";
+import { canonicalModel } from "@/lib/model-normalize";
 
 // ─── Types ──────────────────────────────────────────────────────
 type Step = "upload" | "analyzing" | "form" | "publishing" | "promo" | "done";
@@ -30,26 +32,8 @@ interface PriceData {
 }
 
 // ─── Constants ─────────────────────────────────────────────────
-const CONDITIONS = [
-  { value: "new", label: "Nuevo" },
-  { value: "like_new", label: "Como nuevo" },
-  { value: "very_good", label: "Muy bueno" },
-  { value: "good", label: "Bueno" },
-  { value: "fair", label: "Regular" },
-  { value: "for_parts", label: "Para repuestos" },
-];
+const CONDITIONS = CONDITION_OPTIONS;
 
-
-const FUELS = [
-  "Nafta",
-  "Diésel",
-  "GNC",
-  "Nafta + GNC",
-  "Eléctrico",
-  "Híbrido",
-  "GLP",
-];
-const TRANSMISIONS = ["Manual", "Automática", "CVT"];
 const TRACCIONES = [
   { value: "4x2", label: "4x2" },
   { value: "4x4", label: "4x4" },
@@ -295,6 +279,7 @@ function FocusInp({
   style,
   type,
   onChange,
+  onBlur,
   ...rest
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   const [focused, setFocused] = useState(false);
@@ -316,7 +301,7 @@ function FocusInp({
       onChange={handleChange}
       autoCapitalize="sentences"
       onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onBlur={(e) => { setFocused(false); onBlur?.(e); }}
       style={{
         ...T.inp,
         ...(focused
@@ -1599,11 +1584,9 @@ export default function NewListingPage() {
                         : "pending"
                   }
                   label={
-                    photos.length >= 3
-                      ? `${photos.length} fotos`
-                      : photos.length > 0
-                        ? `${photos.length} foto`
-                        : "sin fotos"
+                    photos.length > 0
+                      ? plural(photos.length, "foto", "fotos")
+                      : "sin fotos"
                   }
                 />
               </div>
@@ -1983,7 +1966,7 @@ export default function NewListingPage() {
               <div style={T.cardHead}>
                 <CardTitle
                   icon={catConfig?.icon ?? "📋"}
-                  label={`03 · Detalles ${catConfig?.name?.toLowerCase() ?? "del artículo"}`}
+                  label="03 · Detalles del vehículo"
                 />
                 <Badge
                   status={(() => {
@@ -2226,7 +2209,8 @@ export default function NewListingPage() {
                         </FocusSel>
                       </Field>
 
-                      {/* Modelo — ML models → static fallback → free text */}
+                      {/* Modelo: texto libre con sugerencias del catálogo de la marca. Si lo escrito coincide
+                          con un modelo conocido se reemplaza por el nombre del catálogo (ver lib/model-normalize). */}
                       <Field label="Modelo" required>
                         {loadingModelos ? (
                           <div style={{
@@ -2235,35 +2219,27 @@ export default function NewListingPage() {
                           }}>
                             Cargando modelos...
                           </div>
-                        ) : modelosML.length > 0 && (!attrs.model || modelosML.includes(attrs.model as string) || attrs.model === "Otro") ? (
-                          <FocusSel
-                            value={attrs.model ?? ""}
-                            onChange={(e) => handleAttr("model", e.target.value)}
-                          >
-                            <option value="">Seleccionar...</option>
-                            {modelosML.map((m) => (
-                              <option key={m} value={m}>{m}</option>
-                            ))}
-                            <option value="Otro">Otro</option>
-                          </FocusSel>
-                        ) : !["auto", "camioneta", "moto", "cuatriciclo", "utv", "camion"].includes(attrs.sub_category ?? "") && vehicleModels.length > 0 ? (
-                          <FocusSel
-                            value={attrs.model ?? ""}
-                            onChange={(e) => handleAttr("model", e.target.value)}
-                          >
-                            <option value="">Seleccionar...</option>
-                            {vehicleModels.map((m) => (
-                              <option key={m} value={m}>{m}</option>
-                            ))}
-                            <option value="Otro">Otro</option>
-                          </FocusSel>
-                        ) : (
-                          <FocusInp
-                            value={attrs.model ?? ""}
-                            onChange={(e) => handleAttr("model", e.target.value)}
-                            placeholder="Up!, Hilux, Corolla..."
-                          />
-                        )}
+                        ) : (() => {
+                          const modelOptions = modelosML.length > 0 ? modelosML : vehicleModels;
+                          return (<>
+                            <FocusInp
+                              list={modelOptions.length > 0 ? "publish-model-options" : undefined}
+                              autoComplete="off"
+                              value={attrs.model ?? ""}
+                              onChange={(e) => handleAttr("model", e.target.value)}
+                              onBlur={() => {
+                                const canon = canonicalModel(attrs.model, modelOptions);
+                                if (canon !== (attrs.model ?? "")) handleAttr("model", canon);
+                              }}
+                              placeholder={modelOptions.length > 0 ? "Escribí o elegí de la lista" : "Up!, Hilux, Corolla..."}
+                            />
+                            {modelOptions.length > 0 && (
+                              <datalist id="publish-model-options">
+                                {modelOptions.map((m) => <option key={m} value={m} />)}
+                              </datalist>
+                            )}
+                          </>);
+                        })()}
                       </Field>
                       </>)}
 
@@ -2336,15 +2312,16 @@ export default function NewListingPage() {
                           son filtros del listado y se muestran en las tarjetas. No aplican a motos. */}
                       {!!attrs.sub_category && !["moto", "cuatriciclo", "utv", "nautica", "otro"].includes(attrs.sub_category) && (<>
                         <Field label="Combustible">
-                          <FocusSel value={attrs.fuel ?? ""} onChange={(e) => handleAttr("fuel", e.target.value)}>
+                          {/* El valor se normaliza: la IA o un borrador viejo pueden traer "Diésel" o "automática". */}
+                          <FocusSel value={normalizeSpecValue("fuel", attrs.fuel)} onChange={(e) => handleAttr("fuel", e.target.value)}>
                             <option value="">Seleccionar...</option>
-                            {FUELS.map((f) => <option key={f} value={f.toLowerCase()}>{f}</option>)}
+                            {FUEL_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                           </FocusSel>
                         </Field>
                         <Field label="Transmisión">
-                          <FocusSel value={attrs.transmission ?? ""} onChange={(e) => handleAttr("transmission", e.target.value)}>
+                          <FocusSel value={normalizeSpecValue("transmission", attrs.transmission)} onChange={(e) => handleAttr("transmission", e.target.value)}>
                             <option value="">Seleccionar...</option>
-                            {TRANSMISIONS.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                            {TRANSMISSION_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                           </FocusSel>
                         </Field>
                       </>)}
@@ -2827,7 +2804,7 @@ export default function NewListingPage() {
                       <Field label="Provincia" required>
                         <FocusSel value={zone} onChange={(e) => { setZone(e.target.value); setLocality(""); }}>
                           <option value="">Seleccioná...</option>
-                          {ARGENTINA_PROVINCES.map((p) => (
+                          {sortProvinces(ARGENTINA_PROVINCES, (p) => p).map((p) => (
                             <option key={p} value={p}>{p}</option>
                           ))}
                         </FocusSel>
@@ -2905,7 +2882,7 @@ export default function NewListingPage() {
                         <Field label="Provincia" required>
                           <FocusSel value={zone} onChange={(e) => { setZone(e.target.value); setLocality(""); }}>
                             <option value="">Seleccioná...</option>
-                            {ARGENTINA_PROVINCES.map((p) => (
+                            {sortProvinces(ARGENTINA_PROVINCES, (p) => p).map((p) => (
                               <option key={p} value={p}>{p}</option>
                             ))}
                           </FocusSel>
@@ -3199,9 +3176,10 @@ export default function NewListingPage() {
                 <div style={{ padding: "0 16px 16px" }}>
                   <button
                     type="button"
-                    onClick={async () => {
-                      if (doneId) await fetch(`/api/listings/${doneId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ featured_level: plan.key }) });
-                      setStep("done");
+                    onClick={() => {
+                      // Destacar pasa por /upgrade (pago o crédito). Antes esto llamaba a una ruta que
+                      // ponía el nivel destacado sin cobrar; esa ruta se borró.
+                      router.push(doneId ? `/upgrade?listing_id=${doneId}` : "/upgrade");
                     }}
                     style={{
                       width: "100%", background: plan.gradient, color: "#fff",

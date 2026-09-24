@@ -86,7 +86,7 @@ export function listingPublishedTemplate({ userName, listingTitle, listingUrl }:
       <div class="tip"><span>📸</span><span>Agregá más fotos desde distintos ángulos — los avisos con +5 fotos reciben 3× más consultas.</span></div>
       <div class="tip"><span>✏️</span><span>Describí el estado, marca y modelo con detalle. Cuanta más info, más confianza genera.</span></div>
       <div class="tip"><span>💬</span><span>Respondé las consultas rápido — los compradores contactan al primero que responde.</span></div>
-      <div class="tip"><span>⭐</span><span>Destacá tu aviso para aparecer primero en los resultados y recibir 5× más visitas.</span></div>
+      <div class="tip"><span>⭐</span><span>Destacá tu aviso para aparecer primero en los resultados y recibir 5× más vistas.</span></div>
     </div>
 
     <p class="text" style="font-size:13px; color:#94a3b8;">Si necesitás editar o pausar tu aviso, podés hacerlo desde <a href="https://cuyorodados.com.ar/dashboard/my-listings" style="color:#1E5BA8;">Mis avisos</a>.</p>
@@ -155,7 +155,7 @@ export function welcomeEmailTemplate(userName: string): {
 
     <!-- CTA secundario -->
     <p style="text-align:center; margin:0 0 32px;">
-      <a href="https://cuyorodados.com.ar/listings" style="font-size:13px; color:#1E5BA8; text-decoration:none;">O primero explorá qué están vendiendo cerca tuyo →</a>
+      <a href="https://cuyorodados.com.ar/category/vehicles" style="font-size:13px; color:#1E5BA8; text-decoration:none;">O primero explorá qué están vendiendo cerca tuyo →</a>
     </p>
 
     <p class="text" style="font-size:13px; color:#94a3b8; text-align:center; margin:0;">¿Tenés alguna duda? Escribinos a <a href="mailto:contacto@cuyorodados.com.ar" style="color:#1E5BA8;">contacto@cuyorodados.com.ar</a> — respondemos en menos de 24 hs.</p>

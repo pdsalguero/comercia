@@ -9,7 +9,7 @@ import PinIcon from "@/components/ui/PinIcon";
 import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
 import { listingUrl } from "@/lib/listing-url";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
-import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/vehicle-specs";
+import { fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, timeAgo } from "@/lib/labels";
 
 interface ListingCardProps {
   id: string;
@@ -36,20 +36,6 @@ interface ListingCardProps {
   photos?: string[] | null;
   /** Porcentaje de la última baja de precio, si fue reciente (ver lib/price-drops.ts). */
   priceDropPct?: number | null;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return "hace un momento";
-  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
-  const days = Math.floor(diff / 86400);
-  if (days === 1) return "hace 1 día";
-  if (days < 30) return `hace ${days} días`;
-  const months = Math.floor(days / 30);
-  if (months === 1) return "hace 1 mes";
-  if (months < 12) return `hace ${months} meses`;
-  return `hace ${Math.floor(months / 12)} años`;
 }
 
 function isToday(dateStr: string) {
@@ -97,8 +83,8 @@ export function ListingCard({
   const km = attributes?.mileage ?? attributes?.km;
   const hasVehicleMeta = year || km;
   const isVehicle = !!attributes?.sub_category;
-  const fuelLabel = isVehicle ? FUEL_LABELS[String(attributes?.fuel ?? "")] : undefined;
-  const transmissionLabel = isVehicle ? TRANSMISSION_LABELS[String(attributes?.transmission ?? "")] : undefined;
+  const fuelLabel = isVehicle ? toFuelLabel(attributes?.fuel) || undefined : undefined;
+  const transmissionLabel = isVehicle ? toTransmissionLabel(attributes?.transmission) || undefined : undefined;
 
   // Generic meta: brand · model | storage / capacity / volume
   // For vehicles, brand/model is already in the title — don't duplicate
@@ -165,7 +151,7 @@ export function ListingCard({
               <img
                 src={storageImg(activePhoto, 480, 75, 360)}
                 onError={fallbackToOriginal(activePhoto)}
-                alt={title}
+                alt={gallery.length > 1 ? `${title} – foto ${photoIndex + 1} de ${gallery.length}` : title}
                 loading={priority ? "eager" : "lazy"}
                 decoding="async"
                 style={{ position: "relative", width: "100%", height: "100%", objectFit: "contain" }}

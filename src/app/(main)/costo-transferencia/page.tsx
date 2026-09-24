@@ -48,7 +48,7 @@ export default async function CostoTransferenciaPage() {
       </div>
 
       <div style={S.card}>
-        <TransferCalculator dolarVenta={dolar?.venta ?? null} />
+        <TransferCalculator dolarVenta={dolar?.venta ?? null} dolarFecha={dolar?.fechaActualizacion ?? null} />
         <p style={{ fontSize: "12px", color: "#94a3b8", margin: "14px 0 0", lineHeight: 1.5 }}>
           Es un estimado. Alícuotas vigentes a {TRANSFER_RATES_AS_OF}.
         </p>

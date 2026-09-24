@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { estimateTransferCosts, type VehicleKind } from "@/lib/transfer-cost";
+import { dolarQuoteLabel } from "@/lib/dolar-label";
 
 const ars = (n: number) => `$ ${n.toLocaleString("es-AR")}`;
 
@@ -30,7 +31,7 @@ function Toggle<T extends string>({ value, options, onChange }: { value: T; opti
   );
 }
 
-export function TransferCalculator({ dolarVenta }: { dolarVenta: number | null }) {
+export function TransferCalculator({ dolarVenta, dolarFecha }: { dolarVenta: number | null; dolarFecha?: string | null }) {
   const [raw, setRaw] = useState("15.000.000");
   const [currency, setCurrency] = useState<"ARS" | "USD">("ARS");
   const [kind, setKind] = useState<VehicleKind>("auto");
@@ -62,7 +63,7 @@ export function TransferCalculator({ dolarVenta }: { dolarVenta: number | null }
 
       {currency === "USD" && dolarVenta && (
         <div style={{ fontSize: "12px", color: "#64748b", marginTop: "6px" }}>
-          Convertido con el dólar oficial: {ars(Math.round(dolarVenta))} ({ars(Math.round(priceArs))}).
+          Equivale a {ars(Math.round(priceArs))}, convertido con el {dolarQuoteLabel(dolarVenta, dolarFecha)}.
         </div>
       )}
       {usdUnavailable && (

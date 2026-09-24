@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince } from "@/lib/region";
+import { FOCUS_PROVINCES, FOCUS_REGION_LABEL, isFocusProvince, sortProvinces } from "@/lib/region";
 
 export interface ProvinceOption {
   value: string;
@@ -38,8 +38,8 @@ export function ProvinceSelectNav({ options, value, paramName, clearParam, baseP
 
   const activeLabel = options.find(o => o.value === value)?.label;
   // Solo agrupa cuando son provincias (el mismo componente se usa también para localidades).
-  const focusOptions = options.filter(o => isFocusProvince(o.label));
-  const otherOptions = options.filter(o => !isFocusProvince(o.label));
+  const focusOptions = sortProvinces(options.filter(o => isFocusProvince(o.label)), o => o.label);
+  const otherOptions = sortProvinces(options.filter(o => !isFocusProvince(o.label)), o => o.label);
 
   return (
     <div style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "center" }}>

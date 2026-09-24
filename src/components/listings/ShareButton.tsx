@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { absoluteUrl } from "@/lib/site-url";
+import { listingUrl } from "@/lib/listing-url";
 
 interface Props {
   listingId: string;
@@ -21,8 +23,8 @@ export function ShareButton({ listingId, title, price, currency }: Props) {
   const priceStr  = price ? ` — ${currency === "USD" ? "U$D" : "$"} ${Number(price).toLocaleString("es-AR")}` : "";
   const shareText = `${title}${priceStr}`;
 
-  // Always computed at call time so window.location is guaranteed
-  const getUrl  = () => `${window.location.origin}/listings/${listingId}`;
+  // URL canónica del aviso (dominio real + slug SEO), también desde un preview o desde local
+  const getUrl  = () => absoluteUrl(listingUrl(listingId, title));
   const getLinks = () => {
     const u = getUrl();
     return {

@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   },
 };
 import { createPublicClient } from "@/lib/supabase/public";
+import { createServiceClient } from "@/lib/supabase/service";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { HomeFeaturedCarousel } from "@/components/listings/HomeFeaturedCarousel";
@@ -100,13 +101,15 @@ async function _fetchHomeData() {
   ] = await Promise.all([
     supabase.from("listings").select(FIELDS).eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).eq("featured_level","gold").order("created_at",{ascending:false}).limit(16),
     supabase.from("listings").select("id,title,description,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images!inner(url,position),categories(name,slug)").eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).order("created_at",{ascending:false}).limit(8),
-    supabase.from("listings").select("*",{count:"exact",head:true}).eq("status","active").in("category_id",ENABLED_CATEGORY_IDS),
-    supabase.from("profiles").select("*",{count:"exact",head:true}),
-    supabase.from("profiles").select("*",{count:"exact",head:true}).eq("is_store",true),
-    supabase.from("listing_views_log").select("*",{count:"exact",head:true}).gte("created_at", todayStart.toISOString()),
+    supabase.from("listings").select("id",{count:"exact",head:true}).eq("status","active").in("category_id",ENABLED_CATEGORY_IDS),
+    // "id" y no "*": con la clave anónima las columnas privadas no son legibles y "*" daría error
+    supabase.from("profiles").select("id",{count:"exact",head:true}),
+    supabase.from("profiles").select("id",{count:"exact",head:true}).eq("is_store",true),
+    // El registro de vistas ya no es público: el total del día se cuenta con la clave de servicio
+    createServiceClient().from("listing_views_log").select("listing_id",{count:"exact",head:true}).gte("created_at", todayStart.toISOString()),
     // 16 HEAD queries paralelas — cero egress de datos, solo count en headers
     Promise.all(CAT_IDS.map(async (id) => {
-      const { count } = await supabase.from("listings").select("*",{count:"exact",head:true}).eq("status","active").eq("category_id",id);
+      const { count } = await supabase.from("listings").select("id",{count:"exact",head:true}).eq("status","active").eq("category_id",id);
       return [id, count ?? 0] as [number, number];
     })),
     // Opciones del buscador del hero (tipos/marcas/modelos con stock)
@@ -134,9 +137,9 @@ async function _fetchHomeData() {
 
   const recentUserIds = [...new Set((recent ?? []).map((l: any) => l.user_id).filter(Boolean))];
   const { data: recentStoreProfiles } = recentUserIds.length > 0
-    ? await supabase.from("profiles").select("id, is_store, store_name, store_whatsapp, phone, show_phone").in("id", recentUserIds)
+    ? await supabase.from("profiles").select("id, is_store, store_name, store_whatsapp, public_phone, show_phone").in("id", recentUserIds)
     : { data: [] };
-  const recentStoreMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; phone: string | null; show_phone: boolean | null }> = {};
+  const recentStoreMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; public_phone: string | null; show_phone: boolean | null }> = {};
   for (const p of recentStoreProfiles ?? []) recentStoreMap[p.id] = p as any;
   const recentMapped = (recent ?? []).map((l: any) => {
     const seller = recentStoreMap[l.user_id];
@@ -148,7 +151,7 @@ async function _fetchHomeData() {
       whatsapp_url: buildWhatsappUrl({
         showPhone: seller?.show_phone,
         storeWhatsapp: seller?.store_whatsapp,
-        phone: seller?.phone,
+        phone: seller?.public_phone,
         listingWhatsappOverride: l.attributes?.whatsapp_phone,
         listingTitle: l.title,
       }),

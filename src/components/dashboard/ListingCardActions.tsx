@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
+import { absoluteUrl } from '@/lib/site-url'
+import { listingUrl } from '@/lib/listing-url'
 
 // ─── Destacar Modal ────────────────────────────────────────────────────────────
 
@@ -148,6 +150,7 @@ function DestacadoModal({ listingId, onClose }: { listingId: string; onClose: ()
 
 function MoreMenu({
   listingId,
+  title,
   status,
   onClose,
   onToggleStatus,
@@ -155,6 +158,7 @@ function MoreMenu({
   anchor,
 }: {
   listingId: string
+  title: string
   status: string
   onClose: () => void
   onToggleStatus: () => void
@@ -179,7 +183,7 @@ function MoreMenu({
     {
       label: '🔗 Copiar link',
       onClick: () => {
-        navigator.clipboard.writeText(`${window.location.origin}/listings/${listingId}`)
+        navigator.clipboard.writeText(absoluteUrl(listingUrl(listingId, title)))
         onClose()
       },
     },
@@ -439,6 +443,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                 {showMenu && (
                   <MoreMenu
                     listingId={listing.id}
+                    title={listing.title}
                     status={listing.status}
                     onClose={() => setShowMenu(false)}
                     onToggleStatus={handleToggle}

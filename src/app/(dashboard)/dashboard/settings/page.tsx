@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { getMyProfile, markEmailVerified } from './actions'
 
 type Tab = 'perfil' | 'verificacion' | 'cuenta'
 type VerifyStep = 'idle' | 'code'
@@ -43,21 +44,17 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      setEmail(user.email ?? '')
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, phone, location, bio, show_phone, identity_verified, identity_verified_method, avatar_url')
-        .eq('id', user.id)
-        .single()
-      if (data) {
+      // Desde el servidor: el teléfono no es legible con la sesión del navegador (ver ./actions)
+      const data = await getMyProfile()
+      if (!data) return
+      setEmail(data.email)
+      {
         setFullName(data.full_name ?? '')
         setPhone(data.phone ?? '')
         setLocation(data.location ?? '')
         setBio(data.bio ?? '')
-        setAvatarUrl((data as any).avatar_url ?? null)
-        if (data.show_phone !== undefined) setShowPhone(data.show_phone !== false)
+        setAvatarUrl(data.avatar_url ?? null)
+        setShowPhone(data.show_phone !== false)
         setIdentityVerified(data.identity_verified ?? false)
         setIdentityMethod(data.identity_verified_method ?? null)
       }
@@ -135,13 +132,12 @@ export default function SettingsPage() {
     if (error) {
       setVerifyError('Código incorrecto o expirado.')
     } else {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('profiles').update({
-          identity_verified: true,
-          identity_verified_method: 'email',
-          identity_verified_at: new Date().toISOString(),
-        }).eq('id', user.id)
+      // La marca de verificado la pone el servidor (el usuario no puede escribir esa columna)
+      const { ok } = await markEmailVerified()
+      if (!ok) {
+        setVerifyError('No pudimos registrar la verificación. Intentá de nuevo.')
+        setVerifyLoading(false)
+        return
       }
       setIdentityVerified(true)
       setIdentityMethod('email')
@@ -262,7 +258,7 @@ export default function SettingsPage() {
                 </label>
               </div>
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                placeholder="Ej: 2645115818"
+                placeholder="Ej: 2640000000"
                 style={{ ...inputStyle, opacity: showPhone ? 1 : 0.5 }} />
             </div>
             <Field label="Localidad">
@@ -274,7 +270,7 @@ export default function SettingsPage() {
           {/* Row 3: Bio */}
           <Field label="Descripción" hint="Visible en tu perfil público">
             <textarea value={bio} onChange={e => setBio(e.target.value)}
-              placeholder="Vendedor particular, entrego en mano o envío por correo..."
+              placeholder="Ej: Vendedor particular en San Juan. Respondo consultas por WhatsApp y muestro el vehículo con cita previa."
               rows={3} style={{ ...inputStyle, resize: 'vertical', lineHeight: '1.5' }} />
           </Field>
 

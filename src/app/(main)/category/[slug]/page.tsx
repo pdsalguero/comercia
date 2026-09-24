@@ -17,8 +17,12 @@ import { bodyTypeOptions, bodyTypeLabel } from "@/lib/vehicle-body-types";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 import { getRecentPriceDrops } from "@/lib/price-drops";
 import { EmptyVehicleResults } from "@/components/listings/EmptyVehicleResults";
-import { VEHICLE_TYPE_OPTIONS } from "@/lib/vehicle-types";
-import { brandLabel } from "@/lib/hero-facets";
+import { VEHICLE_TYPE_OPTIONS, VEHICLE_TYPE_SHORT, VEHICLE_TYPE_LABELS, FUEL_OPTIONS, TRANSMISSION_OPTIONS } from "@/lib/labels";
+import { brandLabel } from "@/lib/brand-label";
+import { sameModel } from "@/lib/model-normalize";
+import { closestLandingPath, isIndexableLanding, landingPath, vehiclesHref } from "@/lib/vehicle-landing";
+import { getLandingCounts } from "@/lib/landing-stock";
+import { absoluteUrl } from "@/lib/site-url";
 import { OrderSelect, type OrderOption } from "@/components/ui/OrderSelect";
 import { SearchWithSuggestions } from "@/components/ui/SearchWithSuggestions";
 import { buildKeywordFilters } from "@/lib/search-query";
@@ -63,29 +67,9 @@ const VEHICLE_ORDER_OPTIONS: OrderOption[] = [
   { value: "brand_desc", label: "Marca - Modelo (Z-A)" },
 ];
 
-const VEHICLE_TYPES = [
-  { value: "auto", label: "Autos" },
-  { value: "camioneta", label: "Pickups / SUV / Utilitarios" },
-  { value: "moto", label: "Motos" },
-  { value: "cuatriciclo", label: "Cuatriciclos" },
-  { value: "utv", label: "Areneros/UTV" },
-  { value: "camion", label: "Camiones" },
-  { value: "nautica", label: "Náutica" },
-];
-
-const FUELS = [
-  { value: "nafta", label: "Nafta" },
-  { value: "diesel", label: "Diesel" },
-  { value: "gnc", label: "GNC" },
-  { value: "electrico", label: "Eléctrico" },
-  { value: "hibrido", label: "Híbrido" },
-];
-
-const TRANSMISSIONS = [
-  { value: "manual", label: "Manual" },
-  { value: "automatica", label: "Automática" },
-  { value: "cvt", label: "CVT" },
-];
+const VEHICLE_TYPES = VEHICLE_TYPE_OPTIONS.filter((t) => t.value !== "otro");
+const FUELS = FUEL_OPTIONS;
+const TRANSMISSIONS = TRANSMISSION_OPTIONS;
 
 const PHONE_BRANDS = [
   { value: "apple", label: "Apple" },
@@ -546,9 +530,9 @@ async function _fetchCategoryListings(slug: string, catId: number, sp: SP) {
 
   const userIds = [...new Set(((rawListings as any[]) ?? []).map((l: any) => l.user_id).filter(Boolean))];
   const { data: storeProfiles } = userIds.length > 0
-    ? await pub.from("profiles").select("id, is_store, store_name, store_whatsapp, phone, show_phone").in("id", userIds)
+    ? await pub.from("profiles").select("id, is_store, store_name, store_whatsapp, public_phone, show_phone").in("id", userIds)
     : { data: [] };
-  const storeMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; phone: string | null; show_phone: boolean | null }> = {};
+  const storeMap: Record<string, { is_store: boolean; store_name: string | null; store_whatsapp: string | null; public_phone: string | null; show_phone: boolean | null }> = {};
   for (const p of (storeProfiles ?? [])) (storeMap as any)[p.id] = p;
 
   return { rawListings: (rawListings as any[]) ?? [], storeMap };
@@ -603,21 +587,64 @@ function fetchCategoryListings(slug: string, catId: number, sp: SP) {
   return _fetchCategoryListings(slug, catId, sp);
 }
 
+// Vehículos: las landings limpias (/motos, /motos/benelli, /autos/san-juan…) son indexables si tienen
+// avisos; cualquier otro filtro va con noindex,follow y canonical a la landing más cercana.
+async function vehiclesMetadata(sp: Record<string, string | undefined>): Promise<Metadata | null> {
+  const landing = landingPath({ type: sp.type, brand: sp.brand, province: sp.v_province });
+  if (!landing && !sp.type) return null; // /category/vehicles sin tipo: metadata general de la categoría
+  const typeLabel = sp.type ? VEHICLE_TYPE_LABELS[sp.type] ?? sp.type : "Vehículos";
+  const brand = sp.brand ? brandLabel(sp.brand) : "";
+  const place = sp.v_province && RE_LOCATIONS[sp.v_province] ? RE_LOCATIONS[sp.v_province].label : "Mendoza, San Juan y San Luis";
+  const what = [typeLabel, brand].filter(Boolean).join(" ");
+  // "en venta" y no "usados": concuerda con cualquier tipo (motos, camionetas…).
+  const title = `${what} en venta en ${place}`;
+  const description = `${what} en venta en ${place}: avisos de particulares y concesionarias con fotos, precio y contacto directo. Publicá gratis en CuyoRodados.`;
+
+  const page = Number(sp.page) > 1 ? Number(sp.page) : 1;
+  const counts = await getLandingCounts();
+  const indexable = !!landing && isIndexableLanding(sp) && (counts[landing] ?? 0) > 0;
+  const canonicalPath = indexable
+    ? `${landing}${page > 1 ? `?page=${page}` : ""}`
+    : closestLandingPath(sp) ?? "/category/vehicles";
+  return {
+    title,
+    description,
+    alternates: { canonical: absoluteUrl(canonicalPath) },
+    robots: indexable ? { index: true, follow: true } : { index: false, follow: true },
+    openGraph: { title: `${title} | CuyoRodados`, description, url: absoluteUrl(canonicalPath), type: "website" },
+    twitter: { card: "summary", title: `${title} | CuyoRodados`, description },
+  };
+}
+
 export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> }
+  { params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }
 ): Promise<Metadata> {
   const { slug } = await params;
   const meta = CATEGORY_META[slug];
   if (!meta) return { title: "Categoría" };
+  if (slug === "vehicles") {
+    const raw = await searchParams;
+    const sp = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]));
+    const vm = await vehiclesMetadata(sp);
+    if (vm) return vm;
+    // Listado general con filtros: noindex, canonical a /category/vehicles
+    if (Object.values(sp).some(Boolean)) {
+      return {
+        title: `${meta.name} en Mendoza, San Juan y San Luis`,
+        alternates: { canonical: absoluteUrl("/category/vehicles") },
+        robots: { index: false, follow: true },
+      };
+    }
+  }
   return {
     title: `${meta.name} en Mendoza, San Juan y San Luis`,
     description: `Comprá y vendé ${meta.name.toLowerCase()} en Mendoza, San Juan y San Luis. Los mejores avisos clasificados en CuyoRodados, el marketplace de Cuyo.`,
     keywords: [`${meta.name.toLowerCase()} argentina`, `comprar ${meta.name.toLowerCase()}`, `vender ${meta.name.toLowerCase()}`, "clasificados argentina"],
-    alternates: { canonical: `https://cuyorodados.com.ar/category/${slug}` },
+    alternates: { canonical: absoluteUrl(`/category/${slug}`) },
     openGraph: {
       title: `${meta.name} en Cuyo | CuyoRodados`,
       description: `Encontrá ${meta.name.toLowerCase()} en CuyoRodados. Comprá y vendé en Mendoza, San Juan y San Luis.`,
-      url: `https://cuyorodados.com.ar/category/${slug}`,
+      url: absoluteUrl(`/category/${slug}`),
       type: "website",
     },
     twitter: {
@@ -688,7 +715,7 @@ export default async function CategoryPage({
       if (!isNaN(year) && year > Number(sp.year_to)) return false;
     }
     // Modelo exacto, sin distinguir mayúsculas (JS-side, igual que año/km)
-    if (isVehicles && sp.model && String(a.model ?? "").trim().toLowerCase() !== sp.model.trim().toLowerCase()) return false;
+    if (isVehicles && sp.model && !sameModel(a.model, sp.model)) return false;
     if (isRealEstate) {
       if (sp.m2_min) { const m2 = Number(a.m2_covered); if (!isNaN(m2) && m2 < Number(sp.m2_min)) return false; }
       if (sp.m2_max) { const m2 = Number(a.m2_covered); if (!isNaN(m2) && m2 > Number(sp.m2_max)) return false; }
@@ -877,7 +904,7 @@ export default async function CategoryPage({
         // vacía, el mensaje es "no hay con estos filtros", no "todavía no hay avisos de X".
         const rowModel = String((row.attributes as Record<string, unknown> | null)?.model ?? "");
         if ((!sp.type || t === sp.type) && (!sp.brand || b === sp.brand) &&
-            (!sp.model || rowModel.trim().toLowerCase() === sp.model.trim().toLowerCase())) {
+            (!sp.model || sameModel(rowModel, sp.model))) {
           wantedCount++;
         }
         // Filter brands by selected type and moto subtype
@@ -1156,6 +1183,8 @@ export default async function CategoryPage({
     };
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) if (v) p.set(k, v);
+    // Vehículos: URL limpia (/motos/benelli?…) cuando la combinación tiene landing, ver lib/vehicle-landing.
+    if (slug === "vehicles") return vehiclesHref(p);
     const s = p.toString();
     return `/category/${slug}${s ? `?${s}` : ""}`;
   }
@@ -3464,23 +3493,23 @@ export default async function CategoryPage({
                 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
                 const RE_OP_L: Record<string,string> = { venta:"Venta", alquiler:"Alquiler", "alquiler-temporal":"Alq. Temp." };
                 const RE_PROP_L: Record<string,string> = { casa:"Casa", departamento:"Dpto.", terreno:"Terreno", finca:"Finca", local:"Local", galpon:"Galpón", cochera:"Cochera" };
-                const VEH_SUB_L: Record<string,string> = { auto:"Auto", camioneta:"Pickup/SUV", moto:"Moto", cuatriciclo:"Cuatriciclo", utv:"UTV/Arenero", camion:"Camión", nautica:"Náutica" };
+                const VEH_SUB_L = VEHICLE_TYPE_SHORT;
                 // Los hrefs usan el buildUrl de la página (preserva el resto de filtros activos —
                 // provincia, precio, etc. — en vez de armar una URL "limpia" con un solo filtro).
                 const chipBrand = a.brand ? String(a.brand).toLowerCase() : undefined;
                 const breadcrumbs = [
                   a.sub_category    ? { label: VEH_SUB_L[String(a.sub_category)] ?? cap(String(a.sub_category)), variant: "primary" as const, href: buildUrl({ type: String(a.sub_category), sub_category: undefined }) } : null,
-                  a.brand           ? { label: cap(String(a.brand)), href: buildUrl({ brand: chipBrand }) }                                                                                                            : null,
+                  a.brand           ? { label: brandLabel(String(a.brand)), href: buildUrl({ brand: chipBrand }) }                                                                                                            : null,
                   a.model           ? { label: String(a.model), href: buildUrl({ brand: chipBrand, model: String(a.model) }) }                                                                                         : null,
                   a.operation_type  ? { label: RE_OP_L[String(a.operation_type)] ?? cap(String(a.operation_type)), variant: "primary" as const, href: buildUrl({ operation: String(a.operation_type), re_operation: undefined }) } : null,
                   a.property_type   ? { label: RE_PROP_L[String(a.property_type)] ?? cap(String(a.property_type)), href: buildUrl({ re_sub: String(a.property_type), re_type: undefined }) }                          : null,
                   a.bedrooms        ? { label: `${a.bedrooms} dorm.`, href: buildUrl({ bedrooms: String(a.bedrooms), re_bedrooms: undefined }) }                                                                       : null,
                 ].filter(Boolean) as { label: string; variant?: "primary" | "secondary"; href: string }[];
-                const seller = storeMap[(listing as any).user_id] as { is_store?: boolean; store_name?: string | null; store_whatsapp?: string | null; phone?: string | null; show_phone?: boolean | null } | undefined;
+                const seller = storeMap[(listing as any).user_id] as { is_store?: boolean; store_name?: string | null; store_whatsapp?: string | null; public_phone?: string | null; show_phone?: boolean | null } | undefined;
                 const whatsappUrl = buildWhatsappUrl({
                   showPhone: seller?.show_phone,
                   storeWhatsapp: seller?.store_whatsapp,
-                  phone: seller?.phone,
+                  phone: seller?.public_phone,
                   listingWhatsappOverride: a.whatsapp_phone as string | undefined,
                   listingTitle: listing.title,
                 });

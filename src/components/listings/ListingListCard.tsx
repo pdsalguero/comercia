@@ -10,7 +10,7 @@ import { PriceDropBadge } from "./PriceDropBadge";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 import type { BreadcrumbChip } from "@/lib/listing-breadcrumbs";
-import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/vehicle-specs";
+import { CONDITION_LABELS as BASE_CONDITION_LABELS, fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, plural, timeAgo } from "@/lib/labels";
 
 export interface ListingListCardProps {
   id: string;
@@ -44,14 +44,7 @@ export interface ListingListCardProps {
   priceDropPct?: number | null;
 }
 
-const CONDITION_LABELS: Record<string, string> = {
-  new: "Nuevo",
-  like_new: "Como nuevo",
-  very_good: "Muy bueno",
-  good: "Bueno",
-  fair: "Regular",
-  used: "Usado",
-};
+const CONDITION_LABELS: Record<string, string> = { ...BASE_CONDITION_LABELS, used: "Usado" };
 
 const FEATURED_BADGE: Record<string, { label: string; bg: string; fg: string }> = {
   gold: { label: "👑 Premium", bg: "linear-gradient(135deg,#eab308,#fde047)", fg: "#713f12" },
@@ -66,18 +59,6 @@ function WhatsAppIcon({ size = 14 }: { size?: number }) {
       <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.512A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.8 9.8 0 01-5.003-1.367l-.36-.214-3.732.891.935-3.618-.235-.373A9.787 9.787 0 012.182 12C2.182 6.579 6.579 2.182 12 2.182c5.42 0 9.818 4.397 9.818 9.818 0 5.42-4.398 9.818-9.818 9.818z"/>
     </svg>
   );
-}
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `hace ${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `hace ${days}d`;
-  const months = Math.floor(days / 30);
-  return `hace ${months} mes${months > 1 ? "es" : ""}`;
 }
 
 export function ListingListCard({
@@ -119,21 +100,22 @@ export function ListingListCard({
   const isVehicle = !!attributes?.sub_category;
   const year = isVehicle ? attributes?.year : null;
   const km = isVehicle ? (attributes?.mileage ?? attributes?.km) : null;
-  const fuelLabel = isVehicle ? FUEL_LABELS[String(attributes?.fuel ?? "")] : undefined;
-  const transmissionLabel = isVehicle ? TRANSMISSION_LABELS[String(attributes?.transmission ?? "")] : undefined;
+  const fuelLabel = isVehicle ? toFuelLabel(attributes?.fuel) || undefined : undefined;
+  const transmissionLabel = isVehicle ? toTransmissionLabel(attributes?.transmission) || undefined : undefined;
   const hasSpecs = !!(year || km != null || fuelLabel || transmissionLabel);
   const badge = featured_level ? FEATURED_BADGE[featured_level] : null;
 
-  // Div en vez de <a>: los chips (marca/tipo/modelo) y el botón de WhatsApp son sus propios
-  // links/botones y un <a> no puede anidar otro <a> (HTML inválido). El click en el resto de la
-  // fila navega al aviso.
+  // La fila no puede ser un único <a>: los chips (tipo/marca/modelo) y WhatsApp son sus propios links
+  // y un <a> no puede anidar otro. Por eso la foto y el título son <Link> reales (se abren en otra
+  // pestaña y Google los rastrea) y el click en el resto de la fila navega igual por JS.
+  const href = listingUrl(id, title);
   return (
       <div
         className="listing-list-card"
-        role="link"
-        tabIndex={0}
-        onClick={() => router.push(listingUrl(id, title))}
-        onKeyDown={(e) => { if (e.key === "Enter") router.push(listingUrl(id, title)); }}
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("a, button")) return; // ya navega/actúa ese elemento
+          router.push(href);
+        }}
         style={{
           display: "flex",
           gap: "18px",
@@ -159,11 +141,14 @@ export function ListingListCard({
           background: "#f0f4ff",
           position: "relative",
         }}>
-          {activePhoto
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={storageImg(activePhoto, 460, 75, 340, "cover")} onError={fallbackToOriginal(activePhoto)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
-          }
+          {/* Link duplicado del título: fuera del orden de tabulación para no repetir el foco */}
+          <Link href={href} tabIndex={-1} style={{ display: "block", width: "100%", height: "100%" }}>
+            {activePhoto
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={storageImg(activePhoto, 460, 75, 340, "cover")} onError={fallbackToOriginal(activePhoto)} alt={gallery.length > 1 ? `${title} – foto ${photoIndex + 1} de ${gallery.length}` : title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>📦</div>
+            }
+          </Link>
 
           {badge && (
             <div className="llc-badge" style={{
@@ -237,13 +222,13 @@ export function ListingListCard({
           </div>
 
           {/* Title */}
-          <div style={{
-            fontSize: "14.5px", fontWeight: 700, color: "#0f172a", lineHeight: 1.3,
+          <Link href={href} className="llc-title-link" style={{
+            fontSize: "14.5px", fontWeight: 700, color: "#0f172a", lineHeight: 1.3, textDecoration: "none",
             overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box",
             WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
           }}>
             {title}
-          </div>
+          </Link>
 
           {/* Tienda oficial */}
           {is_store && (
@@ -345,7 +330,7 @@ export function ListingListCard({
             </div>
           )}
 
-          {/* Footer: fecha/visitas a la izquierda (se oculta en celular, ver .llc-meta), WhatsApp
+          {/* Footer: fecha/vistas a la izquierda (se oculta en celular, ver .llc-meta), WhatsApp
               a la derecha (se mantiene visible en celular — ahí es donde más se usa). */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: "2px", gap: "10px" }}>
             <div className="llc-meta" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -368,7 +353,7 @@ export function ListingListCard({
               })()}
               {view_count != null && view_count > 0 && (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "11px", color: "#cbd5e1" }}>
-                  <Eye size={11} strokeWidth={2} /> {view_count.toLocaleString("es-AR")} visitas
+                  <Eye size={11} strokeWidth={2} /> {plural(view_count, "vista", "vistas")}
                 </span>
               )}
             </div>
