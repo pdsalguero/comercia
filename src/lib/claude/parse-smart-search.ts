@@ -22,8 +22,9 @@ const SUBCATS = ["auto", "camioneta", "moto", "cuatriciclo", "utv", "camion", "n
 const FUELS = ["nafta", "diesel", "gnc", "electrico", "hibrido"];
 const TRANSMISSIONS = ["manual", "automatica", "cvt"];
 const CONDITIONS = ["new", "used"];
-// Mismos keys que VEHICLE_FEAT_KEYS en category/[slug]/page.tsx
-const FEATURES = ["has_gnc", "has_ac", "power_steering", "has_airbags", "rear_camera", "power_windows", "central_lock"];
+// Mismos keys que VEHICLE_FEAT_KEYS en category/[slug]/page.tsx, más las condiciones de venta
+// (permuta / financia), que en la URL también van como param=1
+const FEATURES = ["has_gnc", "has_ac", "power_steering", "has_airbags", "rear_camera", "power_windows", "central_lock", "permuta", "financia"];
 
 const SYSTEM_PROMPT = `Traducís búsquedas de vehículos en lenguaje natural (mercado argentino) a filtros estructurados.
 Devolvés SOLO JSON válido. Cero texto adicional, cero markdown, cero explicaciones fuera del JSON.
@@ -62,7 +63,7 @@ Devolvé EXACTAMENTE este JSON (usá null en los campos que no apliquen — no r
   "fuel": "nafta|diesel|gnc|electrico|hibrido" o null,
   "transmission": "manual|automatica|cvt" o null,
   "condition": "new" (0km) | "used" o null,
-  "features": subconjunto de ["has_gnc","has_ac","power_steering","has_airbags","rear_camera","power_windows","central_lock"], [] si ninguno aplica,
+  "features": subconjunto de ["has_gnc","has_ac","power_steering","has_airbags","rear_camera","power_windows","central_lock","permuta","financia"], [] si ninguno aplica,
   "q": palabra suelta que no encaje en ningún campo de arriba (ej. un modelo puntual como "Hilux"), o null
 }
 
@@ -73,6 +74,8 @@ Reglas de interpretación:
 - "con GNC" / "a gas" → fuel = "gnc" (NO va en features)
 - "con airbags" → agregar "has_airbags"
 - "con cámara de retroceso" → agregar "rear_camera"
+- "que acepte permuta" / "permuto" / "tomo mi auto" / "entrego mi usado" → agregar "permuta"
+- "en cuotas" / "financiado" / "con financiación" / "entrego X y el resto en cuotas" → agregar "financia" (el monto a entregar NO es price_max)
 - "0km" / "nuevo" (nunca usado) → condition = "new"
 - "usado" → condition = "used"
 - Precio: "por menos de X" / "hasta X" → price_max = X. "X millones" = X × 1.000.000. "X mil" / "X lucas" = X × 1.000.

@@ -7,6 +7,7 @@ import { Calendar, Gauge, Cog, Fuel, Camera, ChevronLeft, ChevronRight, Clock, E
 import PinIcon from "@/components/ui/PinIcon";
 import { FavoriteButton } from "./FavoriteButton";
 import { PriceDropBadge } from "./PriceDropBadge";
+import { SaleTermsBadges } from "./SaleTermsBadges";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 import type { BreadcrumbChip } from "@/lib/listing-breadcrumbs";
@@ -223,6 +224,7 @@ export function ListingListCard({
               : <span style={{ fontSize: "16px", fontWeight: 700, color: "#1d6fb8" }}>A consultar</span>
             }
             {priceStr && priceDropPct ? <PriceDropBadge pct={priceDropPct} size="md" /> : null}
+            {isVehicle && <SaleTermsBadges attributes={attributes} />}
           </div>
 
           {/* Title */}

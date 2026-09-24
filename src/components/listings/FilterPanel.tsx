@@ -45,6 +45,9 @@ export interface FilterValues {
   security?: string;
   private_complex?: string;
   credit_eligible?: string;
+  // vehículos: condiciones de venta
+  permuta?: string;
+  financia?: string;
 }
 
 
@@ -111,6 +114,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     filters.garage, filters.pool, filters.elevator, filters.furnished,
     filters.pets_allowed, filters.air_conditioning, filters.grill,
     filters.security, filters.private_complex, filters.credit_eligible,
+    filters.permuta, filters.financia,
   ].filter(Boolean).length;
 
   function applyFilters(raw: FilterValues) {
@@ -124,6 +128,7 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
       "re_bathrooms", "m2_min", "m2_max", "re_seller",
       "garage", "pool", "elevator", "furnished", "pets_allowed",
       "air_conditioning", "grill", "security", "private_complex", "credit_eligible",
+      "permuta", "financia",
     ];
     for (const k of keys) {
       const v = f[k];
@@ -304,6 +309,33 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
                   { value: "150000" as any, label: "Hasta 150.000" },
                 ]}
               />
+            </div>
+
+            {/* Condiciones de venta */}
+            <div>
+              <div style={subLabel}>Condiciones de venta</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {([{ field: "permuta", label: "Acepta permuta" }, { field: "financia", label: "Financia" }] as const).map(c => {
+                  const active = filters[c.field] === "1";
+                  return (
+                    <button
+                      key={c.field}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setFilters(f => ({ ...f, [c.field]: active ? undefined : "1" }))}
+                      style={{
+                        padding: "5px 10px", borderRadius: "20px", fontSize: "12px",
+                        border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`,
+                        background: active ? "#eff6ff" : "#fff",
+                        color: active ? "#2563eb" : "#475569",
+                        fontWeight: active ? 700 : 400, cursor: "pointer",
+                      }}
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
           </div>

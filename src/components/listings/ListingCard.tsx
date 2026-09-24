@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Camera, Fuel, Cog, ChevronLeft, ChevronRight } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { PriceDropBadge } from "./PriceDropBadge";
+import { SaleTermsBadges } from "./SaleTermsBadges";
 import PinIcon from "@/components/ui/PinIcon";
 import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
 import { listingUrl } from "@/lib/listing-url";
@@ -309,6 +310,12 @@ export function ListingCard({
                   {fuelLabel}
                 </span>
               )}
+            </div>
+          )}
+
+          {isVehicle && (attributes?.accepts_trade || attributes?.financing) && (
+            <div className="lc-meta" style={{ marginBottom: "4px" }}>
+              <SaleTermsBadges attributes={attributes} />
             </div>
           )}
 

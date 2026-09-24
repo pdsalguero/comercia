@@ -1192,7 +1192,8 @@ details.sf > summary::marker { display: none; }
     display: none !important;
   }
 
-  .listing-list-card .llc-price span {
+  /* Solo el precio: los sellos de al lado (baja de precio, permuta/financia) mantienen su tamaño */
+  .listing-list-card .llc-price > span:first-child {
     font-size: 14px !important;
   }
 

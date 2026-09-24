@@ -4,8 +4,10 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { createServiceClient } from '@/lib/supabase/service'
 import { LANDING_KEYS, parseLandingPath, vehiclesHref } from '@/lib/vehicle-landing'
 
-// Rutas que siguen accesibles en modo coming soon
-const COMING_SOON_ALLOWED = ['/landing', '/api/', '/admin', '/login']
+// Rutas que siguen accesibles en modo coming soon. Las de cuenta (callback, recuperar contraseña) van
+// para que los links de los mails funcionen durante las pruebas; /register queda afuera a propósito
+// para que nadie se cree una cuenta antes de abrir.
+const COMING_SOON_ALLOWED = ['/landing', '/api/', '/admin', '/login', '/callback', '/forgot-password', '/reset-password']
 
 const BOT_UA_PATTERNS = ["node", "python-requests", "go-http-client", "curl/", "wget/"];
 

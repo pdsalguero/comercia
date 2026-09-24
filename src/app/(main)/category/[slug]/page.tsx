@@ -309,6 +309,7 @@ type SP = {
   seller_type?: string; v_province?: string; v_zone?: string;
   has_gnc?: string; has_ac?: string; power_steering?: string; has_airbags?: string;
   rear_camera?: string; power_windows?: string; central_lock?: string;
+  permuta?: string; financia?: string;
   // real estate
   re_type?: string; re_operation?: string; re_province?: string; re_zone?: string;
   re_bedrooms?: string; re_bathrooms?: string;
@@ -743,6 +744,9 @@ export default async function CategoryPage({
       for (const feat of VEHICLE_FEAT_KEYS) {
         if ((sp as any)[feat] === "1" && !a[feat]) return false;
       }
+      // Condiciones de venta: los carga el form de publicar como accepts_trade / financing
+      if (sp.permuta === "1" && !a.accepts_trade) return false;
+      if (sp.financia === "1" && !a.financing) return false;
     }
     // Vehicle province filter — checks attributes.zone slug OR city/neighborhood string
     // (los avisos nuevos guardan la provincia en `city`, los viejos en `neighborhood`)
@@ -1135,6 +1139,7 @@ export default async function CategoryPage({
       seller_type: sp.seller_type, v_province: sp.v_province, v_zone: sp.v_zone,
       has_gnc: sp.has_gnc, has_ac: sp.has_ac, power_steering: sp.power_steering, has_airbags: sp.has_airbags,
       rear_camera: sp.rear_camera, power_windows: sp.power_windows, central_lock: sp.central_lock,
+      permuta: sp.permuta, financia: sp.financia,
       // real estate
       re_type: sp.re_type, re_operation: sp.re_operation, re_province: sp.re_province, re_zone: sp.re_zone,
       re_bedrooms: sp.re_bedrooms, re_bathrooms: sp.re_bathrooms,
@@ -1556,6 +1561,31 @@ export default async function CategoryPage({
                       borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
                     }}>
                       {s.label}
+                    </div>
+                  </Link>
+                );
+              })}
+            </details>
+          )}
+
+          {/* Condiciones de venta (permuta / financiación) */}
+          {isVehicles && (
+            <details className="sf" open={sp.permuta === "1" || sp.financia === "1" || undefined}>
+              <summary style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between", alignItems: "center", userSelect: "none" }}>
+                Condiciones de venta <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: 400 }}>▾</span>
+              </summary>
+              {([{ param: "permuta", label: "Acepta permuta" }, { param: "financia", label: "Financia" }] as const).map(c => {
+                const active = sp[c.param] === "1";
+                return (
+                  <Link key={c.param} href={buildUrl({ [c.param]: active ? undefined : "1" })} aria-pressed={active} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      padding: "8px 16px", fontSize: "13px", cursor: "pointer",
+                      background: active ? "#eff6ff" : "transparent",
+                      color: active ? "#2563eb" : "#444",
+                      fontWeight: active ? 700 : 400,
+                      borderLeft: active ? "3px solid #2563eb" : "3px solid transparent",
+                    }}>
+                      {c.label}
                     </div>
                   </Link>
                 );
@@ -3323,6 +3353,7 @@ export default async function CategoryPage({
                   security: (sp as any).security,
                   private_complex: (sp as any).private_complex,
                   credit_eligible: (sp as any).credit_eligible,
+                  permuta: sp.permuta, financia: sp.financia,
                 }}
                 totalCount={listings?.length ?? 0}
                 basePath={`/category/${slug}`}
@@ -3438,6 +3469,8 @@ export default async function CategoryPage({
               {sp.year_to && <Chip label={`Hasta ${sp.year_to}`} href={buildUrl({ year_to: undefined })} />}
               {sp.km_max && <Chip label={`Hasta ${Number(sp.km_max).toLocaleString("es-AR")} km`} href={buildUrl({ km_max: undefined })} />}
               {sp.seller_type && <Chip label={sp.seller_type === "particular" ? "Particular" : "Concesionaria"} href={buildUrl({ seller_type: undefined })} />}
+              {isVehicles && sp.permuta === "1" && <Chip label="Acepta permuta" href={buildUrl({ permuta: undefined })} />}
+              {isVehicles && sp.financia === "1" && <Chip label="Financia" href={buildUrl({ financia: undefined })} />}
               {isVehicles && sp.v_province && <Chip label={RE_LOCATIONS[sp.v_province]?.label ?? sp.v_province} href={buildUrl({ v_province: undefined, v_zone: undefined })} />}
               {isVehicles && sp.v_zone && <Chip label={RE_LOCATIONS[sp.v_province ?? ""]?.zones.find(z => z.value === sp.v_zone)?.label ?? sp.v_zone} href={buildUrl({ v_zone: undefined })} />}
               {sp.re_type && <Chip label={RE_PROPERTY_TYPES.find(t => t.value === sp.re_type)?.label ?? sp.re_type!} href={buildUrl({ re_type: undefined })} />}
