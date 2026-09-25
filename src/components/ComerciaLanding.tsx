@@ -178,7 +178,7 @@ export function CuyoRodadosLanding() {
           marginBottom: "28px", letterSpacing: "0.5px",
         }}>
           <Sparkles size={13} />
-          AUTOS Y MOTOS · PARTICULARES Y CONCESIONARIAS · TODA ARGENTINA
+          AUTOS Y MOTOS · MENDOZA, SAN JUAN Y SAN LUIS
         </div>
 
         {/* Headline */}

@@ -1,32 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { sendEmail } from '@/lib/email'
-import { welcomeEmailTemplate } from '@/lib/emailTemplates'
+import { requestOrigin } from '@/lib/request-origin'
+import { sendWelcomeIfJustConfirmed } from '@/lib/welcome-email'
 
+// Links viejos de confirmación con ?code= (PKCE). Los mails nuevos usan /api/auth/confirm con token_hash,
+// que funciona aunque el link se abra en otro navegador; esto queda para los links ya enviados.
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
+  // Detrás del proxy de Railway, request.url es http://localhost:8080: el origen sale de los headers
+  const origin = requestOrigin(request)
   const code = searchParams.get('code')
 
   if (code) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) return NextResponse.redirect(`${origin}/login?error=link_expirado`)
-
-    // Bienvenida solo al confirmar el registro: el mail se acaba de confirmar (este link es el de
-    // confirmación). Antes se miraba created_at < 1 minuto y casi nunca se cumplía, porque la gente
-    // tarda más que eso en abrir el mail.
-    if (data?.user) {
-      const confirmedAt = data.user.email_confirmed_at ? new Date(data.user.email_confirmed_at).getTime() : 0
-      const justConfirmed = Date.now() - confirmedAt < 10 * 60_000
-
-      if (justConfirmed && data.user.email) {
-        const userName = data.user.user_metadata?.full_name?.split(' ')[0]
-          ?? data.user.email.split('@')[0]
-
-        const { subject, html } = welcomeEmailTemplate(userName)
-        sendEmail({ to: data.user.email, subject, html }).catch(console.error)
-      }
-    }
+    sendWelcomeIfJustConfirmed(data?.user)
   }
 
   return NextResponse.redirect(`${origin}/dashboard`)
