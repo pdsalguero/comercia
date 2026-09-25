@@ -7,6 +7,7 @@ const STATUSES = [
   { value: '',       label: 'Todos' },
   { value: 'active', label: 'Activos' },
   { value: 'paused', label: 'Pausados' },
+  { value: 'sold',   label: 'Vendidos' },
   // Hoy ningún proceso vence avisos (ver backlog): la pestaña queda lista para cuando se defina
   { value: 'expired', label: 'Vencidos' },
 ]

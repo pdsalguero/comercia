@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "./DeleteButton";
 import { QuickPriceEdit } from "./QuickPriceEdit";
+import { MarkSoldDialog } from "@/components/dashboard/MarkSoldDialog";
 import { AlertTriangle, ArrowUp, ImageOff, Pause, Play, SearchX, Trash2, type LucideIcon } from "lucide-react";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -81,6 +82,7 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
   const [pending, startTransition] = useTransition();
   const [bulkLoading, setBulkLoading] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
+  const [soldTarget, setSoldTarget] = useState<{ id: string; title: string } | null>(null);
   const [bumpingIds, setBumpingIds] = useState<Set<string>>(new Set());
   const [localBumpedAt, setLocalBumpedAt] = useState<Record<string, string | null>>({});
   const [mounted, setMounted] = useState(false);
@@ -139,6 +141,9 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
 
   return (
     <div>
+      {soldTarget && (
+        <MarkSoldDialog listingId={soldTarget.id} title={soldTarget.title} onClose={() => setSoldTarget(null)} />
+      )}
       {/* Bulk action bar */}
       {someSelected && (
         <div style={{
@@ -264,7 +269,8 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
           const images = listing.listing_images?.slice().sort((a, b) => a.position - b.position) ?? [];
           const cover = images[0]?.url ?? null;
           const isActive = listing.status === "active";
-          const canToggle = listing.status === "active" || listing.status === "paused";
+          const canToggle = listing.status === "active" || listing.status === "paused" || listing.status === "sold";
+          const canMarkSold = listing.status === "active" || listing.status === "paused";
           const tip = completeness(listing);
           const msgs = msgCountMap[listing.id] ?? 0;
           const isSelected = selected.has(listing.id);
@@ -412,7 +418,18 @@ export function MyListingsTable({ listings, msgCountMap, onToggleStatus, onDelet
                       borderRadius: "6px", padding: "5px 9px",
                       fontSize: "12px", cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap",
                     }}>
-                    {isActive ? "Pausar" : "Activar"}
+                    {isActive ? "Pausar" : listing.status === "sold" ? "Republicar" : "Activar"}
+                  </button>
+                )}
+                {canMarkSold && (
+                  <button
+                    onClick={() => setSoldTarget({ id: listing.id, title: listing.title })}
+                    style={{
+                      background: "#eff6ff", color: "#1d4ed8",
+                      border: "1px solid #bfdbfe", borderRadius: "6px", padding: "5px 9px",
+                      fontSize: "12px", cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap",
+                    }}>
+                    Vendido
                   </button>
                 )}
                 <Link href={`/dashboard/my-listings/${listing.id}/edit`}>

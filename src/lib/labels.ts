@@ -105,6 +105,15 @@ export function plural(n: number, singular: string, pluralForm: string): string 
   return `${n.toLocaleString("es-AR")} ${n === 1 ? singular : pluralForm}`;
 }
 
+/** Fecha de venta de un aviso vendido: "Vendido en marzo 2026" (hora de Argentina). */
+export function soldMonthLabel(date: string | Date | null | undefined): string {
+  if (!date) return "Vendido";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "Vendido";
+  const month = d.toLocaleDateString("es-AR", { month: "long", year: "numeric", timeZone: "America/Argentina/Buenos_Aires" });
+  return `Vendido en ${month.replace(" de ", " ")}`;
+}
+
 /** Fecha relativa con un solo formato en todo el sitio: "recién", "hace 5 minutos", "hace 1 mes". */
 export function timeAgo(date: string | Date, now: Date = new Date()): string {
   const secs = Math.max(0, Math.floor((now.getTime() - new Date(date).getTime()) / 1000));

@@ -49,8 +49,9 @@ export default async function MyListingsPage({
   const active  = listings?.filter(l => l.status === 'active').length ?? 0
   const paused  = listings?.filter(l => l.status === 'paused').length ?? 0
   const expired = listings?.filter(l => l.status === 'expired').length ?? 0
+  const sold    = listings?.filter(l => l.status === 'sold').length ?? 0
   const total   = listings?.length ?? 0
-  const statusCounts: Record<string, number> = { active, paused, expired }
+  const statusCounts: Record<string, number> = { active, paused, sold, expired }
 
   // Message count per listing
   const allIds = (listings ?? []).map(l => l.id)

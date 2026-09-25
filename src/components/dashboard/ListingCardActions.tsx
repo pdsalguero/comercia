@@ -7,8 +7,9 @@ import type { UserListing } from '@/app/(dashboard)/dashboard/actions'
 import { absoluteUrl } from '@/lib/site-url'
 import { listingUrl } from '@/lib/listing-url'
 import { plural } from '@/lib/labels'
+import { MarkSoldDialog } from './MarkSoldDialog'
 import {
-  Camera, CheckCircle2, Clock, Eye, ImageOff, Inbox, Link2, MessageSquare, MoreHorizontal, Pause,
+  BadgeCheck, Camera, CheckCircle2, Clock, Eye, ImageOff, Inbox, Link2, MessageSquare, MoreHorizontal, Pause,
   Pencil, Play, Star, Trash2, TrendingUp, type LucideIcon,
 } from 'lucide-react'
 
@@ -159,6 +160,7 @@ function MoreMenu({
   status,
   onClose,
   onToggleStatus,
+  onMarkSold,
   onDelete,
   anchor,
 }: {
@@ -167,6 +169,7 @@ function MoreMenu({
   status: string
   onClose: () => void
   onToggleStatus: () => void
+  onMarkSold: () => void
   onDelete: () => void
   anchor: DOMRect | null
 }) {
@@ -182,10 +185,13 @@ function MoreMenu({
 
   const items: { label: string; Icon: LucideIcon; onClick: () => void; danger?: boolean }[] = [
     {
-      label: status === 'active' ? 'Pausar aviso' : 'Activar aviso',
+      label: status === 'active' ? 'Pausar aviso' : status === 'sold' ? 'Volver a publicar' : 'Activar aviso',
       Icon: status === 'active' ? Pause : Play,
       onClick: () => { onToggleStatus(); onClose() },
     },
+    ...(status === 'active' || status === 'paused'
+      ? [{ label: 'Marcar como vendido', Icon: BadgeCheck, onClick: () => { onMarkSold(); onClose() } }]
+      : []),
     {
       label: 'Copiar link',
       Icon: Link2,
@@ -264,6 +270,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
   const [showMenu, setShowMenu] = useState(false)
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showSold, setShowSold] = useState(false)
   const [loading, setLoading] = useState(false)
   const [bumping, setBumping] = useState(false)
   const [bumpedAt, setBumpedAt] = useState<string | null>(listing.bumped_at)
@@ -315,6 +322,9 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
     <div className="dlc-wrapper" style={{ height: '100%' }}>
       {showModal && (
         <DestacadoModal listingId={listing.id} onClose={() => setShowModal(false)} />
+      )}
+      {showSold && (
+        <MarkSoldDialog listingId={listing.id} title={listing.title} onClose={() => setShowSold(false)} />
       )}
 
       <div className="dlc-card hover:shadow-md" style={{
@@ -459,6 +469,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                     status={listing.status}
                     onClose={() => setShowMenu(false)}
                     onToggleStatus={handleToggle}
+                    onMarkSold={() => setShowSold(true)}
                     onDelete={handleDelete}
                     anchor={menuAnchor}
                   />
@@ -492,7 +503,8 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
               );
             })()}
 
-            {/* Row 3 — Destacar full width */}
+            {/* Row 3 — Destacar full width (no en vendidos) */}
+            {listing.status !== 'sold' && (
             <button
               className="dlc-destacar-btn tap-h-44"
               onClick={() => !listing.destacado_activo && setShowModal(true)}
@@ -512,6 +524,7 @@ export function ListingCard({ listing, onToggleStatus, onDelete }: ListingCardPr
                 ? <><CheckCircle2 size={14} aria-hidden="true" />Destacado activo</>
                 : <><Star size={14} aria-hidden="true" />Destacar aviso</>}
             </button>
+            )}
           </div>
 
         </div>

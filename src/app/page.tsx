@@ -30,6 +30,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { HomeFeaturedCarousel } from "@/components/listings/HomeFeaturedCarousel";
+import { RecentlySold } from "@/components/listings/RecentlySold";
 import { HeroSearch } from "@/components/listings/HeroSearch";
 import { QuickActions } from "@/components/home/QuickActions";
 import { FounderBanner } from "@/components/home/FounderBanner";
@@ -98,6 +99,7 @@ async function _fetchHomeData() {
     { count: viewsToday },
     catCountEntries,
     { data: facetRows },
+    { data: sold },
   ] = await Promise.all([
     supabase.from("listings").select(FIELDS).eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).eq("featured_level","gold").order("created_at",{ascending:false}).limit(16),
     supabase.from("listings").select("id,title,description,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images!inner(url,position),categories(name,slug)").eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).order("created_at",{ascending:false}).limit(8),
@@ -114,6 +116,11 @@ async function _fetchHomeData() {
     })),
     // Opciones del buscador del hero (tipos/marcas/modelos con stock)
     supabase.from("listings").select("attributes").eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).limit(1000),
+    // "Vendidos recientemente": los vendidos de los últimos 6 meses, con su último precio publicado
+    supabase.from("listings").select("id,title,price,currency,neighborhood,attributes,sold_at,listing_images(url,position)")
+      .eq("status","sold").in("category_id",ENABLED_CATEGORY_IDS)
+      .gte("sold_at", new Date(Date.now() - 183 * 24 * 3600 * 1000).toISOString())
+      .order("sold_at",{ascending:false}).limit(12),
   ]);
 
   const userIds = [...new Set((allFeatured ?? []).map((l: any) => l.user_id).filter(Boolean))];
@@ -158,7 +165,7 @@ async function _fetchHomeData() {
     };
   });
 
-  return { featured, recent:recentMapped, totalListings:totalListings??0, totalSellers:totalSellers??0, totalStores:totalStores??0, viewsToday:viewsToday??0, categoryCounts:counts, vehicleFacets: buildVehicleFacets(facetRows ?? []) };
+  return { featured, recent:recentMapped, sold: sold ?? [], totalListings:totalListings??0, totalSellers:totalSellers??0, totalStores:totalStores??0, viewsToday:viewsToday??0, categoryCounts:counts, vehicleFacets: buildVehicleFacets(facetRows ?? []) };
 }
 
 // Cache con TTL de 1 hora — evita 7 queries paralelas en cada request
@@ -181,7 +188,7 @@ function photos(listing: any): string[] {
 }
 
 export default async function HomePage() {
-  const { featured, recent, totalListings, totalSellers, totalStores, viewsToday, vehicleFacets } = await getHomeData();
+  const { featured, recent, sold, totalListings, totalSellers, totalStores, viewsToday, vehicleFacets } = await getHomeData();
   const facets = vehicleFacets ?? EMPTY_VEHICLE_FACETS;
 
   // Con pocos avisos, "Destacados" y "Últimos avisos" mostrarían lo mismo dos veces. El carrusel de
@@ -294,6 +301,9 @@ export default async function HomePage() {
                 categories: l.categories ? { ...l.categories, name: CAT_NAMES[l.categories.slug] ?? l.categories.name } : null,
               }))}
             />
+
+            {/* Vendidos recientemente: referencia de precios con avisos reales ya vendidos */}
+            <RecentlySold items={(sold ?? []).map((l) => ({ ...l, cover_image: cover(l) }))} />
           </div>
 
 

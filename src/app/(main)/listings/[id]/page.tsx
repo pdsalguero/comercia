@@ -20,7 +20,7 @@ import { brandLabel } from "@/lib/brand-label";
 import { vehiclesHref } from "@/lib/vehicle-landing";
 import { BedDouble, Calendar, Cog, Fuel, Gauge, Home, ImageOff, KeyRound, Ruler, type LucideIcon } from "lucide-react";
 import { absoluteUrl } from "@/lib/site-url";
-import { CONDITION_LABELS, VEHICLE_TYPE_LABELS, fuelLabel, transmissionLabel, plural, timeAgo } from "@/lib/labels";
+import { CONDITION_LABELS, VEHICLE_TYPE_LABELS, fuelLabel, transmissionLabel, plural, timeAgo, soldMonthLabel } from "@/lib/labels";
 import { greetingName } from "@/lib/listing-display";
 import { AvatarWithFallback } from "@/components/ui/AvatarWithFallback";
 import { ViewTracker } from "@/components/listings/ViewTracker";
@@ -141,9 +141,11 @@ const getListing = cache(async function getListing(id: string) {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, featured_level, listing_images(url, position)`)
+    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, featured_level, status, sold_at, listing_images(url, position)`)
     .eq("id", id)
-    .eq("status", "active")
+    // Los vendidos siguen accesibles (cartel "Este vehículo ya se vendió", sin contacto): no se pierde
+    // lo que Google ya indexó y sirven de referencia de precio. Pausados/vencidos siguen dando 404.
+    .in("status", ["active", "sold"])
     .single();
   if (error) { console.error("getListing error:", error.message); return null; }
   if (!data) return null;
@@ -242,6 +244,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   ]);
 
   const isOwner = (session?.user?.id ?? null) === (listing as any).user_id;
+  const isSold = listing.status === "sold";
+  const soldLabel = isSold ? soldMonthLabel(listing.sold_at) : null;
+  const similarHref = vehiclesHref({
+    type: attrs0.sub_category,
+    brand: attrs0.brand ? String(attrs0.brand).toLowerCase() : undefined,
+  });
 
   const images: { url: string; position: number }[] = (
     (listing.listing_images as any[]) ?? []
@@ -393,7 +401,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         "@type": "Offer",
         price: listing.price,
         priceCurrency: (listing as any).currency ?? "ARS",
-        availability: "https://schema.org/InStock",
+        availability: isSold ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
         itemCondition: (listing as any).condition === "new"
           ? "https://schema.org/NewCondition"
           : "https://schema.org/UsedCondition",
@@ -407,7 +415,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="listing-detail" style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
-      {/* Mobile sticky WhatsApp */}
+      {/* Mobile sticky WhatsApp (no en vendidos: no hay a quién contactar) */}
+      {!isSold && (
       <div className="mobile-wa-bar" style={{
         display: "none", position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 300,
         padding: "8px 16px", paddingBottom: "calc(8px + env(safe-area-inset-bottom))",
@@ -454,6 +463,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           )}
         </div>
       </div>
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -590,6 +600,26 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           );
         })()}
 
+        {/* Aviso vendido: cartel arriba de todo (en celular la zona del precio queda debajo de la galería) */}
+        {isSold && (
+          <div role="status" style={{
+            display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap",
+            background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: "10px",
+            padding: "12px 16px", marginBottom: "12px",
+          }}>
+            <span style={{ background: "#475569", color: "#fff", fontSize: "12px", fontWeight: 800, letterSpacing: "0.6px", borderRadius: "6px", padding: "3px 8px" }}>
+              VENDIDO
+            </span>
+            <div style={{ flex: 1, minWidth: "200px" }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>Este vehículo ya se vendió</div>
+              <div style={{ fontSize: "13px", color: "#64748b" }}>{soldLabel}. Lo dejamos publicado como referencia de precio.</div>
+            </div>
+            <Link href={similarHref} style={{ fontSize: "13px", fontWeight: 700, color: "#1d6fb8", textDecoration: "none", whiteSpace: "nowrap" }}>
+              Ver similares disponibles →
+            </Link>
+          </div>
+        )}
+
         {/* ── 2-column layout ── */}
         <div className="detail-grid">
 
@@ -697,9 +727,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {/* Price block — fondo gris suave, elemento dominante */}
               <div style={{ background: "#f8fafc", borderTop: "1px solid #f1f5f9", borderBottom: "1px solid #f1f5f9", padding: "16px 20px", marginTop: "14px" }}>
                 <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.7px", textTransform: "uppercase", marginBottom: "4px" }}>
-                  Precio
+                  {isSold ? "Último precio publicado" : "Precio"}
                 </div>
-                {listing.price ? (
+                {isSold && !listing.price ? (
+                  <div style={{ fontSize: "16px", fontWeight: 600, color: "#64748b" }}>Sin precio publicado</div>
+                ) : listing.price ? (
                   <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
                     <span style={{ fontSize: "20px", fontWeight: 500, color: "#475569" }}>{currencySymbol}</span>
                     <span style={{ fontSize: "34px", fontWeight: 700, color: "#1a1a1a", letterSpacing: "-1.5px", lineHeight: 1 }}>
@@ -743,6 +775,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
                 {/* CTAs pegados al precio: antes estaban en la tarjeta del vendedor y en notebooks quedaban
                     debajo del pliegue (había que scrollear para encontrar cómo contactar). */}
+                {isSold ? (
+                  <Link href={similarHref} style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    minHeight: "44px", marginBottom: "8px", borderRadius: "8px",
+                    background: "#1d6fb8", color: "#fff", fontSize: "14px", fontWeight: 700, textDecoration: "none",
+                  }}>
+                    Ver similares disponibles
+                  </Link>
+                ) : (
                 <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                   {/* Sin WhatsApp visible no se muestra el botón (antes quedaba uno gris que no hacía nada);
                       "Contactar" ocupa todo el ancho */}
@@ -770,9 +811,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     sellerName={sellerName}
                   />
                 </div>
+                )}
 
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <FavoriteButton listingId={listing.id} variant="detail" />
+                  {!isSold && <FavoriteButton listingId={listing.id} variant="detail" />}
                   <ShareButton listingId={listing.id} title={listing.title} price={listing.price} currency={listing.currency} />
                 </div>
               </div>
@@ -875,8 +917,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </div>
               )}
 
-              {/* Destacar — amber footer, solo al dueño */}
-              {isOwner && (
+              {/* Destacar — amber footer, solo al dueño (no en vendidos) */}
+              {isOwner && !isSold && (
                 <div style={{ background: "#fffbeb", borderTop: "1px solid #fde68a", padding: "14px 20px", display: "flex", alignItems: "center", gap: "12px" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", marginBottom: "1px" }}>
