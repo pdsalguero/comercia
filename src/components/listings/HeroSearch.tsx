@@ -24,6 +24,13 @@ const PROVINCES = [
 // Debajo de este total el botón no muestra el contador (evita el efecto "vidriera vacía").
 const MIN_COUNT_TO_SHOW = 50;
 
+// Accesos por tipo del buscador en celular (los tres tipos con más avisos)
+const MOBILE_TYPE_CHIPS = [
+  { value: "auto", label: "Autos" },
+  { value: "camioneta", label: "Pickups / SUV" },
+  { value: "moto", label: "Motos" },
+];
+
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1959 }, (_, i) => CURRENT_YEAR - i);
 
@@ -173,9 +180,10 @@ export function HeroSearch({ facets, totalCount }: HeroSearchProps) {
     if (e.key === "Escape") setShowSuggestions(false);
   };
 
-  const buttonLabel = totalCount >= MIN_COUNT_TO_SHOW
-    ? `Buscar ${totalCount.toLocaleString("es-AR")} vehículos`
-    : "Buscar vehículos";
+  // En celular el botón queda al lado del campo de texto y solo dice "Buscar" (.hero-submit-extra se oculta)
+  const buttonExtra = totalCount >= MIN_COUNT_TO_SHOW
+    ? ` ${totalCount.toLocaleString("es-AR")} vehículos`
+    : " vehículos";
 
   const dropdown = canSuggest && showSuggestions && suggestions.length > 0 && rect ? createPortal(
     <div
@@ -327,9 +335,19 @@ export function HeroSearch({ facets, totalCount }: HeroSearchProps) {
           </div>
 
           <button type="button" onClick={handleSearch} className="hero-submit">
-            {buttonLabel}
+            Buscar<span className="hero-submit-extra">{buttonExtra}</span>
           </button>
         </div>
+
+        {/* Celular: accesos directos por tipo en lugar de los selectores de tipo/marca/modelo/provincia
+            (esos filtros están en el panel "Filtrar" del listado). En escritorio no se muestran. */}
+        <nav className="hero-type-chips" aria-label="Buscar por tipo de vehículo">
+          {MOBILE_TYPE_CHIPS.map((t) => (
+            <Link key={t.value} href={vehiclesHref({ type: t.value, v_province: province ? slugify(province) : undefined })} className="hero-type-chip">
+              {t.label}
+            </Link>
+          ))}
+        </nav>
 
         <button
           type="button"

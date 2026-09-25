@@ -413,9 +413,30 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-smart-search-btn:hover { background: #e0f0ff; border-color: #bfdbfe; }
 .hero-smart-search-suggestion:hover { background: #f8fafc; border-color: #cbd5e1; }
-@media (max-width: 768px) {
-  .hero-smart-search-btn-label { display: none; }
+/* Accesos por tipo del buscador: solo en celular (ver el bloque del hero en max-width 768px) */
+.hero-type-chips {
+  display: none;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.hero-type-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hero-type-chip:hover { border-color: #93c5fd; background: #eff6ff; }
 .hero-row-1 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr auto;
@@ -795,11 +816,26 @@ details.sf > summary::marker { display: none; }
   .home-types-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .hero-panel { padding: 14px 14px 12px; border-radius: 12px; }
   .hero-panel-head { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .hero-row-1 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .hero-field-keyword { grid-column: span 2; }
-  .hero-submit { grid-column: span 2; }
-  .hero-row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hero-row-2 > :first-child { grid-column: span 2; }
+  /* Buscador compacto en celular: búsqueda inteligente + palabra clave con "Buscar" al lado + accesos
+     por tipo. Tipo/marca/modelo/provincia y "Más filtros" se ocultan (están en "Filtrar" del listado):
+     antes el panel ocupaba toda la primera pantalla y no se veía ningún aviso sin hacer scroll. */
+  .hero-banner { height: 150px !important; }
+  .hero-banner-content { padding: 16px 18px !important; }
+  .hero-banner-title { font-size: 24px !important; }
+  .hero-panel-wrap { margin: -28px 8px 0 !important; }
+  .hero-panel-title { display: none; }
+  .hero-panel-head { margin-bottom: 10px; }
+  .hero-row-1 { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .hero-row-1 > .hero-field:not(.hero-field-keyword) { display: none; }
+  .hero-field-keyword { grid-column: auto; }
+  .hero-field-keyword .hero-label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+  .hero-submit { grid-column: auto; padding-left: 18px !important; padding-right: 18px !important; }
+  .hero-submit-extra { display: none; }
+  .hero-more-btn, .hero-row-2 { display: none !important; }
+  .hero-type-chips { display: flex; }
 
   /* Stats: hide last 2 */
   .stat-hide-mobile {
@@ -1144,6 +1180,9 @@ details.sf > summary::marker { display: none; }
     width: 100% !important;
     order: 1 !important;
   }
+  /* Vehículos: la provincia se elige en "Filtrar" (y se ve como chip de filtro activo); una fila
+     menos antes del primer aviso. Inmuebles mantiene su fila de provincia/zona. */
+  .province-nav-desktop:not(.re-province-row) { display: none !important; }
 
   .province-nav-desktop > div,
   .province-nav-desktop select {
@@ -1190,6 +1229,26 @@ details.sf > summary::marker { display: none; }
 
   .listing-list-card .llc-specs {
     display: none !important;
+  }
+
+  /* Tarjeta compacta: año · km en una línea; sin descripción ni chips (repiten el título).
+     WhatsApp pasa a ícono redondo en la esquina inferior derecha, sin fila propia. */
+  .listing-list-card .llc-mspecs { display: block !important; }
+  .listing-list-card .llc-desc,
+  .listing-list-card .llc-chips { display: none !important; }
+  .listing-list-card .llc-footer { display: contents !important; }
+  .listing-list-card:has(.llc-wa) .llc-loc { padding-right: 48px; }
+  .listing-list-card .llc-wa {
+    position: absolute !important;
+    right: 12px; bottom: 10px;
+    width: 40px; height: 40px;
+    padding: 0 !important;
+    border-radius: 50% !important;
+  }
+  .listing-list-card .llc-wa svg { width: 20px; height: 20px; }
+  .listing-list-card .llc-wa-text {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
   }
 
   /* Solo el precio: los sellos de al lado (baja de precio, permuta/financia) mantienen su tamaño */
@@ -1367,6 +1426,9 @@ details.sidebar-section > summary svg { transition: transform 0.2s; }
   text-decoration: underline;
   filter: brightness(0.94);
 }
+
+/* Línea "año · km" de la tarjeta de lista: solo en celular (en escritorio está la fila con íconos) */
+.llc-mspecs { display: none; }
 
 /* ── Áreas táctiles en celular (mínimo 44×44) ──────────────────────────────────────────────────────
    Controles de formulario con alto mínimo de 44 px. Para botones chicos que no conviene agrandar a la

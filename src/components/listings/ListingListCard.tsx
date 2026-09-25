@@ -125,6 +125,7 @@ export function ListingListCard({
           background: "#ffffff",
           transition: "background 0.15s",
           cursor: "pointer",
+          position: "relative",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
         onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
@@ -247,9 +248,17 @@ export function ListingListCard({
             </div>
           )}
 
-          {/* Breadcrumb chips — si traen href, filtran por ese valor al hacer click */}
+          {/* Celular: año · km en una línea (reemplaza a la fila de specs con íconos, que ahí se oculta) */}
+          {isVehicle && (year != null || km != null) && (
+            <div className="llc-mspecs" style={{ fontSize: "13px", color: "#334155", fontWeight: 600 }}>
+              {[year, km != null ? `${Number(km).toLocaleString("es-AR")} km` : null].filter((v) => v != null && v !== "").join(" · ")}
+            </div>
+          )}
+
+          {/* Breadcrumb chips — si traen href, filtran por ese valor al hacer click. En celular se
+              ocultan: repiten lo que ya dice el título y hacen la tarjeta el doble de alta. */}
           {breadcrumbs && breadcrumbs.length > 0 && (
-            <div style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" }}>
+            <div className="llc-chips" style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" }}>
               {breadcrumbs.map((chip, i) => {
                 const chipStyle: React.CSSProperties = {
                   fontSize: "12px",
@@ -282,7 +291,7 @@ export function ListingListCard({
           )}
 
           {/* Condition + Location */}
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+          <div className="llc-loc" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
             {condition && CONDITION_LABELS[condition] && (
               <span style={{ fontSize: "12px", color: "#22c55e", fontWeight: 600 }}>
                 {CONDITION_LABELS[condition]}
@@ -325,9 +334,9 @@ export function ListingListCard({
             </div>
           )}
 
-          {/* Descripción — 2 líneas */}
+          {/* Descripción — 2 líneas (en celular se oculta, ver .llc-desc) */}
           {description && (
-            <div style={{
+            <div className="llc-desc" style={{
               fontSize: "12.5px", color: "#94a3b8", lineHeight: 1.45,
               overflow: "hidden", display: "-webkit-box",
               WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
@@ -337,8 +346,9 @@ export function ListingListCard({
           )}
 
           {/* Footer: fecha/vistas a la izquierda (se oculta en celular, ver .llc-meta), WhatsApp
-              a la derecha (se mantiene visible en celular — ahí es donde más se usa). */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: "2px", gap: "10px" }}>
+              a la derecha. En celular WhatsApp queda como ícono redondo en la esquina de la tarjeta
+              (.llc-wa) para no ocupar una fila propia. */}
+          <div className="llc-footer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: "2px", gap: "10px" }}>
             <div className="llc-meta" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
               {mounted && created_at && (() => {
                 const hasBump = bumped_at && new Date(bumped_at).getTime() - new Date(created_at).getTime() > 3600 * 1000;
@@ -370,14 +380,16 @@ export function ListingListCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
+                className="llc-wa"
+                aria-label={`Consultar por WhatsApp: ${title}`}
                 style={{
-                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px",
                   background: "#25d366", color: "#fff", fontSize: "12.5px", fontWeight: 700,
                   padding: "8px 14px", borderRadius: "8px", textDecoration: "none",
                   boxShadow: "0 2px 8px rgba(37,211,102,.3)", flexShrink: 0, marginLeft: "auto",
                 }}
               >
-                <WhatsAppIcon /> WhatsApp
+                <WhatsAppIcon /> <span className="llc-wa-text">WhatsApp</span>
               </a>
             )}
           </div>

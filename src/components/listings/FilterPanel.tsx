@@ -69,7 +69,14 @@ const CLOTHING_SLUGS = ["clothing", "ropa", "indumentaria"];
 export function FilterPanel({ category, categoryId, currentFilters, totalCount, mode, basePath = "/listings", hideCategoryFilters = false }: Props) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterValues>(currentFilters);
+  // La provincia del panel es `location` (nombre, "Mendoza"); en vehículos el listado filtra por
+  // `v_province` (slug, "mendoza"). Se traduce al abrir y al aplicar (ver applyFilters).
+  const [filters, setFilters] = useState<FilterValues>(() => {
+    const vp = currentFilters.v_province;
+    return !currentFilters.location && vp && RE_LOCATIONS[vp]
+      ? { ...currentFilters, location: RE_LOCATIONS[vp].label }
+      : currentFilters;
+  });
 
   const slug = (category ?? "").toLowerCase();
   const isVehicles = VEHICLE_SLUGS.includes(slug);
@@ -133,6 +140,13 @@ export function FilterPanel({ category, categoryId, currentFilters, totalCount, 
     for (const k of keys) {
       const v = f[k];
       if (v) sp.set(k, v);
+    }
+    // Vehículos: el listado no lee `location` (antes elegir provincia acá no filtraba nada)
+    if (isVehicles) {
+      sp.delete("location");
+      sp.delete("v_province");
+      const provinceKey = f.location ? Object.keys(RE_LOCATIONS).find((k) => RE_LOCATIONS[k].label === f.location) : undefined;
+      if (provinceKey) sp.set("v_province", provinceKey);
     }
     router.push(`${basePath}?${sp.toString()}`);
     setDrawerOpen(false);
