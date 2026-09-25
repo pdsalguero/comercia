@@ -553,7 +553,7 @@ export function EditForm({ listing, images: initialImages, onSave, onDeleteImage
             {/* Km */}
             {attrs.sub_category && attrs.sub_category !== "nautica" && (
               <div>
-                <label style={lbl}>Kilómetros <span style={{ color: "#dc2626" }}>*</span></label>
+                <label style={lbl}>Kilómetros</label>
                 <div style={{ position: "relative" }}>
                   <input type="number" value={attrs.km ?? ""} onChange={e => setAttr("km", e.target.value)} placeholder="0" style={{ ...inp, paddingRight: "36px" }} />
                   <span style={{ position: "absolute", right: "11px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>km</span>

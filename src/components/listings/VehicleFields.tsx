@@ -324,7 +324,7 @@ export function VehicleFields({ subCategory, attributes, onChange }: VehicleFiel
 
       {/* Kilómetros */}
       {showKm && (
-        <F label="Kilómetros" required>
+        <F label="Kilómetros">
           <div style={{ position: "relative" }}>
             <input
               type="number"

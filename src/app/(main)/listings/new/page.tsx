@@ -1142,9 +1142,8 @@ export default function NewListingPage() {
       // Año — se pide siempre, salvo náutica de servicios/accesorios (no aplica)
       const anioAplica = attrs.sub_category !== "nautica" || (!!attrs.nautica_categoria && !["servicios", "accesorios_nauticos"].includes(attrs.nautica_categoria));
       if (anioAplica && !attrs.year) missing.push("Año");
-      // Km/Horas — mismo criterio que el campo en el formulario (ver más abajo)
-      const kmAplica = attrs.sub_category !== "nautica" || (!!attrs.nautica_categoria && !["servicios", "accesorios_nauticos", "inflables_recreacion"].includes(attrs.nautica_categoria));
-      if (kmAplica && !attrs.km) missing.push(attrs.sub_category === "nautica" ? "Horas de uso" : "Kilómetros");
+      // Km/Horas: opcional (decisión del usuario, 2026-09-25). Hay vendedores que no los saben o no
+      // los quieren poner; sin el dato, el aviso pasa igual el filtro de km del listado.
       if (!zone) missing.push("Provincia");
       if (!condition) missing.push("Estado");
     }
@@ -2301,7 +2300,7 @@ export default function NewListingPage() {
                         ? true
                         : !!attrs.nautica_categoria && !["servicios", "accesorios_nauticos", "inflables_recreacion"].includes(attrs.nautica_categoria)
                       ) && (
-                      <Field label={attrs.sub_category === "nautica" ? "Horas de uso" : "Kilómetros"} required>
+                      <Field label={attrs.sub_category === "nautica" ? "Horas de uso" : "Kilómetros"}>
                         <div style={{ position: "relative" }}>
                           <FocusInp
                             type="number"
