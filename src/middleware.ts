@@ -70,10 +70,22 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url)
       }
 
-      // Admin verificado — continuar con sesión actualizada
-      return response
+      // Admin verificado: sigue el ruteo normal (landings limpias como /motos, redirecciones de /category).
+      // Antes se devolvía `response` acá y el admin veía 404 en /autos, /motos… mientras el sitio estaba
+      // en "próximamente". Las cookies de sesión que renovó getUser() se copian a la respuesta final: si se
+      // pierden, el navegador se queda con un refresh token ya usado ("Invalid Refresh Token").
+      const routed = await routeRequest(request)
+      for (const c of response.cookies.getAll()) routed.cookies.set(c)
+      return routed
     }
   }
+
+  return routeRequest(request)
+}
+
+// Ruteo común (después de los modos mantenimiento / próximamente)
+async function routeRequest(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl
 
   // /category: el tipo de vehículo es `type` (lo leen chip, breadcrumb y menú lateral). Los links viejos
   // con `sub_category` se redirigen acá y no en la página: con loading.tsx la página ya respondió 200

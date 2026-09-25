@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { publicAppUrl } from "@/lib/site-url";
 import { createServiceClient } from "@/lib/supabase/service";
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   // Notificar al receptor por email (fire-and-forget)
   const service = createServiceClient();
-  const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const BASE = publicAppUrl();
 
   Promise.all([
     service.auth.admin.getUserById(receiver_id),

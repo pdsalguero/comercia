@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { publicAppUrl } from "@/lib/site-url";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail } from "@/lib/email";
 import { revalidateHome } from "@/lib/revalidate-home";
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const service = createServiceClient();
-  const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const BASE = publicAppUrl();
   const now = new Date();
 
   // ── 1. Alertas: destacados que vencen entre 72 h y 73 h desde ahora ─────────

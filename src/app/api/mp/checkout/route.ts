@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import MercadoPagoConfig, { Preference } from "mercadopago";
+import { publicAppUrl } from "@/lib/site-url";
 
 export const maxDuration = 30;
 
@@ -70,10 +71,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Plan no reconocido: ${planKey}` }, { status: 400 });
     }
 
-    const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-    if (!BASE) {
-      return NextResponse.json({ error: "NEXT_PUBLIC_APP_URL no configurado" }, { status: 500 });
-    }
+    // URL pública saneada (ver publicAppUrl): Mercado Pago rechaza back_urls mal formadas o de localhost
+    const BASE = publicAppUrl();
 
     const externalRef = `${listingId}__${planKey}__${user.id}`;
 

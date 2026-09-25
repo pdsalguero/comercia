@@ -1333,7 +1333,7 @@ export default function NewListingPage() {
 
           <p style={{ fontSize: "12px", color: C.slate400, textAlign: "center", lineHeight: 1.5, margin: "0" }}>
             Al publicar aceptás los{" "}
-            <Link href="/terms" style={{ color: C.blue, textDecoration: "none", fontWeight: 600 }}>términos y condiciones</Link>.
+            <Link href="/terminos" style={{ color: C.blue, textDecoration: "none", fontWeight: 600 }}>términos y condiciones</Link>.
           </p>
         </div>
       </div>

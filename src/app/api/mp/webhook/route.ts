@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import MercadoPagoConfig, { Payment } from "mercadopago";
 import { createServiceClient } from "@/lib/supabase/service";
-import { applyDestacado } from "@/app/api/mp/callback/route";
+import { applyDestacado, verifyApprovedPayment } from "@/app/api/mp/callback/route";
 
 /**
  * MercadoPago IPN webhook.
@@ -30,12 +30,18 @@ export async function POST(req: NextRequest) {
     const service = createServiceClient();
 
     if (payment.status === "approved") {
-      await applyDestacado({
-        listingId,
-        planKey,
-        userId,
-        paymentId: String(body.data.id),
-      });
+      // Además de aprobado: moneda y monto tienen que cubrir el precio del plan (ver verifyApprovedPayment)
+      const v = await verifyApprovedPayment(String(body.data.id));
+      if (v.ok) {
+        await applyDestacado({
+          listingId,
+          planKey,
+          userId,
+          paymentId: String(body.data.id),
+        });
+      } else {
+        console.error("[mp/webhook] pago aprobado que no coincide con el plan:", body.data.id, externalRef);
+      }
     } else if (payment.status === "rejected" || payment.status === "cancelled") {
       // Mark pago as rejected
       await service.from("pagos").update({

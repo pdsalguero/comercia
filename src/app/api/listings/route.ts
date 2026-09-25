@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { publicAppUrl } from '@/lib/site-url';
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { sendEmail } from '@/lib/email'
@@ -97,7 +98,7 @@ export async function POST(request: Request) {
         .single()
 
       const userName = profile?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
-      const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
+      const BASE = publicAppUrl()
       const { subject, html } = listingPublishedTemplate({
         userName,
         listingTitle: listing.title,
