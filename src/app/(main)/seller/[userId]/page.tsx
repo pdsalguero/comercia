@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildKeywordFilters } from "@/lib/search-query";
 import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
-import { plural, VEHICLE_TYPE_LABELS } from "@/lib/labels";
+import { plural, VEHICLE_TYPE_LABELS, VEHICLE_TYPE_OPTIONS } from "@/lib/labels";
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -15,8 +15,6 @@ import { OrderSelect } from "@/components/ui/OrderSelect";
 import { SearchWithSuggestions } from "@/components/ui/SearchWithSuggestions";
 import { StarRating } from "@/components/ui/StarRating";
 import { ReviewForm } from "@/components/listings/ReviewForm";
-import { CategoryIcon } from "@/components/ui/CategoryIcon";
-import { CATEGORY_CONFIGS } from "@/lib/category-config";
 
 const CATEGORY_NAMES: Record<string, string> = {
   vehicles:        "Vehículos",
@@ -247,43 +245,22 @@ export default async function SellerPage({
   }
   const categories = Object.values(catMap).sort((a, b) => b.count - a.count);
 
-  // Subcategory (tipo) counts for the active category
+  // Tipos de vehículo del vendedor (el sitio es solo vehículos: el sidebar lista tipos, no categorías),
+  // en el mismo orden que el resto del sitio (autos, pickups/SUV, motos…)
   const tipoMap: Record<string, number> = {};
-  if (sp.cat) {
-    for (const l of (allSellerListings as any[]) ?? []) {
-      if (String(l.category_id) !== sp.cat) continue;
-      const tipo = (l.attributes as any)?.sub_category;
-      if (tipo) tipoMap[tipo] = (tipoMap[tipo] ?? 0) + 1;
-    }
+  for (const l of (allSellerListings as any[]) ?? []) {
+    const tipo = (l.attributes as any)?.sub_category;
+    if (tipo) tipoMap[tipo] = (tipoMap[tipo] ?? 0) + 1;
   }
-  const tipos = Object.entries(tipoMap).sort((a, b) => b[1] - a[1]);
+  const TYPE_ORDER = VEHICLE_TYPE_OPTIONS.map((t) => t.value as string);
+  const tipos = Object.entries(tipoMap).sort((a, b) => {
+    const ia = TYPE_ORDER.indexOf(a[0]), ib = TYPE_ORDER.indexOf(b[0]);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  const sellerTotal = allSellerListings?.length ?? 0;
 
   const isGrid = (sp.view ?? "grid") === "grid";
   const hasFilters = !!(sp.q || sp.cat || sp.tipo || sp.price_min || sp.price_max);
-
-  // Same label maps as the listing detail page
-  const RE_SUBCAT: Record<string, string> = {
-    casa: "Casa", departamento: "Departamento", terreno: "Terreno / Lote",
-    finca: "Finca / Campo", local: "Local / Oficina", galpon: "Galpón / Depósito",
-    cochera: "Cochera", otro: "Otro",
-  };
-
-  // Build subcatLabelMap using the same source as the listing detail page
-  const subcatLabelMap: Record<string, string> = {};
-  if (sp.cat === "3") {
-    Object.assign(subcatLabelMap, RE_SUBCAT);
-  } else if (sp.cat === "2") {
-    Object.assign(subcatLabelMap, VEHICLE_TYPE_LABELS);
-  } else {
-    const activeCatConfig = CATEGORY_CONFIGS.find(c => String(c.id) === sp.cat);
-    if (activeCatConfig?.subcats) {
-      for (const s of activeCatConfig.subcats) subcatLabelMap[s.value] = s.label;
-    }
-    if (activeCatConfig?.fields) {
-      const f = activeCatConfig.fields.find(f => f.key === "sub_category");
-      if (f?.options) for (const o of f.options) subcatLabelMap[o.value] = o.label;
-    }
-  }
   const handleReview = submitReview.bind(null, userId);
 
   return (
@@ -444,76 +421,25 @@ export default async function SellerPage({
       {/* ── Left sidebar ── */}
       <aside className="listing-sidebar" style={{ position: "sticky", top: "76px" }}>
 
-        {/* Categories */}
-        {categories.length > 0 && (
+        {/* Tipos de vehículo */}
+        {tipos.length > 0 && (
           <div style={{ background: "#fff", borderRadius: "14px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
             <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", fontWeight: 700, fontSize: "13px", color: "#0f172a" }}>
-              Categorías
+              Tipo de vehículo
             </div>
-            <Link href={buildUrl(base, sp, { cat: undefined })} style={{ textDecoration: "none" }}>
-              <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f8fafc", cursor: "pointer", background: !sp.cat ? "#f0f4ff" : "#fff" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <CategoryIcon slug="other" size={18} />
-                  <span style={{ fontSize: "13px", color: !sp.cat ? "#1d6fb8" : "#334155", fontWeight: !sp.cat ? 700 : 400 }}>Todas</span>
-                </div>
-              </div>
-            </Link>
-            {categories.map((cat, i) => {
-              const active = sp.cat === String(cat.id);
-              const isLast = i === categories.length - 1 && (!active || tipos.length === 0);
+            {[["", sellerTotal] as [string, number], ...tipos].map(([tipo, count], i, arr) => {
+              const active = (sp.tipo ?? "") === tipo;
               return (
-                <div key={cat.id}>
-                  <Link href={buildUrl(base, sp, { cat: active ? undefined : String(cat.id), tipo: undefined })} style={{ textDecoration: "none" }}>
-                    <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: isLast ? "none" : "1px solid #f8fafc", cursor: "pointer", background: active ? "#f0f4ff" : "#fff" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <CategoryIcon slug={cat.slug} size={18} />
-                        <span style={{ fontSize: "13px", color: active ? "#1d6fb8" : "#334155", fontWeight: active ? 700 : 400 }}>
-                          {CATEGORY_NAMES[cat.slug] ?? cat.name}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1d6fb8" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}
-                        <span style={{ fontSize: "12px", color: active ? "#1d6fb8" : "#94a3b8", background: active ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
-                          {cat.count}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-
-                  {/* Subcategories tree — only for active category */}
-                  {active && tipos.length > 0 && (
-                    <div style={{ borderBottom: i === categories.length - 1 ? "none" : "1px solid #f8fafc" }}>
-                      <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
-                        <div style={{ padding: "7px 16px 7px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: !sp.tipo ? "#f5f3ff" : "#fafafa" }}>
-                          <span style={{ fontSize: "12px", color: !sp.tipo ? "#1d6fb8" : "#64748b", fontWeight: !sp.tipo ? 700 : 400 }}>Todos</span>
-                        </div>
-                      </Link>
-                      {tipos.map(([tipo, count], ti) => {
-                        const tipoActive = sp.tipo === tipo;
-                        const label = subcatLabelMap[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/-/g, " "));
-                        return (
-                          <Link key={tipo} href={buildUrl(base, sp, { tipo: tipoActive ? undefined : tipo })} style={{ textDecoration: "none" }}>
-                            <div style={{
-                              padding: "7px 16px 7px 40px",
-                              display: "flex", alignItems: "center", justifyContent: "space-between",
-                              cursor: "pointer",
-                              background: tipoActive ? "#f0f4ff" : "#fafafa",
-                              borderTop: "1px solid #f1f5f9",
-                            }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: tipoActive ? "#1d6fb8" : "#cbd5e1", flexShrink: 0 }} />
-                                <span style={{ fontSize: "12px", color: tipoActive ? "#1d6fb8" : "#475569", fontWeight: tipoActive ? 700 : 400 }}>{label}</span>
-                              </div>
-                              <span style={{ fontSize: "12px", color: tipoActive ? "#1d6fb8" : "#94a3b8", background: tipoActive ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
-                                {count}
-                              </span>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <Link key={tipo || "todos"} href={buildUrl(base, sp, { tipo: tipo || undefined, cat: undefined })} style={{ textDecoration: "none" }}>
+                  <div style={{ padding: "9px 16px", minHeight: "40px", boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: i === arr.length - 1 ? "none" : "1px solid #f8fafc", cursor: "pointer", background: active ? "#f0f4ff" : "#fff" }}>
+                    <span style={{ fontSize: "13px", color: active ? "#1d6fb8" : "#334155", fontWeight: active ? 700 : 400 }}>
+                      {tipo ? (VEHICLE_TYPE_LABELS[tipo] ?? tipo) : "Todos"}
+                    </span>
+                    <span style={{ fontSize: "12px", color: active ? "#1d6fb8" : "#94a3b8", background: active ? "#d5e6f6" : "#f1f5f9", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
+                      {count}
+                    </span>
+                  </div>
+                </Link>
               );
             })}
           </div>
@@ -620,6 +546,13 @@ export default async function SellerPage({
                   </span>
                 </Link>
               )}
+              {sp.tipo && (
+                <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", background: "#eff6ff", color: "#2563eb", fontSize: "12px", fontWeight: 600 }}>
+                    {VEHICLE_TYPE_LABELS[sp.tipo] ?? sp.tipo} ×
+                  </span>
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -630,7 +563,9 @@ export default async function SellerPage({
             No se encontraron publicaciones
           </div>
         ) : isGrid ? (
-          <div className="grid-cols-4">
+          // Grilla adaptable (tarjetas de 200px mínimo), igual que el listado: con 4 columnas fijas en la
+          // columna central las tarjetas quedaban de ~145px, angostas y estiradas a lo alto.
+          <div className="grid-cols-auto">
             {listings.map((l: any) => {
               const cover = l.listing_images?.sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))[0]?.url ?? null;
               return (

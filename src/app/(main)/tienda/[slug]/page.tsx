@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildKeywordFilters } from "@/lib/search-query";
 import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
-import { plural } from "@/lib/labels";
+import { plural, VEHICLE_TYPE_LABELS, VEHICLE_TYPE_OPTIONS } from "@/lib/labels";
 import { storageImg } from "@/lib/storage-image";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -227,14 +227,18 @@ export default async function TiendaPage({
   const categories = Object.values(catMap).sort((a, b) => b.count - a.count);
   const totalListings = (allListings as any[])?.length ?? 0;
 
-  // Tipo counts (sub_category) — filtered by selected category
+  // Tipos de vehículo de la tienda, en el orden del resto del sitio (autos, pickups/SUV, motos…)
   const tipoMap: Record<string, number> = {};
   for (const l of (allListings as any[]) ?? []) {
     if (sp.cat && String(l.category_id) !== sp.cat) continue;
     const tipo = (l.attributes as any)?.sub_category;
     if (tipo) tipoMap[tipo] = (tipoMap[tipo] ?? 0) + 1;
   }
-  const tipos = Object.entries(tipoMap).sort((a, b) => b[1] - a[1]);
+  const TYPE_ORDER = VEHICLE_TYPE_OPTIONS.map((t) => t.value as string);
+  const tipos = Object.entries(tipoMap).sort((a, b) => {
+    const ia = TYPE_ORDER.indexOf(a[0]), ib = TYPE_ORDER.indexOf(b[0]);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
 
   const isGrid = (sp.view ?? "grid") === "grid";
   const hasFilters = !!(sp.q || sp.cat || sp.tipo || sp.price_min || sp.price_max || sp.condition);
@@ -387,36 +391,11 @@ export default async function TiendaPage({
         {/* Sidebar */}
         <aside className="listing-sidebar" style={{ position: "sticky", top: "76px" }}>
 
-          {/* Categories */}
-          {categories.length > 0 && (
-            <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
-              <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Categoría
-              </div>
-              <Link href={buildUrl(base, sp, { cat: undefined })} style={{ textDecoration: "none" }}>
-                <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: !sp.cat ? "#eff6ff" : "transparent", color: !sp.cat ? "#2563eb" : "#444", fontWeight: !sp.cat ? 700 : 400, borderLeft: !sp.cat ? "3px solid #2563eb" : "3px solid transparent" }}>
-                  Todas
-                </div>
-              </Link>
-              {categories.map(cat => {
-                const active = sp.cat === String(cat.id);
-                return (
-                  <Link key={cat.id} href={buildUrl(base, sp, { cat: active ? undefined : String(cat.id) })} style={{ textDecoration: "none" }}>
-                    <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span>{CATEGORY_NAMES[cat.slug] ?? cat.name}</span>
-                      <span style={{ fontSize: "12px", color: active ? "#93c5fd" : "#94a3b8" }}>{cat.count}</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Tipo filter */}
+          {/* Tipo de vehículo (el sitio es solo vehículos: ya no hay filtro por categoría) */}
           {tipos.length > 0 && (
             <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
               <div style={{ padding: "11px 16px", borderBottom: "1px solid #f0f0f0", fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Tipo
+                Tipo de vehículo
               </div>
               <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
                 <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: !sp.tipo ? "#eff6ff" : "transparent", color: !sp.tipo ? "#2563eb" : "#444", fontWeight: !sp.tipo ? 700 : 400, borderLeft: !sp.tipo ? "3px solid #2563eb" : "3px solid transparent" }}>
@@ -425,7 +404,7 @@ export default async function TiendaPage({
               </Link>
               {tipos.map(([tipo, count]) => {
                 const active = sp.tipo === tipo;
-                const label = tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/-/g, " ");
+                const label = VEHICLE_TYPE_LABELS[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/-/g, " "));
                 return (
                   <Link key={tipo} href={buildUrl(base, sp, { tipo: active ? undefined : tipo })} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", background: active ? "#eff6ff" : "transparent", color: active ? "#2563eb" : "#444", fontWeight: active ? 700 : 400, borderLeft: active ? "3px solid #2563eb" : "3px solid transparent", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -505,37 +484,17 @@ export default async function TiendaPage({
             </summary>
             <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "14px", borderTop: "1px solid #f0f0f0" }}>
 
-              {/* Categories */}
-              {categories.length > 0 && (
-                <div>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Categoría</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                    <Link href={buildUrl(base, sp, { cat: undefined })} style={{ textDecoration: "none" }}>
-                      <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${!sp.cat ? "#2563eb" : "#e2e8f0"}`, background: !sp.cat ? "#eff6ff" : "#fff", color: !sp.cat ? "#2563eb" : "#475569", fontWeight: !sp.cat ? 700 : 400 }}>Todas</span>
-                    </Link>
-                    {categories.map(cat => {
-                      const active = sp.cat === String(cat.id);
-                      return (
-                        <Link key={cat.id} href={buildUrl(base, sp, { cat: active ? undefined : String(cat.id) })} style={{ textDecoration: "none" }}>
-                          <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`, background: active ? "#eff6ff" : "#fff", color: active ? "#2563eb" : "#475569", fontWeight: active ? 700 : 400 }}>{CATEGORY_NAMES[cat.slug] ?? cat.name}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Tipos */}
+              {/* Tipos de vehículo */}
               {tipos.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Tipo</div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Tipo de vehículo</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     <Link href={buildUrl(base, sp, { tipo: undefined })} style={{ textDecoration: "none" }}>
                       <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${!sp.tipo ? "#2563eb" : "#e2e8f0"}`, background: !sp.tipo ? "#eff6ff" : "#fff", color: !sp.tipo ? "#2563eb" : "#475569", fontWeight: !sp.tipo ? 700 : 400 }}>Todos</span>
                     </Link>
                     {tipos.map(([tipo, count]) => {
                       const active = sp.tipo === tipo;
-                      const label = tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/-/g, " ");
+                      const label = VEHICLE_TYPE_LABELS[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/-/g, " "));
                       return (
                         <Link key={tipo} href={buildUrl(base, sp, { tipo: active ? undefined : tipo })} style={{ textDecoration: "none" }}>
                           <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "12px", border: `1.5px solid ${active ? "#2563eb" : "#e2e8f0"}`, background: active ? "#eff6ff" : "#fff", color: active ? "#2563eb" : "#475569", fontWeight: active ? 700 : 400 }}>{label}</span>
@@ -654,7 +613,8 @@ export default async function TiendaPage({
               No se encontraron publicaciones
             </div>
           ) : isGrid ? (
-            <div className="grid-cols-4">
+            // Grilla adaptable (200px mínimo), igual que el listado y el perfil del vendedor
+            <div className="grid-cols-auto">
               {listings.map((l: any) => {
                 const cover = l.listing_images?.sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))[0]?.url ?? null;
                 return (
