@@ -12,13 +12,16 @@ interface SendEmailOptions {
   to: string;
   subject: string;
   html: string;
+  /** "Responder a": al contestar el mail, la respuesta va a esta dirección y no al remitente no-reply@ */
+  replyTo?: string;
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailOptions) {
+export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
   try {
     const command = new SendEmailCommand({
       Source: process.env.AWS_SES_FROM_EMAIL ?? "pdsalguero@gmail.com",
       Destination: { ToAddresses: [to] },
+      ...(replyTo ? { ReplyToAddresses: [replyTo] } : {}),
       Message: {
         Subject: { Data: subject, Charset: "UTF-8" },
         Body: { Html: { Data: html, Charset: "UTF-8" } },
