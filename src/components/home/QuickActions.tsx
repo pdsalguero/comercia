@@ -19,7 +19,7 @@ const ACTIONS: {
 
 export function QuickActions() {
   return (
-    <section className="home-section">
+    <section className="home-section home-quick-actions">
       <h2 className="home-section-title">¿Qué querés hacer hoy?</h2>
       <div className="home-quick-grid">
         {ACTIONS.map(({ Icon, bg, fg, title, sub, href, highlight }) => (
@@ -38,5 +38,16 @@ export function QuickActions() {
         ))}
       </div>
     </section>
+  );
+}
+
+// Solo celular (en computadora está en la grilla de arriba): el único acceso rápido que no se repite en
+// otro lado de la pantalla.
+export function DealerLinkMobile() {
+  return (
+    <Link href="/dashboard/store" className="home-dealer-link">
+      <span>¿Tenés una concesionaria?</span>
+      <strong>Sumá tu tienda →</strong>
+    </Link>
   );
 }

@@ -112,7 +112,7 @@ export function ListingListCard({
   const href = listingUrl(id, title);
   return (
       <div
-        className="listing-list-card"
+        className={`listing-list-card${badge ? ` llc-lvl-${featured_level}` : ""}`}
         onClick={(e) => {
           if ((e.target as HTMLElement).closest("a, button")) return; // ya navega/actúa ese elemento
           router.push(href);
@@ -203,7 +203,7 @@ export function ListingListCard({
           )}
 
           {gallery.length > 1 && (
-            <div style={{
+            <div className="llc-count" style={{
               position: "absolute", bottom: "8px", right: "8px",
               background: "rgba(15,23,42,0.72)", color: "#fff",
               borderRadius: "20px", padding: "3px 8px",

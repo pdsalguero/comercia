@@ -12,6 +12,7 @@ import { getCategoryConfig, SERVICE_CATEGORIES, SERVICE_SUBCATS } from "@/lib/ca
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { RelatedCarousel } from "@/components/listings/RelatedCarousel";
 import { ShareButton } from "@/components/listings/ShareButton";
+import { RevealOnScrollBar } from "@/components/listings/RevealOnScrollBar";
 import { ReportButton } from "@/components/listings/ReportButton";
 import PinIcon from "@/components/ui/PinIcon";
 import type { Metadata } from "next";
@@ -415,9 +416,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="listing-detail" style={{ background: "#f5f5f5", minHeight: "100vh", paddingBottom: "60px" }}>
-      {/* Mobile sticky WhatsApp (no en vendidos: no hay a quién contactar) */}
+      {/* Mobile sticky WhatsApp (no en vendidos: no hay a quién contactar). Aparece al scrollear, cuando
+          los botones de la tarjeta principal (#detail-cta) ya no se ven. */}
       {!isSold && (
-      <div className="mobile-wa-bar" style={{
+      <RevealOnScrollBar targetId="detail-cta" className="mobile-wa-bar" style={{
         display: "none", position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 300,
         padding: "8px 16px", paddingBottom: "calc(8px + env(safe-area-inset-bottom))",
         background: "rgba(255,255,255,0.97)", backdropFilter: "blur(10px)",
@@ -462,7 +464,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             />
           )}
         </div>
-      </div>
+      </RevealOnScrollBar>
       )}
       <script
         type="application/ld+json"
@@ -784,7 +786,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     Ver similares disponibles
                   </Link>
                 ) : (
-                <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                <div id="detail-cta" style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                   {/* Sin WhatsApp visible no se muestra el botón (antes quedaba uno gris que no hacía nada);
                       "Contactar" ocupa todo el ancho */}
                   {whatsappUrl && (

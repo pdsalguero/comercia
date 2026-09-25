@@ -32,7 +32,7 @@ import { Footer } from "@/components/layout/Footer";
 import { HomeFeaturedCarousel } from "@/components/listings/HomeFeaturedCarousel";
 import { RecentlySold } from "@/components/listings/RecentlySold";
 import { HeroSearch } from "@/components/listings/HeroSearch";
-import { QuickActions } from "@/components/home/QuickActions";
+import { QuickActions, DealerLinkMobile } from "@/components/home/QuickActions";
 import { FounderBanner } from "@/components/home/FounderBanner";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { StoreCards } from "@/components/listings/StoreCards";
@@ -301,6 +301,8 @@ export default async function HomePage() {
                 categories: l.categories ? { ...l.categories, name: CAT_NAMES[l.categories.slug] ?? l.categories.name } : null,
               }))}
             />
+
+            <DealerLinkMobile />
 
             {/* Vendidos recientemente: referencia de precios con avisos reales ya vendidos */}
             <RecentlySold items={(sold ?? []).map((l) => ({ ...l, cover_image: cover(l) }))} />
