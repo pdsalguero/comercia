@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from("listings")
       .select(
-        "id,title,description,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images(url,position),categories(name,slug)"
+        "id,title,description,price,currency,condition,city,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images(url,position),categories(name,slug)"
       )
       .eq("status", "active")
       .in("category_id", ENABLED_CATEGORY_IDS)

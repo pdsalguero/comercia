@@ -7,7 +7,7 @@ import { FavoriteButton } from "./FavoriteButton";
 import { PriceDropBadge } from "./PriceDropBadge";
 import { SaleTermsBadges } from "./SaleTermsBadges";
 import PinIcon from "@/components/ui/PinIcon";
-import { ZONE_TO_PROVINCE } from "@/lib/re-locations";
+import { listingProvince } from "@/lib/listing-location";
 import { listingUrl } from "@/lib/listing-url";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, timeAgo } from "@/lib/labels";
@@ -20,6 +20,8 @@ interface ListingCardProps {
   cover_image: string | null;
   category?: string;
   condition?: string;
+  /** Provincia (avisos nuevos); con neighborhood y attributes.zone se resuelve la provincia a mostrar */
+  city?: string | null;
   neighborhood?: string | null;
   featured_level?: "gold" | "silver" | "bronze" | null;
   attributes?: Record<string, string | number | boolean | null>;
@@ -54,6 +56,7 @@ export function ListingCard({
   price,
   currency = "ARS",
   cover_image,
+  city,
   neighborhood,
   featured_level,
   attributes,
@@ -97,10 +100,8 @@ export function ListingCard({
   const subSpec = typeof subSpecRaw === "boolean" || subSpecRaw === null ? null : subSpecRaw;
   const brandModelLine = brand || model ? [brand, model].filter(Boolean).join(" · ") : null;
 
-  // Show province if zone is known, otherwise fall back to neighborhood (extract province if "locality, province")
-  const zoneSlug = attributes?.zone as string | undefined;
-  const rawLocation = (zoneSlug && ZONE_TO_PROVINCE[zoneSlug]) ?? neighborhood ?? "Argentina";
-  const locationLabel = rawLocation.includes(",") ? rawLocation.split(",").pop()!.trim() : rawLocation;
+  // En tarjetas solo la provincia (la localidad se ve en la ficha)
+  const locationLabel = listingProvince({ city, neighborhood, attributes });
 
   return (
     <Link href={listingUrl(id, title)} prefetch={false} style={{ textDecoration: "none", display: "block", height: "100%" }}>
@@ -332,9 +333,8 @@ export function ListingCard({
 
           <div style={{ fontSize: "12px", color: "#888", marginTop: "auto" }}>
             {/* Row 1: location */}
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-              <PinIcon size={11} />
-              <span>{locationLabel}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px", minHeight: "16px" }}>
+              {locationLabel && <><PinIcon size={11} /><span>{locationLabel}</span></>}
             </div>
             {/* Row 2: views (left) + date (right) — fixed height so all cards align */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "18px" }}>

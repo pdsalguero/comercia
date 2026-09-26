@@ -5,6 +5,7 @@ import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import PinIcon from "@/components/ui/PinIcon";
 import { formatListingPrice, favoriteStatus } from "@/lib/listing-display";
 import { listingUrl } from "@/lib/listing-url";
+import { listingProvince } from "@/lib/listing-location";
 import { conditionLabel, plural } from "@/lib/labels";
 import { Heart, ImageOff } from "lucide-react";
 import type { Metadata } from "next";
@@ -32,7 +33,7 @@ export default async function FavoritesPage() {
     .select(`
       created_at,
       listings (
-        id, title, price, currency, condition, neighborhood, status, category_id,
+        id, title, price, currency, condition, city, neighborhood, attributes, status, category_id,
         listing_images (url, position)
       )
     `)
@@ -158,8 +159,8 @@ export default async function FavoritesPage() {
                           {conditionLabel(listing.condition)}
                         </span>
                       )}
-                      {listing.neighborhood && (
-                        <span style={{ fontSize: "12px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {listing.neighborhood}</span>
+                      {listingProvince(listing) && (
+                        <span style={{ fontSize: "12px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px" }}><PinIcon size={10} /> {listingProvince(listing)}</span>
                       )}
                     </div>
                   </div>

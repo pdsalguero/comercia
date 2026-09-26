@@ -14,6 +14,7 @@ interface Item {
   price: number | null;
   currency?: string | null;
   condition?: string | null;
+  city?: string | null;
   neighborhood?: string | null;
   featured_level?: string | null;
   attributes?: Record<string, any> | null;
@@ -113,6 +114,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
             currency={l.currency ?? "ARS"}
             cover_image={l.cover_image}
             condition={l.condition ?? undefined}
+            city={l.city}
             neighborhood={l.neighborhood ?? undefined}
             featured_level={(l.featured_level as any) ?? null}
             attributes={l.attributes ?? undefined}

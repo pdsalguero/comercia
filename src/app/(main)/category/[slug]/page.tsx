@@ -3560,6 +3560,7 @@ export default async function CategoryPage({
                     featured_level={listing.featured_level}
                     cover_image={cover}
                     condition={listing.condition ?? a.condition ?? null}
+                    city={listing.city}
                     neighborhood={listing.neighborhood}
                     view_count={listing.view_count}
                     created_at={listing.created_at}
@@ -3600,6 +3601,7 @@ export default async function CategoryPage({
                       price={listing.price}
                       currency={listing.currency ?? "ARS"}
                       cover_image={cover}
+                      city={listing.city}
                       neighborhood={listing.neighborhood}
                       featured_level={(listing as any).featured_level ?? null}
                       attributes={listing.attributes as Record<string, string | number | boolean | null> | undefined}

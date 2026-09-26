@@ -85,7 +85,7 @@ function shuffle<T>(arr: T[]): T[] {
 // Función interna pura — no usa cookies(), apta para unstable_cache
 async function _fetchHomeData() {
   const supabase = createPublicClient();
-  const FIELDS = "id, title, price, currency, condition, neighborhood, created_at, bumped_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
+  const FIELDS = "id, title, price, currency, condition, city, neighborhood, created_at, bumped_at, featured_level, attributes, view_count, user_id, listing_images(url, position)";
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
   const CAT_IDS = ENABLED_CATEGORY_IDS;
@@ -102,7 +102,7 @@ async function _fetchHomeData() {
     { data: sold },
   ] = await Promise.all([
     supabase.from("listings").select(FIELDS).eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).eq("featured_level","gold").order("created_at",{ascending:false}).limit(16),
-    supabase.from("listings").select("id,title,description,price,currency,condition,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images!inner(url,position),categories(name,slug)").eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).order("created_at",{ascending:false}).limit(8),
+    supabase.from("listings").select("id,title,description,price,currency,condition,city,neighborhood,created_at,bumped_at,view_count,user_id,featured_level,attributes,listing_images!inner(url,position),categories(name,slug)").eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).order("created_at",{ascending:false}).limit(8),
     supabase.from("listings").select("id",{count:"exact",head:true}).eq("status","active").in("category_id",ENABLED_CATEGORY_IDS),
     // "id" y no "*": con la clave anónima las columnas privadas no son legibles y "*" daría error
     supabase.from("profiles").select("id",{count:"exact",head:true}),
@@ -117,7 +117,7 @@ async function _fetchHomeData() {
     // Opciones del buscador del hero (tipos/marcas/modelos con stock)
     supabase.from("listings").select("attributes").eq("status","active").in("category_id",ENABLED_CATEGORY_IDS).limit(1000),
     // "Vendidos recientemente": los vendidos de los últimos 6 meses, con su último precio publicado
-    supabase.from("listings").select("id,title,price,currency,neighborhood,attributes,sold_at,listing_images(url,position)")
+    supabase.from("listings").select("id,title,price,currency,city,neighborhood,attributes,sold_at,listing_images(url,position)")
       .eq("status","sold").in("category_id",ENABLED_CATEGORY_IDS)
       .gte("sold_at", new Date(Date.now() - 183 * 24 * 3600 * 1000).toISOString())
       .order("sold_at",{ascending:false}).limit(12),

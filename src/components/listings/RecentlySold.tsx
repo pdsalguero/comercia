@@ -3,12 +3,14 @@ import { ImageOff } from "lucide-react";
 import { storageImg } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 import { soldMonthLabel } from "@/lib/labels";
+import { listingProvince } from "@/lib/listing-location";
 
 export interface SoldItem {
   id: string;
   title: string;
   price: number | null;
   currency: string | null;
+  city?: string | null;
   neighborhood: string | null;
   attributes: Record<string, unknown> | null;
   sold_at: string | null;
@@ -64,7 +66,9 @@ export function RecentlySold({ items }: { items: SoldItem[] }) {
                 </div>
                 {specs && <div style={{ fontSize: "12px", color: "#475569" }}>{specs}</div>}
                 {price && <div style={{ fontSize: "15px", fontWeight: 800, color: "#475569" }}>{price}</div>}
-                <div style={{ fontSize: "12px", color: "#94a3b8" }}>{soldMonthLabel(l.sold_at)}</div>
+                <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                  {[soldMonthLabel(l.sold_at), listingProvince(l)].filter(Boolean).join(" · ")}
+                </div>
               </div>
             </Link>
           );

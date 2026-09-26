@@ -28,6 +28,8 @@ import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
 import { PropertyMap } from "./PropertyMapWrapper";
 import { TransferCostCard } from "@/components/listings/TransferCostCard";
+import { provinceKeysOf } from "@/lib/landing-stock";
+import { listingLocationFull, listingProvince } from "@/lib/listing-location";
 import { PriceHistory, type PriceChange } from "@/components/listings/PriceHistory";
 import { getDolarOficial } from "@/lib/dolar";
 import { vehicleKind } from "@/lib/transfer-cost";
@@ -95,7 +97,7 @@ async function getRelated(
 ) {
   const { createPublicClient } = await import("@/lib/supabase/public");
   const supabase = createPublicClient();
-  const SEL = `id, title, price, currency, neighborhood, attributes, listing_images(url, position)`;
+  const SEL = `id, title, price, currency, city, neighborhood, attributes, listing_images(url, position)`;
   const type = attrs.sub_category ? String(attrs.sub_category) : undefined;
   const brand = attrs.brand ? String(attrs.brand) : undefined;
   const model = attrs.model ? String(attrs.model) : undefined;
@@ -142,7 +144,7 @@ const getListing = cache(async function getListing(id: string) {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select(`id, title, description, price, currency, condition, neighborhood, created_at, category_id, attributes, user_id, view_count, featured_level, status, sold_at, listing_images(url, position)`)
+    .select(`id, title, description, price, currency, condition, city, neighborhood, created_at, category_id, attributes, user_id, view_count, featured_level, status, sold_at, listing_images(url, position)`)
     .eq("id", id)
     // Los vendidos siguen accesibles (cartel "Este vehículo ya se vendió", sin contacto): no se pierde
     // lo que Google ya indexó y sirven de referencia de precio. Pausados/vencidos siguen dando 404.
@@ -198,7 +200,7 @@ export async function generateMetadata(
     : "Consultar precio";
   const desc = listing.description
     ? listing.description.slice(0, 155).replace(/\n/g, " ")
-    : `${listing.title} — ${priceStr}. ${listing.neighborhood ?? "San Juan"}.`;
+    : `${listing.title} — ${priceStr}.${listingLocationFull(listing) ? ` ${listingLocationFull(listing)}.` : ""}`;
 
   return {
     title: `${listing.title} — ${priceStr}`,
@@ -651,7 +653,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 kind={vehicleKind(attrs.sub_category)}
                 dolarVenta={dolar?.venta ?? null}
                 dolarFecha={dolar?.fechaActualizacion ?? null}
-                location={listing.neighborhood}
+                provinces={provinceKeysOf({ zone: attrs.zone, city: listing.city, neighborhood: listing.neighborhood })}
               />
             ) : null}
 
@@ -772,7 +774,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {/* Location + actions */}
               <div style={{ padding: "14px 20px" }}>
                 <div style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "14px", display: "flex", alignItems: "center", gap: "5px" }}>
-                  <PinIcon size={12} /> {listing.neighborhood ?? "San Juan"}
+                  <PinIcon size={12} /> {listingLocationFull(listing) || "Cuyo"}
                 </div>
 
                 {/* CTAs pegados al precio: antes estaban en la tarjeta del vendedor y en notebooks quedaban
@@ -997,7 +999,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                           <div style={{ fontSize: "13px", color: "#999" }}>Precio a consultar</div>
                         )}
                         <div style={{ fontSize: "12px", color: "#999", marginTop: "10px", display: "flex", alignItems: "center", gap: "3px" }}>
-                          <PinIcon size={10} /> {r.neighborhood ?? ""}
+                          {listingProvince(r) && <><PinIcon size={10} /> {listingProvince(r)}</>}
                         </div>
                       </div>
                     </div>

@@ -14,6 +14,7 @@ type Listing = {
   price: number;
   currency: string;
   condition: string;
+  city?: string | null;
   neighborhood: string;
   created_at?: string | null;
   bumped_at?: string | null;
@@ -128,6 +129,7 @@ export function RecentListings({
               currency={l.currency ?? "ARS"}
               cover_image={cover(l)}
               condition={l.condition}
+              city={l.city}
               neighborhood={l.neighborhood}
               featured_level={(l.featured_level as "gold" | "silver" | "bronze" | null | undefined) ?? null}
               attributes={l.attributes ?? undefined}
@@ -155,6 +157,7 @@ export function RecentListings({
             featured_level={l.featured_level ?? null}
             cover_image={cover(l)}
             condition={l.condition}
+            city={l.city}
             neighborhood={l.neighborhood}
             view_count={l.view_count ?? null}
             created_at={l.created_at ?? null}

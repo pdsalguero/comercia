@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildKeywordFilters } from "@/lib/search-query";
 import { comparePrice, sanitizeRangeParams } from "@/lib/listing-filters";
 import { listingUrl } from "@/lib/listing-url";
+import { listingProvince } from "@/lib/listing-location";
 import { plural, VEHICLE_TYPE_LABELS, VEHICLE_TYPE_OPTIONS } from "@/lib/labels";
 import { storageImg } from "@/lib/storage-image";
 import { notFound } from "next/navigation";
@@ -187,7 +188,7 @@ export default async function TiendaPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = supabase
     .from("listings")
-    .select(`id, title, price, currency, condition, neighborhood, created_at, attributes, featured_level, view_count, category_id, categories(id, name, slug), listing_images(url, position)`)
+    .select(`id, title, price, currency, condition, city, neighborhood, created_at, attributes, featured_level, view_count, category_id, categories(id, name, slug), listing_images(url, position)`)
     .eq("status", "active")
     .eq("user_id", userId) as any;
 
@@ -625,6 +626,7 @@ export default async function TiendaPage({
                     price={l.price}
                     currency={l.currency}
                     condition={l.condition}
+                    city={l.city}
                     neighborhood={l.neighborhood}
                     cover_image={cover}
                     attributes={l.attributes}
@@ -670,9 +672,9 @@ export default async function TiendaPage({
                               {l.condition === "new" ? "Nuevo" : l.condition === "like_new" ? "Como nuevo" : "Usado"}
                             </span>
                           )}
-                          {l.neighborhood && (
+                          {listingProvince(l) && (
                             <span style={{ fontSize: "12px", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-                              <PinIcon size={10} /> {l.neighborhood}
+                              <PinIcon size={10} /> {listingProvince(l)}
                             </span>
                           )}
                         </div>

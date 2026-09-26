@@ -11,6 +11,7 @@ type Listing = {
   price: number;
   currency: string;
   condition: string;
+  city?: string | null;
   neighborhood: string;
   created_at?: string | null;
   bumped_at?: string | null;

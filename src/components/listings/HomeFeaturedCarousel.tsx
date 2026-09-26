@@ -3,6 +3,7 @@
 import { useMemo, useRef } from "react";
 import { useHomeProvince } from "./HomeProvinceContext";
 import { FeaturedCarousel } from "./FeaturedCarousel";
+import { listingProvince } from "@/lib/listing-location";
 
 interface Item {
   id: string;
@@ -10,6 +11,7 @@ interface Item {
   price: number | null;
   currency?: string | null;
   condition?: string | null;
+  city?: string | null;
   neighborhood?: string | null;
   featured_level?: string | null;
   attributes?: Record<string, any> | null;
@@ -36,9 +38,7 @@ export function HomeFeaturedCarousel({
 
   const items = useMemo(() => {
     if (!province) return allItems.current;
-    return allItems.current.filter((item) =>
-      item.neighborhood?.toLowerCase().endsWith(province.toLowerCase())
-    );
+    return allItems.current.filter((item) => listingProvince(item).toLowerCase() === province.toLowerCase());
   }, [province]);
 
   const viewAllHref = province ? `${href}?location=${encodeURIComponent(province)}` : href;

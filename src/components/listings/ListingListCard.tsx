@@ -10,6 +10,7 @@ import { PriceDropBadge } from "./PriceDropBadge";
 import { SaleTermsBadges } from "./SaleTermsBadges";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
+import { listingProvince } from "@/lib/listing-location";
 import type { BreadcrumbChip } from "@/lib/listing-breadcrumbs";
 import { CONDITION_LABELS as BASE_CONDITION_LABELS, fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, plural, timeAgo } from "@/lib/labels";
 
@@ -21,6 +22,8 @@ export interface ListingListCardProps {
   featured_level: string | null;
   cover_image: string | null;
   condition: string | null;
+  /** Provincia (avisos nuevos); junto con neighborhood y attributes.zone se resuelve la provincia a mostrar */
+  city?: string | null;
   neighborhood: string | null;
   view_count?: number | null;
   created_at?: string | null;
@@ -70,6 +73,7 @@ export function ListingListCard({
   featured_level,
   cover_image,
   condition,
+  city,
   neighborhood,
   view_count,
   created_at,
@@ -105,6 +109,8 @@ export function ListingListCard({
   const transmissionLabel = isVehicle ? toTransmissionLabel(attributes?.transmission) || undefined : undefined;
   const hasSpecs = !!(year || km != null || fuelLabel || transmissionLabel);
   const badge = featured_level ? FEATURED_BADGE[featured_level] : null;
+  // En listados solo la provincia (la localidad se ve en la ficha)
+  const province = listingProvince({ city, neighborhood, attributes });
 
   // La fila no puede ser un único <a>: los chips (tipo/marca/modelo) y WhatsApp son sus propios links
   // y un <a> no puede anidar otro. Por eso la foto y el título son <Link> reales (se abren en otra
@@ -297,9 +303,9 @@ export function ListingListCard({
                 {CONDITION_LABELS[condition]}
               </span>
             )}
-            {neighborhood && (
+            {province && (
               <span style={{ fontSize: "12px", color: "#64748b", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                <PinIcon size={11} /> {neighborhood}
+                <PinIcon size={11} /> {province}
               </span>
             )}
           </div>
