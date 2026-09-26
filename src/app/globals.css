@@ -1297,6 +1297,22 @@ details.sf > summary::marker { display: none; }
   .listing-list-card.llc-lvl-gold   { box-shadow: inset 4px 0 0 #eab308; background: #fefce8 !important; }
   .listing-list-card.llc-lvl-silver { box-shadow: inset 4px 0 0 #1d6fb8; }
   .listing-list-card.llc-lvl-bronze { box-shadow: inset 4px 0 0 #ea580c; }
+  /* Grilla en celular (home, listados, perfiles): sin flechas de fotos (la foto lleva a la ficha, con la
+     galería completa) y el corazón más chico. El área de toque sigue siendo de 44px (.tap-44). */
+  .lc-img .lc-nav { display: none !important; }
+  .lc-img .fav-card {
+    top: 6px !important; right: 6px !important;
+    width: 26px !important; height: 26px !important;
+    font-size: 12px !important;
+  }
+  /* Grilla en celular: el sello de destacado (Premium/Destacado/Esencial) más chico, que tapaba la foto */
+  .lc-badge {
+    top: 6px !important; left: 6px !important;
+    padding: 1px 6px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.2px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important;
+  }
 
   /* ── Dashboard mobile ── */
   .dashboard-wrapper {

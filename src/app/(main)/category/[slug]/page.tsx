@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { headers } from "next/headers";
 import { createPublicClient } from "@/lib/supabase/public";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { ListingListCard } from "@/components/listings/ListingListCard";
@@ -1249,9 +1250,12 @@ export default async function CategoryPage({
   const subcatAllHref = subcatPillsConfig ? buildUrl(subcatPillsConfig.clearOverride as any) : `/category/${slug}`;
   const subcatIsAllActive = !subcatPillsConfig?.typeParam;
 
-  // Vehículos arrancan en vista lista (a pedido del usuario); el resto de las categorías sigue
-  // en grilla por defecto. sp.view, si viene en la URL, siempre gana.
-  const effectiveView = sp.view ?? (isVehicles ? "list" : "grid");
+  // Vehículos arrancan en lista en computadora y en grilla en celular (a pedido del usuario); el resto
+  // de las categorías, en grilla. El servidor no conoce el ancho de pantalla: se decide por el
+  // user-agent. sp.view, si viene en la URL, siempre gana.
+  const isMobileUA = /Mobi|Android|iPhone|iPod/i.test((await headers()).get("user-agent") ?? "");
+  const defaultView = isVehicles && !isMobileUA ? "list" : "grid";
+  const effectiveView = sp.view ?? defaultView;
 
   // Paginado — 20 por página. La vista lista arma filas altas (foto grande + specs +
   // descripción), así que un número más alto haría la página demasiado larga; en grilla son
@@ -3367,10 +3371,10 @@ export default async function CategoryPage({
                 options={isVehicles ? VEHICLE_ORDER_OPTIONS : undefined}
               />
 
-              {/* Grid / List toggle — en vehículos la lista es la vista por defecto, así que ahí
-                  es "grilla" la que necesita el param explícito y "lista" la que lo limpia. */}
+              {/* Grid / List toggle — la vista por defecto (defaultView) limpia el param; la otra lo
+                  pone explícito. */}
               <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
-                <Link href={buildUrl({ view: isVehicles ? "grid" : undefined })} style={{ textDecoration: "none" }}>
+                <Link href={buildUrl({ view: defaultView === "grid" ? undefined : "grid" })} style={{ textDecoration: "none" }}>
                   <div title="Ver en grilla" style={{
                     padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center",
                     background: effectiveView === "grid" ? "#1d6fb8" : "#fff",
@@ -3382,7 +3386,7 @@ export default async function CategoryPage({
                     </svg>
                   </div>
                 </Link>
-                <Link href={buildUrl({ view: isVehicles ? undefined : "list" })} style={{ textDecoration: "none" }}>
+                <Link href={buildUrl({ view: defaultView === "list" ? undefined : "list" })} style={{ textDecoration: "none" }}>
                   <div title="Ver en lista" style={{
                     padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center",
                     background: effectiveView === "list" ? "#1d6fb8" : "#fff",

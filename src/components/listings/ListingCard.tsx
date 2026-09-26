@@ -165,7 +165,7 @@ export function ListingCard({
           )}
 
           {featured_level === "gold" && (
-            <div style={{
+            <div className="lc-badge" style={{
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#eab308,#fde047)",
               color: "#713f12", borderRadius: "20px", padding: "3px 10px",
@@ -176,7 +176,7 @@ export function ListingCard({
             </div>
           )}
           {featured_level === "silver" && (
-            <div style={{
+            <div className="lc-badge" style={{
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#1d6fb8,#4d94d1)",
               color: "#fff", borderRadius: "20px", padding: "3px 10px",
@@ -187,7 +187,7 @@ export function ListingCard({
             </div>
           )}
           {featured_level === "bronze" && (
-            <div style={{
+            <div className="lc-badge" style={{
               position: "absolute", top: "10px", left: "10px",
               background: "linear-gradient(135deg,#c2410c,#ea580c)",
               color: "#fff", borderRadius: "20px", padding: "3px 10px",
@@ -229,7 +229,7 @@ export function ListingCard({
             <>
               <button
                 type="button"
-                className="tap-44"
+                className="tap-44 lc-nav"
                 aria-label="Foto anterior"
                 onClick={prevPhoto}
                 style={{
@@ -243,7 +243,7 @@ export function ListingCard({
               </button>
               <button
                 type="button"
-                className="tap-44"
+                className="tap-44 lc-nav"
                 aria-label="Foto siguiente"
                 onClick={nextPhoto}
                 style={{
