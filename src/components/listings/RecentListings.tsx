@@ -56,12 +56,12 @@ export function RecentListings({
   return (
     <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid #f1f5f9" }}>
-        <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", display: "flex", alignItems: "center", gap: "7px" }}>
-          <Clock size={17} strokeWidth={1.9} color="#1d6fb8" />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", padding: "14px 16px", borderBottom: "1px solid #f1f5f9" }}>
+        <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", display: "flex", alignItems: "center", gap: "7px", minWidth: 0 }}>
+          <Clock size={17} strokeWidth={1.9} color="#1d6fb8" style={{ flexShrink: 0 }} />
           {title}
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
           {/* Toggle buttons */}
           <div style={{ display: "flex", border: "1.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
             <button
@@ -96,7 +96,8 @@ export function RecentListings({
               </svg>
             </button>
           </div>
-          <Link href={viewAllHref} style={{ fontSize: "12px", color: "#1d6fb8", textDecoration: "none", fontWeight: 600 }}>
+          {/* nowrap: en celulares angostos la flecha bajaba a otra línea */}
+          <Link href={viewAllHref} style={{ fontSize: "12px", color: "#1d6fb8", textDecoration: "none", fontWeight: 600, whiteSpace: "nowrap" }}>
             Ver todos →
           </Link>
         </div>

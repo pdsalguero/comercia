@@ -97,7 +97,7 @@ export function FeaturedCarousel({ title, items, href }: Props) {
               >›</button>
             </div>
           )}
-          <Link href={href} style={{ fontSize: "12px", color: "#1d6fb8", textDecoration: "none", fontWeight: 600 }}>
+          <Link href={href} style={{ fontSize: "12px", color: "#1d6fb8", textDecoration: "none", fontWeight: 600, whiteSpace: "nowrap" }}>
             Ver todos →
           </Link>
         </div>

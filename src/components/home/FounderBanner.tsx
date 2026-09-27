@@ -20,7 +20,7 @@ export function FounderBanner({ registered }: { registered: number }) {
         </span>
         {/* Versión de una línea para celular (globals.css) */}
         <span className="founder-banner-short">
-          {FOUNDER_PROGRAM.credits} destacados Premium gratis · quedan {left}
+          Los primeros {FOUNDER_PROGRAM.slots} vendedores reciben {FOUNDER_PROGRAM.credits} destacados Premium gratis · quedan {left}
         </span>
       </div>
       <span className="founder-banner-left">
