@@ -11,6 +11,8 @@ Los nombres de DNRPA pasan antes por fuentes/equivalencias.json ("SW4" → "Hilu
 Genera:
   src/data/catalogo/marcas.generated.ts   marcas por tipo (liviano, lo usan los formularios)
   src/data/catalogo/modelos.generated.ts  modelos por tipo y marca (lo sirve /api/vehiculos/modelos)
+  src/data/catalogo/valuaciones.generated.json  valuación por marca+modelo+año (/api/vehiculos/valuacion,
+                                          se le muestra al vendedor al publicar)
   datos/catalogo-revision.json            insumo de la página de revisión (pagina_revision.py)
 
 Los slugs de marca que ya existían se conservan: los avisos guardan attributes.brand con ese slug."""
@@ -189,9 +191,19 @@ def clean_moto_model(version):
 
 # dn[tipo][slug][modelo] = {"years": set, "versions": int}
 dn = C.defaultdict(lambda: C.defaultdict(lambda: C.defaultdict(lambda: {"years": set(), "versions": 0})))
+# Valuación por marca + modelo del sitio + año: [mínimo, máximo] entre sus versiones (al publicar se
+# muestra como rango, porque el formulario no pide versión). Clave: "slug|MODELO NORMALIZADO".
+vals = C.defaultdict(dict)
 stats = C.Counter()
 pending = []
-def add_dn(st, slug, bkey, modelo, years):
+def add_vals(slug, m, valores):
+    d = vals[f"{slug}|{norm(m)}"]
+    for y, v in valores.items():
+        y = "2026" if y == "0Km" else y
+        if not v: continue
+        lo, hi = d.get(y, (v, v))
+        d[y] = (min(lo, v), max(hi, v))
+def add_dn(st, slug, bkey, modelo, years, valores=None):
     if st in ("auto", "camioneta", "camion"):
         m = base_car_model(bkey, modelo)
         if not m: stats["sin modelo identificable"] += 1; return
@@ -202,6 +214,7 @@ def add_dn(st, slug, bkey, modelo, years):
             st, modelo = "cuatriciclo", re.sub(r"^CUATRICICLO\s+", "", modelo.upper())
         m = clean_moto_model(modelo)
     e = dn[st][slug][m]; e["years"] |= years; e["versions"] += 1
+    if valores: add_vals(slug, m, valores)
     stats[st] += 1
 
 for r in ROWS:
@@ -210,12 +223,12 @@ for r in ROWS:
     st = site_type(tipo, r["tipo_veh"])
     slug, bkey = slug_for_dnrpa(r["marca"]), brand_key(r["marca"])
     years = {int(y) for y in r["valores"] if y != "0Km"} | ({2026} if "0Km" in r["valores"] else set())
-    if st is None: pending.append((slug, bkey, modelo, years)); continue
-    add_dn(st, slug, bkey, modelo, years)
-for slug, bkey, modelo, years in pending:  # "SIN ESPECIFICACION": al tipo donde ya está ese modelo, o auto
+    if st is None: pending.append((slug, bkey, modelo, years, r["valores"])); continue
+    add_dn(st, slug, bkey, modelo, years, r["valores"])
+for slug, bkey, modelo, years, valores in pending:  # "SIN ESPECIFICACION": al tipo donde ya está ese modelo, o auto
     m = base_car_model(bkey, modelo)
     st = next((t for t in ("auto", "camioneta", "camion") if m and m in dn[t].get(slug, {})), "auto")
-    add_dn(st, slug, bkey, modelo, years)
+    add_dn(st, slug, bkey, modelo, years, valores)
 
 # ─── Unión ────────────────────────────────────────────────────────────────────
 # cat[tipo][slug] = {"label", "modelos": {norm: {"nombre", "origen", "desde", "hasta", "versiones"}}}
@@ -269,6 +282,11 @@ open(os.path.join(out_dir, "marcas.generated.ts"), "w", encoding="utf8", newline
 open(os.path.join(out_dir, "modelos.generated.ts"), "w", encoding="utf8", newline="\n").write(
     HEADER + "\nimport type { TipoCatalogo } from \"./marcas.generated\";\n\n"
     "export const MODELOS_CATALOGO: Record<TipoCatalogo, Record<string, string[]>> = " + json.dumps(modelos, ensure_ascii=False, separators=(",", ":")) + ";\n")
+
+# Valuaciones: JSON aparte, solo lo lee el servidor (/api/vehiculos/valuacion), no va al navegador
+json.dump({"vigencia": dnrpa["vigencia"], "valores": {k: {y: list(v) for y, v in sorted(d.items())} for k, d in sorted(vals.items())}},
+          open(os.path.join(out_dir, "valuaciones.generated.json"), "w", encoding="utf8", newline="\n"),
+          ensure_ascii=False, separators=(",", ":"))
 
 # ─── Insumo de la página de revisión ──────────────────────────────────────────
 rev = {"vigencia": dnrpa["vigencia"], "tipos": {}, "resumen": {}}

@@ -893,6 +893,23 @@ export default function NewListingPage() {
   const isPetAnimal = isPets && PET_ANIMAL_TYPES.includes(attrs.sub_category ?? "");
   const isPetProduct = isPets && !!attrs.sub_category && !isPetAnimal;
 
+  // Valuación fiscal DNRPA de marca + modelo + año: solo la ve el vendedor mientras publica (no se
+  // guarda ni se muestra en el aviso). null si no hay dato para esa combinación.
+  const [valuacion, setValuacion] = useState<{ min: number; max: number; vigencia: string | null } | null>(null);
+  useEffect(() => {
+    setValuacion(null);
+    if (!isVehicle || !attrs.brand || !attrs.model || !/^\d{4}$/.test(String(attrs.year ?? ""))) return;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      const qs = new URLSearchParams({ brand: attrs.brand, model: attrs.model, year: String(attrs.year) });
+      fetch(`/api/vehiculos/valuacion?${qs}`, { signal: ctrl.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => setValuacion(d && d.min ? d : null))
+        .catch(() => {});
+    }, 400); // el modelo se puede escribir a mano: esperar a que termine
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [isVehicle, attrs.brand, attrs.model, attrs.year]);
+
   const vehicleModels = useMemo(() => getModels(attrs.brand ?? ""), [attrs.brand]);
   const marcasFiltradas = useMemo(() => {
     const tipo = attrs.sub_category;
@@ -2996,6 +3013,19 @@ export default function NewListingPage() {
                   </div>
                 )}
 
+                {valuacion && (
+                  <div role="note" style={{ marginTop: "12px", padding: "10px 12px", borderRadius: "8px", background: C.slate50, border: `1px solid ${C.slate200}` }}>
+                    <div style={{ fontSize: "13px", color: C.slate800 }}>
+                      <strong>Valuación fiscal DNRPA{valuacion.vigencia ? ` (vigente desde ${valuacion.vigencia})` : ""}:</strong>{" "}
+                      {valuacion.min === valuacion.max
+                        ? `$ ${valuacion.min.toLocaleString("es-AR")}`
+                        : `entre $ ${valuacion.min.toLocaleString("es-AR")} y $ ${valuacion.max.toLocaleString("es-AR")} según la versión`}
+                    </div>
+                    <div style={{ fontSize: "12px", color: C.slate500, marginTop: "3px", lineHeight: 1.45 }}>
+                      Es el valor que usan el Registro y la provincia para calcular la transferencia. No es un precio de mercado. Solo lo ves vos.
+                    </div>
+                  </div>
+                )}
 
 
                 {/* Precio a consultar — opción prominente */}

@@ -4,6 +4,7 @@ Genera las listas de marcas y modelos que usan el formulario de publicar, la edi
 
 - `src/data/catalogo/marcas.generated.ts`: marcas por tipo (auto, camioneta, moto, cuatriciclo, utv, camion).
 - `src/data/catalogo/modelos.generated.ts`: modelos por tipo y marca. Los sirve `/api/vehiculos/modelos`.
+- `src/data/catalogo/valuaciones.generated.json`: valuación fiscal por marca, modelo y año (mínimo y máximo entre versiones). La sirve `/api/vehiculos/valuacion` y solo la ve el vendedor al publicar.
 
 **No edites esos archivos a mano.** Se regeneran con este script.
 
@@ -29,7 +30,7 @@ Requiere Python 3 con `pdfplumber` (`pip install pdfplumber`).
 
 1. **Descargar el PDF vigente.** Está enlazado en https://www.dnrpa.gov.ar/valuacion/cons_valuacion.php (link `informacion/DD-MM-AAAA.pdf`). Guardarlo como `datos/tabla-dnrpa.pdf`.
 2. **Convertirlo a datos:** `python parsear_dnrpa.py`. Genera `datos/dnrpa.json` con unas 18.000 versiones.
-3. **Armar el catálogo:** `python construir_catalogo.py`. Regenera los dos `.generated.ts`.
+3. **Armar el catálogo:** `python construir_catalogo.py`. Regenera los dos `.generated.ts` y `valuaciones.generated.json`.
 4. **Revisar (opcional):** `python pagina_revision.py`. Abrí `datos/catalogo-revision.html` para recorrer el catálogo marca por marca.
 5. **Corregir errores**, si aparece un nombre mal armado:
    - agregá una equivalencia en `fuentes/equivalencias.json`;
