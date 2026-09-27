@@ -30,6 +30,7 @@ import { PropertyMap } from "./PropertyMapWrapper";
 import { TransferCostCard } from "@/components/listings/TransferCostCard";
 import { provinceKeysOf } from "@/lib/landing-stock";
 import { listingLocationFull, listingProvince } from "@/lib/listing-location";
+import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
 import { PriceHistory, type PriceChange } from "@/components/listings/PriceHistory";
 import { getDolarOficial } from "@/lib/dolar";
 import { vehicleKind } from "@/lib/transfer-cost";
@@ -680,15 +681,23 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <div style={{ background: "#fff", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.08)" }}>
 
               {/* Header: time + views + title + specs */}
-              <div style={{ padding: "18px 20px 0" }}>
-                <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ padding: "18px 20px 0", position: "relative" }}>
+                {/* Favorito: corazón arriba a la derecha (no se muestra en vendidos ni en avisos propios) */}
+                {!isSold && (
+                  <div style={{ position: "absolute", top: "14px", right: "16px" }}>
+                    <FavoriteButton listingId={listing.id} variant="icon" />
+                  </div>
+                )}
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "8px", display: "flex", alignItems: "center", gap: "10px", paddingRight: "44px" }}>
                   <span>Publicado {timeAgo(listing.created_at)}</span>
+                  {SHOW_PUBLIC_VIEW_COUNT && (
                   <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                     {plural(listing.view_count ?? 0, "vista", "vistas")}
                   </span>
+                  )}
                 </div>
                 {(() => {
                   const fl = (listing as any).featured_level as string | null;
@@ -779,14 +788,18 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
                 {/* CTAs pegados al precio: antes estaban en la tarjeta del vendedor y en notebooks quedaban
                     debajo del pliegue (había que scrollear para encontrar cómo contactar). */}
+                {/* Compartir es un ícono al final de esta fila (antes era un botón suelto abajo, desalineado) */}
                 {isSold ? (
-                  <Link href={similarHref} style={{
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    minHeight: "44px", marginBottom: "8px", borderRadius: "8px",
-                    background: "#1d6fb8", color: "#fff", fontSize: "14px", fontWeight: 700, textDecoration: "none",
-                  }}>
-                    Ver similares disponibles
-                  </Link>
+                  <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                    <Link href={similarHref} style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                      minHeight: "44px", borderRadius: "8px",
+                      background: "#1d6fb8", color: "#fff", fontSize: "14px", fontWeight: 700, textDecoration: "none",
+                    }}>
+                      Ver similares disponibles
+                    </Link>
+                    <ShareButton iconOnly listingId={listing.id} title={listing.title} price={listing.price} currency={listing.currency} />
+                  </div>
                 ) : (
                 <div id="detail-cta" style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                   {/* Sin WhatsApp visible no se muestra el botón (antes quedaba uno gris que no hacía nada);
@@ -814,13 +827,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     sellerId={userId}
                     sellerName={sellerName}
                   />
+                  <ShareButton iconOnly listingId={listing.id} title={listing.title} price={listing.price} currency={listing.currency} />
                 </div>
                 )}
-
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  {!isSold && <FavoriteButton listingId={listing.id} variant="detail" />}
-                  <ShareButton listingId={listing.id} title={listing.title} price={listing.price} currency={listing.currency} />
-                </div>
               </div>
             </div>
 
@@ -829,7 +838,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               <div style={{ padding: "16px 20px" }}>
 
                 {/* Seller info — compact */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <AvatarWithFallback
                     src={profile?.is_store ? profile.store_logo_url : profile?.avatar_url}
                     name={profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
@@ -885,33 +894,17 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       </div>
                     )}
                     {reviewCount > 0 && <div style={{ marginTop: "2px" }}><StarRating rating={avgRating} count={reviewCount} size={11} /></div>}
+                    {/* En su propia línea: al costado le quitaba lugar al nombre en celulares angostos */}
+                    <Link
+                      href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
+                      style={{ display: "inline-block", marginTop: "6px", fontSize: "13px", color: "#2563eb", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}
+                    >
+                      Ver sus vehículos →
+                    </Link>
                   </div>
-                  <Link
-                    href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
-                    style={{ fontSize: "12px", color: "#2563eb", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
-                  >
-                    Ver {profile?.is_store ? "tienda" : "perfil"} →
-                  </Link>
                 </div>
-
-                {/* Ver más productos del vendedor */}
-                <Link
-                  href={profile?.is_store && profile.store_slug ? `/tienda/${profile.store_slug}` : `/seller/${userId}`}
-                  style={{
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                    marginTop: "8px", padding: "9px", width: "100%", boxSizing: "border-box",
-                    border: "1.5px solid #e2e8f0", borderRadius: "8px",
-                    fontSize: "13px", fontWeight: 600, color: "#475569",
-                    textDecoration: "none", background: "#f8fafc",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                  </svg>
-                  Ver más publicaciones de {profile?.is_store ? (profile.store_name ?? sellerName) : sellerName}
-                </Link>
-
+                {/* Antes había además un botón "Ver más publicaciones de …" que iba a la misma página que
+                    "Ver perfil": era redundante (el perfil muestra sus avisos). */}
               </div>
 
               {/* Denunciar — solo para no-owners */}

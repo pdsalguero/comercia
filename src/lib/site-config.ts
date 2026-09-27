@@ -14,6 +14,16 @@ export const DEFAULT_CATEGORY_SLUG = "vehicles";
 // si se cambia allá, cambiar estos valores también, porque son los que se muestran en el sitio.
 export const FOUNDER_PROGRAM = { slots: 100, credits: 10 } as const;
 
+// Etapa de lanzamiento (2026-09): con poco tráfico, "0 vistas" o "3 vistas" le dice al comprador que
+// al sitio no entra nadie. Las vistas se ocultan en tarjetas, listas y ficha; el vendedor las sigue
+// viendo en su panel y el orden "Más vistas" sigue funcionando.
+export const SHOW_PUBLIC_VIEW_COUNT = false;
+
+// Directorio de concesionarias (/tiendas): mientras no haya ninguna cargada se sacan sus links del
+// menú, del pie, de los accesos rápidos y del sitemap (la página sigue existiendo). "Sumá tu
+// concesionaria" queda siempre. Poner en true cuando se sume la primera.
+export const SHOW_STORES_DIRECTORY = false;
+
 export function isCategoryEnabled(id: number | null | undefined): boolean {
   return id != null && ENABLED_CATEGORY_IDS.includes(id);
 }

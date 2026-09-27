@@ -7,7 +7,7 @@ import { Logo } from "@/components/ui/Logo";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
-import { isCategorySlugEnabled } from "@/lib/site-config";
+import { isCategorySlugEnabled, SHOW_STORES_DIRECTORY } from "@/lib/site-config";
 import { VehicleNavMenu } from "@/components/layout/VehicleNavMenu";
 import { parseLandingPath } from "@/lib/vehicle-landing";
 import {
@@ -319,10 +319,12 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
                 Avisos
               </Link>
             )}
-            <Link href="/tiendas" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
-              className="hover:text-indigo-600 transition-colors">
-              Concesionarias
-            </Link>
+            {SHOW_STORES_DIRECTORY && (
+              <Link href="/tiendas" style={{ fontSize: "14px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}
+                className="hover:text-indigo-600 transition-colors">
+                Concesionarias
+              </Link>
+            )}
           </div>
 
           <Suspense fallback={null}>
@@ -788,7 +790,8 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
               </div>
             )}
 
-            {/* Tabs: Avisos | Concesionarias */}
+            {/* Tabs: Avisos | Concesionarias (sin concesionarias no se muestran: una sola pestaña no suma) */}
+            {SHOW_STORES_DIRECTORY && (
             <div style={{ display: "flex", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
               {[
                 { label: "Avisos", href: "/listings" },
@@ -813,6 +816,7 @@ export function Navbar({ user: serverUser, hideSearch, initialUnreadCount = 0, l
                 </Link>
               ))}
             </div>
+            )}
 
             {/* Body */}
             <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "10px" }}>

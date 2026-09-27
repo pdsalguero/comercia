@@ -11,6 +11,7 @@ import { SaleTermsBadges } from "./SaleTermsBadges";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 import { listingProvince } from "@/lib/listing-location";
+import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
 import type { BreadcrumbChip } from "@/lib/listing-breadcrumbs";
 import { CONDITION_LABELS as BASE_CONDITION_LABELS, fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, plural, timeAgo } from "@/lib/labels";
 
@@ -373,7 +374,7 @@ export function ListingListCard({
                   </span>
                 );
               })()}
-              {view_count != null && view_count > 0 && (
+              {SHOW_PUBLIC_VIEW_COUNT && view_count != null && view_count > 0 && (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", color: "#cbd5e1" }}>
                   <Eye size={11} strokeWidth={2} /> {plural(view_count, "vista", "vistas")}
                 </span>

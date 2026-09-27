@@ -8,6 +8,7 @@ import { PriceDropBadge } from "./PriceDropBadge";
 import { SaleTermsBadges } from "./SaleTermsBadges";
 import PinIcon from "@/components/ui/PinIcon";
 import { listingProvince } from "@/lib/listing-location";
+import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
 import { listingUrl } from "@/lib/listing-url";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, timeAgo } from "@/lib/labels";
@@ -339,7 +340,7 @@ export function ListingCard({
             {/* Row 2: views (left) + date (right) — fixed height so all cards align */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "18px" }}>
               <div>
-                {view_count != null && view_count > 0 && (
+                {SHOW_PUBLIC_VIEW_COUNT && view_count != null && view_count > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#aaa" }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>

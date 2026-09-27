@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { absoluteUrl } from "@/lib/site-url";
 import { listingUrl } from "@/lib/listing-url";
 
@@ -9,16 +10,18 @@ interface Props {
   title: string;
   price?: number | null;
   currency?: string;
+  /** Solo el ícono (cuadrado, al lado de "Contactar" en la ficha); el nombre queda en aria-label */
+  iconOnly?: boolean;
 }
 
-export function ShareButton({ listingId, title, price, currency }: Props) {
-  const [open, setCopied_open]   = useState(false);
-  const [copied, setCopied]       = useState(false);
-  const ref                       = useRef<HTMLDivElement>(null);
-
-  // alias for clarity
-  const open2   = open;
-  const setOpen = setCopied_open;
+export function ShareButton({ listingId, title, price, currency, iconOnly = false }: Props) {
+  const [open, setOpen]     = useState(false);
+  const [copied, setCopied] = useState(false);
+  const ref                 = useRef<HTMLDivElement>(null);
+  const popRef              = useRef<HTMLDivElement>(null);
+  // El menú se dibuja en <body> con posición fija, anclado al botón: dentro de la tarjeta de la ficha
+  // (overflow: hidden) quedaba cortado.
+  const [anchor, setAnchor] = useState<{ bottom: number; right: number } | null>(null);
 
   const priceStr  = price ? ` — ${currency === "USD" ? "U$D" : "$"} ${Number(price).toLocaleString("es-AR")}` : "";
   const shareText = `${title}${priceStr}`;
@@ -35,10 +38,24 @@ export function ShareButton({ listingId, title, price, currency }: Props) {
   };
 
   useEffect(() => {
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    if (!open) return;
+    const h = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!ref.current?.contains(t) && !popRef.current?.contains(t)) setOpen(false);
+    };
+    const close = () => setOpen(false); // al scrollear o redimensionar se perdería el anclaje
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, []);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", h);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
 
   const copyLink = async () => {
     const u = getUrl();
@@ -56,44 +73,55 @@ export function ShareButton({ listingId, title, price, currency }: Props) {
     if (isMobile && "share" in navigator) {
       (navigator as any).share({ title, text: shareText, url: getUrl() }).catch(() => {});
     } else {
+      const r = ref.current?.getBoundingClientRect();
+      if (r) setAnchor({ bottom: window.innerHeight - r.top + 10, right: Math.max(8, window.innerWidth - r.right) });
       setOpen(v => !v);
     }
   };
 
   return (
-    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
+    <div ref={ref} style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
       {/* Trigger */}
-      <button onClick={handleTrigger} style={{
-        display: "flex", alignItems: "center", gap: "6px",
-        padding: "9px 14px", background: "#f8fafc", color: "#475569",
-        border: "1px solid #e2e8f0", borderRadius: "8px",
-        fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-      }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <button
+        type="button"
+        onClick={handleTrigger}
+        aria-label="Compartir aviso"
+        aria-expanded={open}
+        title="Compartir"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+          ...(iconOnly ? { width: "42px", height: "100%", minHeight: "42px", padding: 0 } : { padding: "9px 14px" }),
+          background: "#f8fafc", color: "#475569",
+          border: "1px solid #e2e8f0", borderRadius: "8px",
+          fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+        }}
+      >
+        <svg width={iconOnly ? 17 : 14} height={iconOnly ? 17 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
         </svg>
-        Compartir
+        {!iconOnly && "Compartir"}
       </button>
 
       {/* Popover — row of icon buttons */}
-      {open2 && (
-        <div style={{
-          position: "absolute", bottom: "calc(100% + 10px)", right: 0,
+      {open && anchor && createPortal(
+        <div ref={popRef} role="dialog" aria-label="Compartir aviso" style={{
+          position: "fixed", bottom: `${anchor.bottom}px`, right: `${anchor.right}px`,
+          maxWidth: `calc(100vw - ${anchor.right + 8}px)`, boxSizing: "border-box",
           background: "#fff", borderRadius: "12px",
           border: "1px solid #e2e8f0",
           boxShadow: "0 4px 20px rgba(0,0,0,0.13)",
           zIndex: 300, padding: "12px 14px",
           display: "flex", flexDirection: "column", gap: "10px",
-          minWidth: "max-content",
+          width: "max-content",
         }}>
           {/* Arrow */}
-          <div style={{ position: "absolute", bottom: "-6px", right: "22px", width: "12px", height: "12px", background: "#fff", border: "1px solid #e2e8f0", transform: "rotate(45deg)", borderTop: "none", borderLeft: "none" }} />
+          <div style={{ position: "absolute", bottom: "-6px", right: iconOnly ? "15px" : "22px", width: "12px", height: "12px", background: "#fff", border: "1px solid #e2e8f0", transform: "rotate(45deg)", borderTop: "none", borderLeft: "none" }} />
 
           <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px" }}>Compartir aviso</div>
 
           {/* Icon row */}
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
 
             {/* Copy link */}
             <IconBtn onClick={copyLink} label={copied ? "¡Copiado!" : "Copiar link"} bg={copied ? "#f0fdf4" : "#f1f5f9"}>
@@ -144,7 +172,8 @@ export function ShareButton({ listingId, title, price, currency }: Props) {
             </IconBtn>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

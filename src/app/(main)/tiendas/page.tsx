@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { Store } from "lucide-react";
 import { absoluteUrl } from "@/lib/site-url";
+import { SHOW_STORES_DIRECTORY } from "@/lib/site-config";
 
 // Sin "verificados": todavía no hay un proceso para verificar tiendas (el sello store_verified solo se
 // muestra si alguien lo marca a mano).
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary", title: "Concesionarias — CuyoRodados", description: "Concesionarias de Mendoza, San Juan y San Luis." },
+  // Vacía mientras no haya concesionarias: que Google no la indexe (ver SHOW_STORES_DIRECTORY)
+  ...(SHOW_STORES_DIRECTORY ? {} : { robots: { index: false, follow: true } }),
 };
 
 export const dynamic = "force-dynamic";

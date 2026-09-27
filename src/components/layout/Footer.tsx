@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { FooterAccountLinks } from "@/components/layout/FooterAccountLinks";
+import { SHOW_STORES_DIRECTORY } from "@/lib/site-config";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -41,7 +42,7 @@ export function Footer() {
               <div style={{ fontSize: "12px", fontWeight: 700, color: "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "7px" }}>Explorar</div>
               {[
                 { label: "Avisos", href: "/listings" },
-                { label: "Concesionarias", href: "/tiendas" },
+                ...(SHOW_STORES_DIRECTORY ? [{ label: "Concesionarias", href: "/tiendas" }] : []),
                 { label: "Categorías", href: "/" },
                 { label: "Destacados", href: "/upgrade" },
                 { label: "Costo de transferencia", href: "/costo-transferencia" },

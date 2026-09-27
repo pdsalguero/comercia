@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { MetadataRoute } from "next";
 import { listingUrl } from "@/lib/listing-url";
-import { ENABLED_CATEGORY_IDS, ENABLED_CATEGORY_SLUGS } from "@/lib/site-config";
+import { ENABLED_CATEGORY_IDS, ENABLED_CATEGORY_SLUGS, SHOW_STORES_DIRECTORY } from "@/lib/site-config";
 import { SITE_URL } from "@/lib/site-url";
 import { getLandingCounts } from "@/lib/landing-stock";
 
@@ -64,7 +64,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
-    { url: `${SITE_URL}/tiendas`, changeFrequency: "weekly", priority: 0.6 },
+    // Directorio de concesionarias: fuera del sitemap mientras esté vacío (ver SHOW_STORES_DIRECTORY)
+    ...(SHOW_STORES_DIRECTORY ? [{ url: `${SITE_URL}/tiendas`, changeFrequency: "weekly" as const, priority: 0.6 }] : []),
     { url: `${SITE_URL}/costo-transferencia`, changeFrequency: "monthly", priority: 0.7 },
     ...categoryUrls,
     ...landingUrls,
