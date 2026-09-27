@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camera, Car, CarFront, Motorbike, Store, Building2, Calculator } from "lucide-react";
+import { Camera, Car, CarFront, Motorbike, Store, Building2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SHOW_STORES_DIRECTORY } from "@/lib/site-config";
 
@@ -13,11 +13,10 @@ const ACTIONS: {
   { Icon: Car,       bg: "#eff6ff", fg: "#2563eb", title: "Ver autos",            sub: "Usados y nuevos",           href: "/autos" },
   { Icon: CarFront,  bg: "#ecfdf5", fg: "#059669", title: "Pickups y SUV",        sub: "Utilitarios y 4x4",         href: "/pickups-suv" },
   { Icon: Motorbike, bg: "#fff1f2", fg: "#e11d48", title: "Ver motos",            sub: "Calle, enduro y más",       href: "/motos" },
-  // Sin concesionarias cargadas, en su lugar va el costo de transferencia (diferencial del sitio).
   // No decir "verificadas": no hay proceso de verificación de tiendas todavía.
-  SHOW_STORES_DIRECTORY
-    ? { Icon: Store,      bg: "#f5f3ff", fg: "#7c3aed", title: "Concesionarias",         sub: "Concesionarias de Cuyo",       href: "/tiendas" }
-    : { Icon: Calculator, bg: "#f5f3ff", fg: "#7c3aed", title: "Costo de transferencia", sub: "Cuánto sale en cada provincia", href: "/costo-transferencia" },
+  ...(SHOW_STORES_DIRECTORY
+    ? [{ Icon: Store, bg: "#f5f3ff", fg: "#7c3aed", title: "Concesionarias", sub: "Concesionarias de Cuyo", href: "/tiendas" }]
+    : []),
   { Icon: Building2, bg: "#fffbeb", fg: "#d97706", title: "Sumá tu concesionaria", sub: "Tienda propia y tu stock", href: "/dashboard/store" },
 ];
 
@@ -25,7 +24,7 @@ export function QuickActions() {
   return (
     <section className="home-section home-quick-actions">
       <h2 className="home-section-title">¿Qué querés hacer hoy?</h2>
-      <div className="home-quick-grid">
+      <div className="home-quick-grid" style={{ "--quick-cols": ACTIONS.length } as React.CSSProperties}>
         {ACTIONS.map(({ Icon, bg, fg, title, sub, href, highlight }) => (
           <Link
             key={title}

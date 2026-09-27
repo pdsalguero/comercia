@@ -59,7 +59,7 @@ export default async function CostoTransferenciaPage() {
         <ul style={{ margin: 0, paddingLeft: "20px", listStyle: "disc", display: "flex", flexDirection: "column", gap: "6px" }}>
           <li style={S.li}>
             <strong>Arancel del Registro Automotor (DNRPA):</strong> 1% del valor del vehículo, igual en todo el país, con un
-            mínimo fijo para autos y motos baratos.
+            mínimo fijo para autos y motos baratos. Ya incluye el título, la cédula y dos certificaciones de firma.
           </li>
           <li style={S.li}>
             <strong>Impuesto de sellos provincial:</strong> Mendoza 1% (0,5% si comprás a una concesionaria con factura),
@@ -78,7 +78,12 @@ export default async function CostoTransferenciaPage() {
       <div style={S.card}>
         <h2 style={S.h2}>Qué no incluye y quién paga</h2>
         <p style={S.p}>
-          No incluye formularios, la verificación policial, el grabado de autopartes ni una gestoría si la usás. Lo más común es que el
+          No incluye la verificación policial, el grabado de autopartes, deudas de patente o multas, ni una gestoría si la usás. Para el
+          monto exacto con la patente del vehículo está el{" "}
+          <a href="https://www2.jus.gov.ar/dnrpa-site/#!/estimador" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>
+            estimador de costos de la DNRPA
+          </a>
+          . Lo más común es que el
           comprador pague el arancel y los sellos, y el vendedor se ocupe de tener al día la VTV, la verificación y el libre deuda de patente.
         </p>
         <p style={{ ...S.p, margin: 0 }}>

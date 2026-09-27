@@ -254,7 +254,7 @@ a { color: inherit; text-decoration: none; }
 }
 .home-quick-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--quick-cols, 6), minmax(0, 1fr));
   gap: 12px;
 }
 .home-types-grid {

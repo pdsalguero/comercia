@@ -26,7 +26,7 @@ function CostRow({ r }: { r: TransferEstimate }) {
         <span style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a", whiteSpace: "nowrap" }}>{ars(r.total)}</span>
       </div>
       <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>
-        Registro {ars(r.registry)} + sellos {ars(r.stamps)} · {r.note}
+        Registro {ars(r.registry)} + sellos {ars(r.stamps)} ({r.note})
       </div>
     </div>
   );
@@ -51,8 +51,8 @@ export function TransferCostCard({ price, currency, kind, dolarVenta, dolarFecha
       </div>
       <div style={{ fontSize: "12.5px", color: "#64748b", marginTop: "2px" }}>
         {where
-          ? `Estimado para registrar este vehículo en ${where}, donde está publicado. Normalmente lo paga el comprador.`
-          : "Estimado para este vehículo según la provincia donde lo registres. Normalmente lo paga el comprador."}
+          ? `Costo aproximado para registrar este vehículo en ${where}, donde está publicado. Normalmente lo paga el comprador.`
+          : "Costo aproximado para este vehículo según la provincia donde lo registres. Normalmente lo paga el comprador."}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
@@ -71,14 +71,20 @@ export function TransferCostCard({ price, currency, kind, dolarVenta, dolarFecha
       )}
 
       <p style={{ fontSize: "12px", color: "#94a3b8", margin: "10px 0 0", lineHeight: 1.5 }}>
-        Calculado sobre el precio publicado{isUsd ? `, pasado a pesos con el ${dolarQuoteLabel(dolarVenta!, dolarFecha)}` : ""}. El Registro y la provincia cobran
-        sobre el mayor entre ese precio y la{" "}
-        <a href="https://www.dnrpa.gov.ar/valuacion/cons_valuacion.php" target="_blank" rel="noopener noreferrer" style={{ color: "#64748b" }}>
-          valuación oficial
-        </a>
-        , así que puede ser algo más. No incluye formularios, verificación policial ni gestoría. Alícuotas vigentes a {TRANSFER_RATES_AS_OF}.{" "}
+        Es un costo aproximado, calculado sobre el precio publicado{isUsd ? `, pasado a pesos con el ${dolarQuoteLabel(dolarVenta!, dolarFecha)}` : ""}.
+        El Registro y la provincia cobran sobre el mayor entre ese precio y la valuación oficial, así que puede ser algo más.
+        El arancel ya incluye título, cédula y certificaciones de firma; no incluye verificación policial, deudas ni gestoría.
+        Alícuotas vigentes a {TRANSFER_RATES_AS_OF}.{" "}
         <Link href="/costo-transferencia" style={{ color: "#2563eb" }}>Más detalles</Link>
       </p>
+      <a
+        href="https://www2.jus.gov.ar/dnrpa-site/#!/estimador"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", fontWeight: 600, color: "#2563eb" }}
+      >
+        Calculá el costo exacto con la patente en la DNRPA ↗
+      </a>
     </div>
   );
 }

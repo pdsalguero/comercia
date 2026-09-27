@@ -33,20 +33,20 @@ const PROVINCE_RULES: ProvinceRule[] = [
     key: "mendoza",
     label: "Mendoza",
     stampRate: 0.01,
-    note: "Sellos 1% (0,5% si le comprás a una concesionaria con factura).",
+    note: "1%, o 0,5% si le comprás a una concesionaria con factura",
   },
   {
     key: "san-juan",
     label: "San Juan",
     stampRate: 0.004 * 1.2,
-    note: "Sellos 0,40% más 20% de adicional para acción social.",
+    note: "0,40% más 20% de adicional para acción social",
   },
   {
     key: "san-luis",
     label: "San Luis",
     stampRate: 0.005,
     stampMin: { auto: 7540, moto: 3900 },
-    note: "Sellos 0,5%, con un mínimo fijo.",
+    note: "0,5%, con un mínimo fijo",
   },
 ];
 

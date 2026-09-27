@@ -80,8 +80,7 @@ export function TransferCalculator({ dolarVenta, dolarFecha }: { dolarVenta: num
               <div style={{ fontSize: "24px", fontWeight: 800, color: "#0f172a", margin: "4px 0 6px" }}>{ars(r.total)}</div>
               <div style={{ fontSize: "12.5px", color: "#64748b", lineHeight: 1.5 }}>
                 Registro: {ars(r.registry)}<br />
-                Sellos: {ars(r.stamps)}<br />
-                <span style={{ color: "#94a3b8" }}>{r.note}</span>
+                Sellos: {ars(r.stamps)} <span style={{ color: "#94a3b8" }}>({r.note})</span>
               </div>
             </div>
           ))}
