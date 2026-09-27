@@ -28,6 +28,7 @@ import { ViewTracker } from "@/components/listings/ViewTracker";
 import { StarRating } from "@/components/ui/StarRating";
 import { PropertyMap } from "./PropertyMapWrapper";
 import { TransferCostCard } from "@/components/listings/TransferCostCard";
+import { BuyerChecklist } from "@/components/listings/BuyerChecklist";
 import { provinceKeysOf } from "@/lib/landing-stock";
 import { listingLocationFull, listingProvince } from "@/lib/listing-location";
 import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
@@ -657,6 +658,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 provinces={provinceKeysOf({ zone: attrs.zone, city: listing.city, neighborhood: listing.neighborhood })}
               />
             ) : null}
+
+            {/* Controles antes de comprar, con los organismos de la provincia del aviso */}
+            {isVehicle && !isSold && (
+              <BuyerChecklist provinces={provinceKeysOf({ zone: attrs.zone, city: listing.city, neighborhood: listing.neighborhood })} />
+            )}
 
             {/* Map */}
             {hasMap && (
