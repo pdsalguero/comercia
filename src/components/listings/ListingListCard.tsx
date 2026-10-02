@@ -11,7 +11,7 @@ import { SaleTermsBadges } from "./SaleTermsBadges";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { listingUrl } from "@/lib/listing-url";
 import { listingProvince } from "@/lib/listing-location";
-import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
+import { SHOW_PUBLIC_LISTING_AGE, SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
 import type { BreadcrumbChip } from "@/lib/listing-breadcrumbs";
 import { CONDITION_LABELS as BASE_CONDITION_LABELS, fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, plural, timeAgo } from "@/lib/labels";
 
@@ -357,7 +357,7 @@ export function ListingListCard({
               (.llc-wa) para no ocupar una fila propia. */}
           <div className="llc-footer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: "2px", gap: "10px" }}>
             <div className="llc-meta" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              {mounted && created_at && (() => {
+              {SHOW_PUBLIC_LISTING_AGE && mounted && created_at && (() => {
                 const hasBump = bumped_at && new Date(bumped_at).getTime() - new Date(created_at).getTime() > 3600 * 1000;
                 return hasBump ? (
                   <>

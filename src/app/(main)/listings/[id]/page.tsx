@@ -31,7 +31,7 @@ import { TransferCostCard } from "@/components/listings/TransferCostCard";
 import { BuyerChecklist } from "@/components/listings/BuyerChecklist";
 import { provinceKeysOf } from "@/lib/landing-stock";
 import { listingLocationFull, listingProvince } from "@/lib/listing-location";
-import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
+import { SHOW_PUBLIC_LISTING_AGE, SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
 import { PriceHistory, type PriceChange } from "@/components/listings/PriceHistory";
 import { getDolarOficial } from "@/lib/dolar";
 import { vehicleKind } from "@/lib/transfer-cost";
@@ -694,8 +694,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     <FavoriteButton listingId={listing.id} variant="icon" />
                   </div>
                 )}
+                {(SHOW_PUBLIC_LISTING_AGE || SHOW_PUBLIC_VIEW_COUNT) && (
                 <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "8px", display: "flex", alignItems: "center", gap: "10px", paddingRight: "44px" }}>
-                  <span>Publicado {timeAgo(listing.created_at)}</span>
+                  {SHOW_PUBLIC_LISTING_AGE && <span>Publicado {timeAgo(listing.created_at)}</span>}
                   {SHOW_PUBLIC_VIEW_COUNT && (
                   <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -705,6 +706,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   </span>
                   )}
                 </div>
+                )}
                 {(() => {
                   const fl = (listing as any).featured_level as string | null;
                   if (!fl) return null;
@@ -727,7 +729,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     </div>
                   );
                 })()}
-                <h1 style={{ fontSize: "18px", fontWeight: 700, color: "#1e293b", lineHeight: 1.3, margin: "0 0 12px" }}>
+                <h1 style={{ fontSize: "18px", fontWeight: 700, color: "#1e293b", lineHeight: 1.3, margin: "0 0 12px", paddingRight: isSold ? 0 : "44px" }}>
                   {listing.title}
                 </h1>
                 {quickSpecs.length > 0 && (

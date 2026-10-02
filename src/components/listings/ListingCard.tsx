@@ -8,7 +8,7 @@ import { PriceDropBadge } from "./PriceDropBadge";
 import { SaleTermsBadges } from "./SaleTermsBadges";
 import PinIcon from "@/components/ui/PinIcon";
 import { listingProvince } from "@/lib/listing-location";
-import { SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
+import { SHOW_PUBLIC_LISTING_AGE, SHOW_PUBLIC_VIEW_COUNT } from "@/lib/site-config";
 import { listingUrl } from "@/lib/listing-url";
 import { storageImg, fallbackToOriginal } from "@/lib/storage-image";
 import { fuelLabel as toFuelLabel, transmissionLabel as toTransmissionLabel, timeAgo } from "@/lib/labels";
@@ -81,7 +81,7 @@ export function ListingCard({
   const prevPhoto = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPhotoIndex((i) => (i - 1 + gallery.length) % gallery.length); };
   const nextPhoto = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPhotoIndex((i) => (i + 1) % gallery.length); };
   useEffect(() => {
-    if (!created_at) return;
+    if (!SHOW_PUBLIC_LISTING_AGE || !created_at) return;
     setDateLabel(isToday(created_at) ? "today" : timeAgo(created_at));
   }, [created_at]);
   const year = attributes?.year;
@@ -338,6 +338,7 @@ export function ListingCard({
               {locationLabel && <><PinIcon size={11} /><span>{locationLabel}</span></>}
             </div>
             {/* Row 2: views (left) + date (right) — fixed height so all cards align */}
+            {(SHOW_PUBLIC_VIEW_COUNT || SHOW_PUBLIC_LISTING_AGE) && (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "18px" }}>
               <div>
                 {SHOW_PUBLIC_VIEW_COUNT && view_count != null && view_count > 0 && (
@@ -375,6 +376,7 @@ export function ListingCard({
                 )}
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>

@@ -19,6 +19,11 @@ export const FOUNDER_PROGRAM = { slots: 100, credits: 10 } as const;
 // viendo en su panel y el orden "Más vistas" sigue funcionando.
 export const SHOW_PUBLIC_VIEW_COUNT = false;
 
+// Antigüedad del aviso ("hace 2 meses", "Publicado hoy"): con pocos avisos, una fecha vieja hace parecer
+// el sitio abandonado. Se oculta en tarjetas, listas y ficha; el dueño la sigue viendo en su panel y
+// el orden "Más recientes" sigue funcionando.
+export const SHOW_PUBLIC_LISTING_AGE = false;
+
 // Directorio de concesionarias (/tiendas): mientras no haya ninguna cargada se sacan sus links del
 // menú, del pie, de los accesos rápidos y del sitemap (la página sigue existiendo). "Sumá tu
 // concesionaria" queda siempre. Poner en true cuando se sume la primera.
